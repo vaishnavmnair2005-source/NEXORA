@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | NEXORA MediTwin Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; }
+
+        /* ═══════════════════════════════════════════════════
+           ROLE THEMES
+        ═══════════════════════════════════════════════════ */
+
+        /* ── Default / Casual (Blue-Indigo) ── */
+        body {
+            --clr-primary:        #6366f1;
+            --clr-primary-dark:   #4f46e5;
+            --clr-primary-light:  #8b5cf6;
+            --clr-bg-base:        #f5f7fa;
+            --clr-bg-end:         #e9ecef;
+            --clr-radial-1:       rgba(14,  165, 233, 0.07);
+            --clr-radial-2:       rgba(99,  102, 241, 0.07);
+            --clr-grid-v:         rgba(99,  102, 241, 0.025);
+            --clr-grid-h:         rgba(14,  165, 233, 0.025);
+            --clr-banner-from:    #eef2ff;
+            --clr-banner-to:      #dbeafe;
+            --clr-banner-border:  #c7d2fe;
+            --clr-banner-text:    #3730a3;
+            --clr-banner-icon:    #6366f1;
+            --clr-avatar-from:    #6366f1;
+            --clr-avatar-to:      #8b5cf6;
+            --clr-avatar-ring:    rgba(99, 102, 241, 0.2);
+            --clr-avatar-glow:    rgba(99, 102, 241, 0.3);
+            --clr-focus-ring:     rgba(99, 102, 241, 0.12);
+            --clr-focus-border:   #6366f1;
+            --clr-btn-from:       #6366f1;
+            --clr-btn-to:         #8b5cf6;
+            --clr-btn-shadow:     rgba(99, 102, 241, 0.3);
+            --clr-btn-shadow-hov: rgba(99, 102, 241, 0.4);
+            --clr-outline-clr:    #6366f1;
+            --clr-badge-from:     #dbeafe;
+            --clr-badge-to:       #bfdbfe;
+            --clr-badge-text:     #1e40af;
+        }
+
+        /* ── Doctor (Violet-Pink) ── */
+        body.theme-doctor {
+            --clr-primary:        #7c3aed;
+            --clr-primary-dark:   #6d28d9;
+            --clr-primary-light:  #ec4899;
+            --clr-bg-base:        #fdf4ff;
+            --clr-bg-end:         #f5e6fb;
+            --clr-radial-1:       rgba(236, 72,  153, 0.08);
+            --clr-radial-2:       rgba(124, 58,  237, 0.08);
+            --clr-grid-v:         rgba(124, 58,  237, 0.025);
+            --clr-grid-h:         rgba(236, 72,  153, 0.025);
+            --clr-banner-from:    #fdf4ff;
+            --clr-banner-to:      #fce7f3;
+            --clr-banner-border:  #f0abfc;
+            --clr-banner-text:    #701a75;
+            --clr-banner-icon:    #a21caf;
+            --clr-avatar-from:    #7c3aed;
+            --clr-avatar-to:      #ec4899;
+            --clr-avatar-ring:    rgba(236, 72, 153, 0.2);
+            --clr-avatar-glow:    rgba(236, 72, 153, 0.3);
+            --clr-focus-ring:     rgba(124, 58, 237, 0.12);
+            --clr-focus-border:   #7c3aed;
+            --clr-btn-from:       #7c3aed;
+            --clr-btn-to:         #ec4899;
+            --clr-btn-shadow:     rgba(124, 58, 237, 0.3);
+            --clr-btn-shadow-hov: rgba(124, 58, 237, 0.4);
+            --clr-outline-clr:    #7c3aed;
+            --clr-badge-from:     #fce7f3;
+            --clr-badge-to:       #fbcfe8;
+            --clr-badge-text:     #be185d;
+        }
+
+        /* ── Caregiver (Emerald-Teal) ── */
+        body.theme-caregiver {
+            --clr-primary:        #059669;
+            --clr-primary-dark:   #047857;
+            --clr-primary-light:  #10b981;
+            --clr-bg-base:        #f0fdf8;
+            --clr-bg-end:         #e6f9f3;
+            --clr-radial-1:       rgba(16,  185, 129, 0.08);
+            --clr-radial-2:       rgba(5,   150, 105, 0.08);
+            --clr-grid-v:         rgba(16,  185, 129, 0.03);
+            --clr-grid-h:         rgba(20,  184, 166, 0.03);
+            --clr-banner-from:    #ecfdf5;
+            --clr-banner-to:      #d1fae5;
+            --clr-banner-border:  #6ee7b7;
+            --clr-banner-text:    #064e3b;
+            --clr-banner-icon:    #059669;
+            --clr-avatar-from:    #059669;
+            --clr-avatar-to:      #10b981;
+            --clr-avatar-ring:    rgba(16, 185, 129, 0.2);
+            --clr-avatar-glow:    rgba(16, 185, 129, 0.3);
+            --clr-focus-ring:     rgba(16, 185, 129, 0.12);
+            --clr-focus-border:   #059669;
+            --clr-btn-from:       #059669;
+            --clr-btn-to:         #10b981;
+            --clr-btn-shadow:     rgba(16, 185, 129, 0.3);
+            --clr-btn-shadow-hov: rgba(16, 185, 129, 0.45);
+            --clr-outline-clr:    #059669;
+            --clr-badge-from:     #d1fae5;
+            --clr-badge-to:       #a7f3d0;
+            --clr-badge-text:     #065f46;
+        }
+
+        .medical-pattern {
+            background: linear-gradient(135deg, var(--clr-bg-base) 0%, var(--clr-bg-end) 100%);
+            background-image:
+                radial-gradient(circle at 10% 20%, var(--clr-radial-1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, var(--clr-radial-2) 0%, transparent 50%),
+                linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.8) 100%);
+            position: relative;
+        }
+        .medical-pattern::before {
+            content: '';
+            position: absolute; top:0; left:0; right:0; bottom:0;
+            background-image:
+                repeating-linear-gradient(0deg,   transparent, transparent 2px, var(--clr-grid-v) 2px, var(--clr-grid-v) 4px),
+                repeating-linear-gradient(90deg,  transparent, transparent 2px, var(--clr-grid-h) 2px, var(--clr-grid-h) 4px);
+            pointer-events: none;
+        }
+
+        /* ── BANNER ── */
+        .role-banner {
+            background: linear-gradient(135deg, var(--clr-banner-from), var(--clr-banner-to));
+            border-bottom: 1px solid var(--clr-banner-border);
+            padding: 0.625rem 1.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .role-banner-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.875rem;
+            color: var(--clr-banner-icon);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+        }
+        .role-banner-label { font-size: 0.875rem; font-weight: 700; color: var(--clr-banner-text); }
+        .role-banner-sub { font-size: 0.75rem; font-weight: 500; color: var(--clr-banner-text); opacity: 0.7; }
+        .role-banner-pill {
+            margin-left: auto; padding: 0.25rem 0.875rem;
+            border-radius: 9999px; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            background: white; color: var(--clr-banner-icon);
+            border: 1px solid var(--clr-banner-border);
+        }
+
+        /* ── PANELS & INPUTS ── */
+        .glass-panel {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        }
+        .glass-panel:hover {
+            box-shadow: 0 12px 48px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+            transform: translateY(-2px);
+        }
+        .profile-input {
+            width: 100%; padding: 0.875rem 1.125rem;
+            border: 2px solid #e2e8f0; border-radius: 0.875rem;
+            background: #f8fafc; color: #64748b;
+            font-size: 0.9375rem; font-family: 'Inter', sans-serif;
+            font-weight: 500; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); outline: none;
+        }
+        .profile-input:disabled { cursor: not-allowed; opacity: 0.7; background: #f1f5f9; }
+        .profile-input.editable { background: white; border-color: #cbd5e1; color: #0f172a; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .profile-input.editable:focus {
+            border-color: var(--clr-focus-border);
+            box-shadow: 0 0 0 4px var(--clr-focus-ring), 0 4px 12px var(--clr-focus-ring);
+            transform: translateY(-1px);
+        }
+        .profile-input.is-invalid { border-color: #ef4444 !important; background: #fef2f2 !important; animation: shake 0.4s; }
+        .profile-input.is-valid   { border-color: #10b981 !important; background: #f0fdf4 !important; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+        select.profile-input {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.5rem;
+        }
+
+        /* ── LABELS & ERRORS ── */
+        .field-label {
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .field-label i { font-size: 0.875rem; color: #94a3b8; }
+        .field-error {
+            color: #ef4444; font-size: 0.75rem; font-weight: 600;
+            margin-top: 0.375rem; margin-left: 0.25rem;
+            display: none; animation: fadeInDown 0.3s;
+        }
+        .field-error.visible { display: flex; align-items: center; gap: 0.375rem; }
+        @keyframes fadeInDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── AVATAR ── */
+        .avatar-ring {
+            width: 110px; height: 110px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--clr-avatar-from), var(--clr-avatar-to));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.75rem; color: white; font-weight: 800; flex-shrink: 0;
+            box-shadow: 0 0 0 6px rgba(255,255,255,0.95), 0 0 0 8px var(--clr-avatar-ring), 0 8px 24px var(--clr-avatar-glow);
+            position: relative;
+        }
+        .avatar-ring::after {
+            content: ''; position: absolute; inset: -8px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--clr-avatar-from), var(--clr-avatar-to));
+            opacity: 0.1; filter: blur(8px); z-index: -1;
+        }
+
+        .role-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1.125rem; border-radius: 9999px;
+            font-size: 0.8125rem; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-transform: uppercase; letter-spacing: 0.05em;
+            background: linear-gradient(135deg, var(--clr-badge-from), var(--clr-badge-to));
+            color: var(--clr-badge-text);
+        }
+        .section-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.375rem; flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* ── BUTTONS ── */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--clr-btn-from), var(--clr-btn-to));
+            color: white; padding: 0.875rem 2rem;
+            border-radius: 0.875rem; font-weight: 600; font-size: 0.9375rem; border: none; cursor: pointer;
+            transition: all 0.3s; box-shadow: 0 4px 12px var(--clr-btn-shadow), 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px var(--clr-btn-shadow-hov), 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-outline {
+            background: white; color: var(--clr-outline-clr);
+            padding: 0.875rem 2rem; border-radius: 0.875rem;
+            font-weight: 600; font-size: 0.9375rem;
+            border: 2px solid var(--clr-outline-clr); cursor: pointer; transition: all 0.3s;
+        }
+        .btn-outline:hover { background: var(--clr-outline-clr); color: white; transform: translateY(-2px); }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; top: 2rem; right: 2rem; z-index: 9999;
+            border-radius: 1rem; padding: 1.125rem 1.75rem;
+            display: flex; align-items: center; gap: 1rem;
+            font-weight: 600; font-size: 0.9375rem;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateX(calc(100% + 3rem));
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+            min-width: 320px; backdrop-filter: blur(12px);
+        }
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: linear-gradient(135deg,#10b981,#059669); color: white; }
+        .toast-error   { background: linear-gradient(135deg,#ef4444,#dc2626); color: white; }
+
+        /* ── PASSWORD STRENGTH ── */
+        .strength-bar { height:5px; border-radius:3px; background:#e2e8f0; transition:all 0.3s; }
+        .strength-weak   { background: linear-gradient(90deg,#ef4444,#dc2626); }
+        .strength-fair   { background: linear-gradient(90deg,#f59e0b,#d97706); }
+        .strength-good   { background: linear-gradient(90deg,#3b82f6,#2563eb); }
+        .strength-strong { background: linear-gradient(90deg,#10b981,#059669); }
+        .req-item { transition:all 0.25s; padding:0.375rem 0; border-left:3px solid transparent; padding-left:0.75rem; }
+        .req-item.met { color:#10b981; border-left-color:#10b981; }
+        .req-item.met i { color:#10b981; }
+
+        .skeleton { background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:0.75rem; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        .credential-alert { background:linear-gradient(135deg,#fef3c7,#fde68a); border-left:4px solid #f59e0b; padding:1rem 1.25rem; border-radius:0.75rem; margin-bottom:1.5rem; box-shadow:0 2px 8px rgba(245,158,11,0.15); }
+        .credential-alert.error { background:linear-gradient(135deg,#fee2e2,#fecaca); border-left-color:#ef4444; }
+
+        .cg-priority-pill { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.875rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .cg-priority-pill.primary   { background:#dcfce7; color:#166534; }
+        .cg-priority-pill.secondary { background:#f1f5f9; color:#475569; }
+        .cg-priority-pill .dot { width:6px; height:6px; border-radius:50%; }
+        .cg-priority-pill.primary .dot { background:#16a34a; animation:dotPulse 1.8s ease infinite; }
+        .cg-priority-pill.secondary .dot { background:#94a3b8; }
+        @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
+
+        #pwSection, #d_pwSection, #cg_pwSection, #c_pwSection { display: none; }
+    </style>
+</head>
+<body class="min-h-screen medical-pattern">
+
+<div id="toast" class="toast toast-success">
+    <i class="fas fa-check-circle text-2xl"></i>
+    <div>
+        <p id="toastTitle" class="font-bold text-base">Profile Updated!</p>
+        <p id="toastSub"   class="text-sm opacity-90">Changes saved successfully</p>
+    </div>
+</div>
+
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm backdrop-blur-lg bg-white/95">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 hover:opacity-80 transition">
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center overflow-hidden shadow-lg">
+                <img src="/static/images/company_logo.png" alt="Logo" class="w-7 h-7 object-contain"
+                     onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-heartbeat text-white\' style=\'font-size:1.1rem\'></i>'">
+            </div>
+            <div>
+                <div class="text-lg font-bold text-slate-900 leading-none">NEXORA</div>
+                <div class="text-xs text-slate-500 font-medium">MediTwin Platform</div>
+            </div>
+        </a>
+        <a href="/logout" class="text-sm font-semibold text-red-600 hover:text-red-700 hover:underline transition flex items-center gap-2">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</nav>
+
+<div id="roleBanner" class="role-banner" style="display:none;">
+    <div class="role-banner-icon"><i id="bannerIcon" class="fas fa-user"></i></div>
+    <div>
+        <div class="role-banner-label" id="bannerLabel">My Profile</div>
+        <div class="role-banner-sub"  id="bannerSub">Manage your account</div>
+    </div>
+    <span class="role-banner-pill" id="bannerPill">User</span>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="mb-8">
+        <h1 class="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">My Profile</h1>
+        <p class="text-slate-600 text-lg">Manage your account information and settings</p>
+    </div>
+
+    <div id="loadingState" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1"><div class="glass-panel rounded-2xl p-8"><div class="skeleton h-28 w-28 mx-auto rounded-full mb-4"></div><div class="skeleton h-6 w-3/4 mx-auto mb-2"></div><div class="skeleton h-4 w-1/2 mx-auto"></div></div></div>
+        <div class="lg:col-span-2"><div class="glass-panel rounded-2xl p-8"><div class="skeleton h-8 w-1/3 mb-6"></div><div class="space-y-4"><div class="skeleton h-12 w-full"></div><div class="skeleton h-12 w-full"></div><div class="skeleton h-12 w-full"></div></div></div></div>
+    </div>
+
+    <div id="casualProfile" style="display:none;" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="flex flex-col items-center">
+                    <div class="avatar-ring mb-4" id="c_avatar">U</div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2 text-center" id="c_displayName">User Name</h2>
+                    <span class="role-badge mb-4"><i class="fas fa-user"></i>Casual User</span>
+                    <div class="w-full pt-6 border-t border-slate-200 mt-4">
+                        <div class="flex items-center gap-3 text-sm text-slate-600 mb-3">
+                            <i class="fas fa-envelope w-5"></i>
+                            <span id="c_emailDisplay" class="font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-600"><i class="fas fa-user-circle"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Personal Information</h3><p class="text-sm text-slate-500">Update your basic details</p></div>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-id-card"></i> Full Name</label>
+                            <input type="text" id="c_full_name" class="profile-input" disabled value="">
+                            <div id="c_name_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Name must contain only letters, spaces, and periods</div>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone"></i> Phone Number</label>
+                            <input type="tel" id="c_phone" class="profile-input" disabled value="" placeholder="10-digit number">
+                            <div id="c_phone_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Phone must be exactly 10 digits</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="c_pwSection">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600"><i class="fas fa-lock"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Security</h3><p class="text-sm text-slate-500">Update your password</p></div>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-key"></i> New Password (Optional)</label>
+                            <input type="password" id="c_new_password" class="profile-input editable" placeholder="Enter new password">
+                            <div class="grid grid-cols-4 gap-2 mt-3 mb-3">
+                                <div id="c_bar1" class="strength-bar"></div><div id="c_bar2" class="strength-bar"></div><div id="c_bar3" class="strength-bar"></div><div id="c_bar4" class="strength-bar"></div>
+                            </div>
+                            <div class="text-xs space-y-1 text-slate-500">
+                                <div id="c_req_len"  class="req-item"><i class="fas fa-circle text-xs mr-2"></i>At least 8 characters</div>
+                                <div id="c_req_case" class="req-item"><i class="fas fa-circle text-xs mr-2"></i>Upper & lowercase letters</div>
+                                <div id="c_req_num"  class="req-item"><i class="fas fa-circle text-xs mr-2"></i>At least one number</div>
+                                <div id="c_req_spec" class="req-item"><i class="fas fa-circle text-xs mr-2"></i>At least one special character</div>
+                            </div>
+                            <div id="c_pw_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Password must meet all requirements</div>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-check-double"></i> Confirm Password</label>
+                            <input type="password" id="c_confirm_password" class="profile-input editable" placeholder="Re-enter password">
+                            <div id="c_confirm_pw_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Passwords do not match</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-8 pt-6 border-t border-slate-200">
+                    <button id="c_editBtn"   onclick="toggleEdit()"      class="btn-outline flex-1"><i class="fas fa-edit mr-2"></i> Edit Profile</button>
+                    <button id="c_saveBtn"   onclick="saveProfile(event)" class="btn-primary flex-1" style="display:none;"><i class="fas fa-save mr-2"></i> Save Changes</button>
+                    <button id="c_cancelBtn" onclick="cancelEdit()"       class="btn-outline flex-1" style="display:none;"><i class="fas fa-times mr-2"></i> Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="doctorProfile" style="display:none;" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="flex flex-col items-center">
+                    <div class="avatar-ring mb-4" id="d_avatar">D</div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2 text-center" id="d_displayName">Doctor Name</h2>
+                    <span class="role-badge mb-4"><i class="fas fa-user-md"></i>Medical Professional</span>
+                    <div class="w-full pt-6 border-t border-slate-200 mt-4 space-y-3">
+                        <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-envelope w-5"></i><span id="d_emailDisplay" class="font-medium"></span></div>
+                        <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-id-badge w-5"></i><span id="d_doctorIdDisplay" class="font-medium"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-600"><i class="fas fa-user-circle"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Personal Information</h3><p class="text-sm text-slate-500">Update your basic details</p></div>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-id-card"></i> Full Name</label>
+                            <input type="text" id="d_full_name" class="profile-input" disabled value="">
+                            <div id="d_name_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Name must contain only letters, spaces, and periods</div>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone"></i> Phone Number</label>
+                            <input type="tel" id="d_phone" class="profile-input" disabled value="" placeholder="10-digit number">
+                            <div id="d_phone_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Phone must be exactly 10 digits</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-pink-50 to-rose-50 text-pink-600"><i class="fas fa-stethoscope"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Professional Credentials</h3><p class="text-sm text-slate-500">Manage your medical credentials</p></div>
+                    </div>
+                    <div id="credentialAlert" class="credential-alert" style="display:none;"><div class="flex items-start gap-3"><i class="fas fa-exclamation-triangle text-amber-600 mt-1"></i><div><p class="font-semibold text-amber-900 mb-1">Credential Validation Required</p><p class="text-sm text-amber-800">Your name must match the authorized name for your Doctor ID</p></div></div></div>
+                    <div id="credentialErrorAlert" class="credential-alert error" style="display:none;"><div class="flex items-start gap-3"><i class="fas fa-times-circle text-red-600 mt-1"></i><div><p class="font-semibold text-red-900 mb-1">Validation Failed</p><p class="text-sm text-red-800" id="credentialErrorMsg"></p></div></div></div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-id-badge"></i> Doctor ID</label>
+                            <input type="text" id="d_doctor_id" class="profile-input" disabled value="" placeholder="NEX-DOC-XXX">
+                            <div id="d_doctor_id_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Invalid Doctor ID or name mismatch</div>
+                        </div>
+                        <div><label class="field-label"><i class="fas fa-certificate"></i> License Number</label><input type="text" id="d_license" class="profile-input" disabled value=""></div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-heartbeat"></i> Specialization</label>
+                            <select id="d_specialization" class="profile-input" disabled><option value="">Select Specialization</option><option>Cardiology</option><option>Neurology</option><option>Orthopedics</option><option>Pediatrics</option><option>Radiology</option><option>General Practice</option><option>Surgery</option><option>Dermatology</option><option>Psychiatry</option><option>Oncology</option><option>Other</option></select>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-hospital"></i> Hospital Affiliation</label>
+                            <select id="d_hospital" class="profile-input" disabled><option value="">Select Hospital</option><option value="City General Hospital">City General Hospital</option><option value="Mayo Clinic">Mayo Clinic</option><option value="Cleveland Clinic">Cleveland Clinic</option><option value="Johns Hopkins Hospital">Johns Hopkins Hospital</option><option value="NEXORA Medical Center">NEXORA Medical Center</option><option value="Private Practice">Private Practice</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div id="d_pwSection">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-purple-50 to-pink-50 text-purple-600"><i class="fas fa-lock"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Change Password</h3><p class="text-sm text-slate-500">Leave blank to keep current password</p></div>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-key"></i> New Password (Optional)</label>
+                            <input type="password" id="d_new_password" class="profile-input editable" placeholder="Enter new password">
+                            <div class="grid grid-cols-4 gap-2 mt-3 mb-3"><div id="d_bar1" class="strength-bar"></div><div id="d_bar2" class="strength-bar"></div><div id="d_bar3" class="strength-bar"></div><div id="d_bar4" class="strength-bar"></div></div>
+                            <div class="text-xs space-y-1 text-slate-500"><div id="d_req_len" class="req-item"><i class="fas fa-circle text-xs mr-2"></i>At least 8 characters</div><div id="d_req_case" class="req-item"><i class="fas fa-circle text-xs mr-2"></i>Upper & lowercase letters</div><div id="d_req_num" class="req-item"><i class="fas fa-circle text-xs mr-2"></i>At least one number</div><div id="d_req_spec" class="req-item"><i class="fas fa-circle text-xs mr-2"></i>At least one special character</div></div>
+                            <div id="d_pw_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Password must meet all requirements</div>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-check-double"></i> Confirm Password</label>
+                            <input type="password" id="d_confirm_password" class="profile-input editable" placeholder="Re-enter password">
+                            <div id="d_confirm_pw_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Passwords do not match</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-8 pt-6 border-t border-slate-200">
+                    <button id="d_editBtn" onclick="toggleEdit()" class="btn-outline flex-1"><i class="fas fa-edit mr-2"></i> Edit Profile</button>
+                    <button id="d_saveBtn" onclick="saveProfile(event)" class="btn-primary flex-1" style="display:none;"><i class="fas fa-save mr-2"></i> Save Changes</button>
+                    <button id="d_cancelBtn" onclick="cancelEdit()" class="btn-outline flex-1" style="display:none;"><i class="fas fa-times mr-2"></i> Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="caregiverProfile" style="display:none;" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="flex flex-col items-center">
+                    <div class="avatar-ring mb-4" id="cg_avatar">CG</div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-1 text-center" id="cg_displayName">Caregiver Name</h2>
+                    <span class="role-badge mb-2"><i class="fas fa-user-shield"></i>Caregiver</span>
+                    <div class="cg-priority-pill primary mb-4" id="cg_priorityPill"><span class="dot"></span><span id="cg_priorityLabel">Primary Emergency Contact</span></div>
+                    <div class="w-full pt-5 border-t border-slate-200 mt-2 space-y-3">
+                        <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-envelope w-5"></i><span id="cg_emailDisplay" class="font-medium"></span></div>
+                        <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-people-roof w-5"></i><span id="cg_relationDisplay" class="font-medium">—</span></div>
+                        <div class="flex items-center gap-3 text-sm text-slate-600"><i class="fas fa-shield-halved w-5"></i><span class="font-medium">Full Monitoring Access</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-2">
+            <div class="glass-panel rounded-2xl p-8">
+                <div class="mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600"><i class="fas fa-address-card"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Contact Information</h3><p class="text-sm text-slate-500">Update your personal details</p></div>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="field-label"><i class="fas fa-id-card"></i> Full Name</label>
+                            <input type="text" id="cg_full_name" class="profile-input" disabled value="">
+                            <div id="cg_name_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Name must contain only letters, spaces, and periods</div>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-phone"></i> Phone Number</label>
+                            <input type="tel" id="cg_phone" class="profile-input" disabled value="" placeholder="10-digit number">
+                            <div id="cg_phone_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Phone must be exactly 10 digits</div>
+                        </div>
+                        <div>
+                            <label class="field-label"><i class="fas fa-people-roof"></i> Relationship to Patient</label>
+                            <input type="text" id="cg_relation" class="profile-input" disabled value="" placeholder="e.g. Wife, Brother, Friend">
+                            <div id="cg_relation_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Please enter your relationship to the patient</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="section-icon bg-gradient-to-br from-green-50 to-emerald-50 text-green-600"><i class="fas fa-shield-halved"></i></div>
+                        <div><h3 class="text-xl font-bold text-slate-900">Emergency Access</h3><p class="text-sm text-slate-500">Your monitoring permissions</p></div>
+                    </div>
+                    <div class="space-y-5">
+                        <div id="cg_priorityDisplay"><label class="field-label"><i class="fas fa-star"></i> Contact Priority</label><input type="text" id="cg_priorityInputDisplay" class="profile-input" disabled value=""></div>
+                        <div id="cg_priorityEdit" style="display:none;">
+                            <label class="field-label"><i class="fas fa-star"></i> Are you the primary caregiver?</label>
+                            <div class="flex gap-6 mt-2">
+                                <label class="flex items-center gap-2 cursor-pointer group"><input type="radio" name="cg_is_primary_radio" id="cg_primary_yes" value="yes" class="w-4 h-4 accent-emerald-500"><span class="text-sm font-medium text-slate-700 group-hover:text-emerald-700 transition"><i class="fas fa-star text-emerald-500 text-xs mr-1"></i>Yes, I am the primary caregiver</span></label>
+                                <label class="flex items-center gap-2 cursor-pointer group"><input type="radio" name="cg_is_primary_radio" id="cg_primary_no" value="no" class="w-4 h-4 accent-slate-400"><span class="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition">No, secondary caregiver</span></label>
+                            </div>
+                            <div id="cg_primary_err" class="field-error"><i class="fas fa-exclamation-circle"></i> Please select primary or secondary</div>
+                        </div>
+                        <div><label class="field-label"><i class="fas fa-lock-open"></i> Access Level</label><div class="relative"><input type="text" class="profile-input" disabled value="Full Monitoring Access"><span class="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle" style="font-size:0.65rem;"></i> Verified</span></div></div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-8 pt-6 border-t border-slate-200">
+                    <button id="cg_editBtn"   onclick="toggleEdit()"      class="btn-outline flex-1"><i class="fas fa-edit mr-2"></i> Edit Profile</button>
+                    <button id="cg_saveBtn"   onclick="saveProfile(event)" class="btn-primary flex-1" style="display:none;"><i class="fas fa-save mr-2"></i> Save Changes</button>
+                    <button id="cg_cancelBtn" onclick="cancelEdit()"       class="btn-outline flex-1" style="display:none;"><i class="fas fa-times mr-2"></i> Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    let currentRole  = null;
+    let isEditMode   = false;
+    let originalData = {};
+
+    const AUTHORIZED_DOCTORS = {
+        "NEX-DOC-001": "Dr. John Smith",
+        "NEX-DOC-002": "Dr. Jane Doe",
+        "NEX-DOC-003": "Dr. Gregory House",
+        "NEX-DOC-ADMIN": "Admin User"
+    };
+
+    const ROLE_CONFIG = {
+        casual: { bodyClass: '', bannerIcon: 'fa-user', bannerLabel: 'Personal Dashboard', bannerSub: 'Manage your personal health profile', bannerPill: 'Patient' },
+        doctor: { bodyClass: 'theme-doctor', bannerIcon: 'fa-user-md', bannerLabel: 'Medical Professional Portal', bannerSub: 'Manage your credentials and medical profile', bannerPill: 'Doctor' },
+        caregiver: { bodyClass: 'theme-caregiver', bannerIcon: 'fa-user-shield', bannerLabel: 'Caregiver Portal', bannerSub: 'Manage your emergency contact profile', bannerPill: 'Caregiver' }
+    };
+
+    function applyTheme(role) {
+        const cfg = ROLE_CONFIG[role];
+        if (!cfg) return;
+        document.body.classList.remove('theme-doctor', 'theme-caregiver');
+        if (cfg.bodyClass) document.body.classList.add(cfg.bodyClass);
+        const banner = document.getElementById('roleBanner');
+        banner.style.display = '';
+        document.getElementById('bannerIcon').className  = 'fas ' + cfg.bannerIcon;
+        document.getElementById('bannerLabel').textContent = cfg.bannerLabel;
+        document.getElementById('bannerSub').textContent   = cfg.bannerSub;
+        document.getElementById('bannerPill').textContent  = cfg.bannerPill;
+    }
+
+    async function loadProfile() {
+        try {
+            const res  = await fetch('/api/profile-data');
+            const data = await res.json();
+            if (res.ok) {
+                currentRole  = data.role;
+                originalData = { ...data };
+                document.getElementById('loadingState').style.display = 'none';
+                applyTheme(currentRole);
+                if (currentRole === 'casual')    populateCasual(data);
+                else if (currentRole === 'doctor')    populateDoctor(data);
+                else if (currentRole === 'caregiver') populateCaregiver(data);
+            } else {
+                showToast('Failed to load profile', 'error');
+                setTimeout(() => window.location.href = '/login', 2000);
+            }
+        } catch (err) { showToast('Network error', 'error'); }
+    }
+
+    function populateCasual(data) {
+        document.getElementById('casualProfile').style.display = 'grid';
+        const initials = data.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        document.getElementById('c_avatar').textContent      = initials;
+        document.getElementById('c_displayName').textContent = data.full_name;
+        document.getElementById('c_emailDisplay').textContent = data.email;
+        document.getElementById('c_full_name').value = data.full_name;
+        document.getElementById('c_phone').value     = data.phone || '';
+    }
+
+    function populateDoctor(data) {
+        document.getElementById('doctorProfile').style.display = 'grid';
+        const initials = data.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        document.getElementById('d_avatar').textContent       = initials;
+        document.getElementById('d_displayName').textContent  = data.full_name;
+        document.getElementById('d_emailDisplay').textContent = data.email;
+        document.getElementById('d_doctorIdDisplay').textContent = data.doctor_id || 'N/A';
+        document.getElementById('d_full_name').value      = data.full_name;
+        document.getElementById('d_phone').value          = data.phone || '';
+        document.getElementById('d_doctor_id').value      = data.doctor_id || '';
+        document.getElementById('d_license').value        = data.license_number || '';
+        document.getElementById('d_specialization').value = data.specialization || '';
+        document.getElementById('d_hospital').value       = data.hospital || '';
+    }
+
+    function populateCaregiver(data) {
+        document.getElementById('caregiverProfile').style.display = 'grid';
+        const initials = data.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        const isPrimary = data.is_primary === 'yes' || data.is_primary === 1 || data.is_primary === true;
+        document.getElementById('cg_avatar').textContent        = initials;
+        document.getElementById('cg_displayName').textContent   = data.full_name;
+        document.getElementById('cg_emailDisplay').textContent  = data.email;
+        document.getElementById('cg_relationDisplay').textContent = data.relation || '—';
+        const pill = document.getElementById('cg_priorityPill');
+        pill.className = 'cg-priority-pill mb-4 ' + (isPrimary ? 'primary' : 'secondary');
+        document.getElementById('cg_priorityLabel').textContent = isPrimary ? 'Primary Emergency Contact' : 'Secondary Contact';
+        document.getElementById('cg_full_name').value      = data.full_name;
+        document.getElementById('cg_phone').value          = data.phone || '';
+        document.getElementById('cg_relation').value       = data.relation || '';
+        document.getElementById('cg_priorityInputDisplay').value = isPrimary ? 'Primary Emergency Contact' : 'Secondary Contact';
+        document.getElementById('cg_primary_yes').checked = isPrimary;
+        document.getElementById('cg_primary_no').checked  = !isPrimary;
+    }
+
+    function toggleEdit() {
+        isEditMode = true;
+        if (currentRole === 'casual') {
+            ['c_full_name','c_phone'].forEach(id => enable(id));
+            document.getElementById('c_pwSection').style.display = 'block';
+            show('c_editBtn', false); show('c_saveBtn', true); show('c_cancelBtn', true);
+        } else if (currentRole === 'doctor') {
+            ['d_full_name','d_phone','d_doctor_id','d_license','d_specialization','d_hospital'].forEach(id => enable(id));
+            document.getElementById('credentialAlert').style.display = 'block';
+            document.getElementById('d_pwSection').style.display = 'block';
+            show('d_editBtn', false); show('d_saveBtn', true); show('d_cancelBtn', true);
+        } else if (currentRole === 'caregiver') {
+            ['cg_full_name','cg_phone','cg_relation'].forEach(id => enable(id));
+            document.getElementById('cg_priorityDisplay').style.display = 'none';
+            document.getElementById('cg_priorityEdit').style.display = 'block';
+            show('cg_editBtn', false); show('cg_saveBtn', true); show('cg_cancelBtn', true);
+        }
+    }
+
+    function cancelEdit() {
+        isEditMode = false;
+        document.querySelectorAll('.field-error').forEach(e => e.classList.remove('visible'));
+        if (currentRole === 'casual') {
+            populateCasual(originalData);
+            ['c_full_name','c_phone'].forEach(id => disable(id));
+            document.getElementById('c_new_password').value = '';
+            document.getElementById('c_confirm_password').value = '';
+            document.getElementById('c_pwSection').style.display = 'none';
+            show('c_editBtn', true); show('c_saveBtn', false); show('c_cancelBtn', false);
+        } else if (currentRole === 'doctor') {
+            populateDoctor(originalData);
+            ['d_full_name','d_phone','d_doctor_id','d_license','d_specialization','d_hospital'].forEach(id => disable(id));
+            document.getElementById('d_new_password').value = '';
+            document.getElementById('d_confirm_password').value = '';
+            document.getElementById('credentialAlert').style.display = 'none';
+            document.getElementById('d_pwSection').style.display = 'none';
+            show('d_editBtn', true); show('d_saveBtn', false); show('d_cancelBtn', false);
+        } else if (currentRole === 'caregiver') {
+            populateCaregiver(originalData);
+            ['cg_full_name','cg_phone','cg_relation'].forEach(id => disable(id));
+            document.getElementById('cg_priorityDisplay').style.display = '';
+            document.getElementById('cg_priorityEdit').style.display = 'none';
+            show('cg_editBtn', true); show('cg_saveBtn', false); show('cg_cancelBtn', false);
+        }
+    }
+
+    function enable(id) { const el = document.getElementById(id); if(el) { el.disabled = false; el.classList.add('editable'); } }
+    function disable(id) { const el = document.getElementById(id); if(el) { el.disabled = true; el.classList.remove('editable','is-invalid','is-valid'); } }
+    function show(id, visible) { const el = document.getElementById(id); if(el) el.style.display = visible ? '' : 'none'; }
+    function markField(id, valid) { const el = document.getElementById(id); if(!el) return; el.classList.remove('is-invalid','is-valid'); if(valid===true) el.classList.add('is-valid'); if(valid===false) el.classList.add('is-invalid'); }
+    function showErr(id, show) { const el = document.getElementById(id); if(el) el.classList.toggle('visible', show); }
+
+    function validateForm() {
+        let valid = true;
+        if (currentRole === 'casual') {
+            const name = document.getElementById('c_full_name').value.trim();
+            if (!/^[a-zA-Z\s\.]+$/.test(name) || !name) { markField('c_full_name', false); showErr('c_name_err', true); valid = false; }
+            if (!/^\d{10}$/.test(document.getElementById('c_phone').value)) { markField('c_phone', false); showErr('c_phone_err', true); valid = false; }
+            const pw = document.getElementById('c_new_password').value;
+            if (pw) {
+                const ok = pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw) && /[!@#$%^&*(),.?":{}|<>]/.test(pw);
+                if (!ok) { markField('c_new_password', false); showErr('c_pw_err', true); valid = false; }
+                if (document.getElementById('c_confirm_password').value !== pw) { markField('c_confirm_password', false); showErr('c_confirm_pw_err', true); valid = false; }
+            }
+        } else if (currentRole === 'doctor') {
+            const name = document.getElementById('d_full_name').value.trim();
+            if (!/^[a-zA-Z\s\.]+$/.test(name) || !name) { markField('d_full_name', false); showErr('d_name_err', true); valid = false; }
+            if (!/^\d{10}$/.test(document.getElementById('d_phone').value)) { markField('d_phone', false); showErr('d_phone_err', true); valid = false; }
+            const did = document.getElementById('d_doctor_id').value.trim();
+            if (did && !AUTHORIZED_DOCTORS[did]) { markField('d_doctor_id', false); showErr('d_doctor_id_err', true); valid = false; }
+            const pw = document.getElementById('d_new_password').value;
+            if (pw) {
+                const ok = pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /[0-9]/.test(pw) && /[!@#$%^&*(),.?":{}|<>]/.test(pw);
+                if (!ok) { markField('d_new_password', false); showErr('d_pw_err', true); valid = false; }
+                if (document.getElementById('d_confirm_password').value !== pw) { markField('d_confirm_password', false); showErr('d_confirm_pw_err', true); valid = false; }
+            }
+        } else if (currentRole === 'caregiver') {
+            const name = document.getElementById('cg_full_name').value.trim();
+            if (!/^[a-zA-Z\s\.]+$/.test(name) || !name) { markField('cg_full_name', false); showErr('cg_name_err', true); valid = false; }
+            if (!/^\d{10}$/.test(document.getElementById('cg_phone').value)) { markField('cg_phone', false); showErr('cg_phone_err', true); valid = false; }
+            if (!document.getElementById('cg_relation').value.trim()) { markField('cg_relation', false); showErr('cg_relation_err', true); valid = false; }
+        }
+        return valid;
+    }
+
+    async function saveProfile(e) {
+        e.preventDefault();
+        if (!isEditMode) return;
+        if (!validateForm()) { showToast('Please fix the errors below before saving', 'error'); return; }
+
+        const payload = new FormData();
+        let btnId = '';
+
+        if (currentRole === 'casual') {
+            payload.append('full_name', document.getElementById('c_full_name').value.trim());
+            payload.append('phone',     document.getElementById('c_phone').value);
+            const pw = document.getElementById('c_new_password').value;
+            if (pw) payload.append('new_password', pw);
+            btnId = 'c_saveBtn';
+        } else if (currentRole === 'doctor') {
+            payload.append('full_name', document.getElementById('d_full_name').value.trim());
+            payload.append('phone',     document.getElementById('d_phone').value);
+            const did = document.getElementById('d_doctor_id').value.trim();
+            if (did) payload.append('doctor_id', did);
+            const lic = document.getElementById('d_license').value.trim();
+            if (lic) payload.append('license_number', lic);
+            const spec = document.getElementById('d_specialization').value;
+            if (spec) payload.append('specialization', spec);
+            const hosp = document.getElementById('d_hospital').value;
+            if (hosp) payload.append('hospital', hosp);
+            const pw = document.getElementById('d_new_password').value;
+            if (pw) payload.append('new_password', pw);
+            btnId = 'd_saveBtn';
+        } else if (currentRole === 'caregiver') {
+            payload.append('full_name', document.getElementById('cg_full_name').value.trim());
+            payload.append('phone',     document.getElementById('cg_phone').value);
+            payload.append('relation',  document.getElementById('cg_relation').value.trim());
+            const primarySelected = document.querySelector('input[name="cg_is_primary_radio"]:checked');
+            if (primarySelected) payload.append('is_primary', primarySelected.value);
+            btnId = 'cg_saveBtn';
+        }
+
+        const btn = document.getElementById(btnId);
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving…';
+
+        try {
+            const res = await fetch('/api/update-profile', { method: 'POST', body: payload });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success') { showToast('Profile updated successfully!', 'success'); setTimeout(() => window.location.reload(), 1800); }
+                else throw new Error('Update failed');
+            } else {
+                const data = await res.json();
+                showToast(data.detail || 'Update failed', 'error');
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i> Save Changes';
+            }
+        } catch (err) {
+            showToast('Network error', 'error');
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-save mr-2"></i> Save Changes';
+        }
+    }
+
+    function showToast(msg, type = 'success', sub = '') {
+        const toast = document.getElementById('toast');
+        toast.className = 'toast toast-' + type;
+        document.getElementById('toastTitle').textContent = msg;
+        document.getElementById('toastSub').textContent   = sub || (type === 'success' ? 'Changes saved successfully' : 'Please try again.');
+        const icon = toast.querySelector('i');
+        icon.className = 'text-2xl fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    function attachNameValidation(fieldId, errId) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.addEventListener('input', function () { const v = this.value.trim(), ok = /^[a-zA-Z\s\.]+$/.test(v) && v.length > 0; markField(fieldId, ok); showErr(errId, !ok && v.length > 0); });
+    }
+    function attachPhoneValidation(fieldId, errId) {
+        const field = document.getElementById(fieldId);
+        if (!field) return;
+        field.addEventListener('input', function () { const ok = /^\d{10}$/.test(this.value); markField(fieldId, ok); showErr(errId, !ok && this.value.length > 0); });
+    }
+    function attachDoctorIdValidation() {
+        const nameField = document.getElementById('d_full_name'), didField  = document.getElementById('d_doctor_id');
+        if (!nameField || !didField) return;
+        function validate() {
+            const name = nameField.value.trim(), did = didField.value.trim();
+            if (!did || !name) { markField('d_doctor_id', null); showErr('d_doctor_id_err', false); return; }
+            if (!AUTHORIZED_DOCTORS[did] || AUTHORIZED_DOCTORS[did].toLowerCase() !== name.toLowerCase()) { markField('d_doctor_id', false); showErr('d_doctor_id_err', true); return; }
+            markField('d_doctor_id', true); showErr('d_doctor_id_err', false);
+        }
+        nameField.addEventListener('input', validate); didField.addEventListener('input', validate);
+    }
+    function attachPasswordStrength(pwId, confirmId, errId, confirmErrId, barPfx, reqPfx) {
+        const pw = document.getElementById(pwId), conf = document.getElementById(confirmId);
+        if (!pw || !conf) return;
+        pw.addEventListener('input', function () {
+            const v = this.value;
+            const reqs = { len: v.length >= 8, case: /[A-Z]/.test(v) && /[a-z]/.test(v), num: /[0-9]/.test(v), spec: /[!@#$%^&*(),.?":{}|<>]/.test(v) };
+            ['len','case','num','spec'].forEach(k => { const el = document.getElementById(reqPfx + '_' + k); if(el) { el.classList.toggle('met', reqs[k]); const ic = el.querySelector('i'); if(ic) { ic.classList.toggle('fa-check-circle', reqs[k]); ic.classList.toggle('fa-circle', !reqs[k]); } } });
+            const strength = Object.values(reqs).filter(Boolean).length;
+            ['1','2','3','4'].forEach((n, i) => { const bar = document.getElementById(barPfx + n); if(bar) { bar.className = 'strength-bar'; if(i < strength) bar.classList.add(['','strength-weak','strength-fair','strength-good','strength-strong'][strength]); } });
+            if (v.length > 0) { markField(pwId, strength === 4); showErr(errId, strength !== 4); } else { pw.classList.remove('is-invalid','is-valid'); showErr(errId, false); }
+        });
+        conf.addEventListener('input', function () { if (!pw.value) return; const ok = this.value === pw.value; markField(confirmId, ok); showErr(confirmErrId, this.value.length > 0 && !ok); });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadProfile();
+        attachNameValidation('c_full_name', 'c_name_err');
+        attachPhoneValidation('c_phone', 'c_phone_err');
+        attachPasswordStrength('c_new_password', 'c_confirm_password', 'c_pw_err', 'c_confirm_pw_err', 'c_bar', 'c_req');
+        
+        attachNameValidation('d_full_name', 'd_name_err');
+        attachPhoneValidation('d_phone', 'd_phone_err');
+        attachDoctorIdValidation();
+        attachPasswordStrength('d_new_password', 'd_confirm_password', 'd_pw_err', 'd_confirm_pw_err', 'd_bar', 'd_req');
+        
+        attachNameValidation('cg_full_name', 'cg_name_err');
+        attachPhoneValidation('cg_phone', 'cg_phone_err');
+    });
+</script>
+</body>
+</html>

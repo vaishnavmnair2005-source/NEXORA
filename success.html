@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Confirmed | NEXORA Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        .success-mesh {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .success-mesh::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
+            animation: rotate 60s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .success-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.15);
+        }
+        
+        .checkmark-circle {
+            animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        .checkmark-path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawCheck 0.8s ease forwards 0.3s;
+        }
+        
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        
+        .action-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .action-card:hover::before {
+            left: 100%;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .floating-particle {
+            position: absolute;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translate(-50px, -50px) rotate(180deg); opacity: 0.6; }
+        }
+        
+        .timeline-item {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .timeline-item:nth-child(1) { animation-delay: 0.8s; }
+        .timeline-item:nth-child(2) { animation-delay: 1s; }
+        .timeline-item:nth-child(3) { animation-delay: 1.2s; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="success-mesh min-h-screen flex items-center justify-center px-4 relative">
+    
+    <!-- Floating Particles -->
+    <div class="floating-particle" style="width: 100px; height: 100px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+    <div class="floating-particle" style="width: 60px; height: 60px; top: 60%; left: 80%; animation-delay: 2s;"></div>
+    <div class="floating-particle" style="width: 80px; height: 80px; top: 40%; left: 20%; animation-delay: 4s;"></div>
+    
+    <div class="max-w-4xl w-full relative z-10">
+        <div class="success-card rounded-[3rem] p-8 md:p-12" data-aos="zoom-in">
+            
+            <!-- Animated Success Icon -->
+            <div class="relative mb-8">
+                <div class="w-28 h-28 mx-auto relative checkmark-circle">
+                    <div class="absolute inset-0 bg-green-100 rounded-full pulse-ring"></div>
+                    <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-xl">
+                        <svg class="w-16 h-16 text-white" viewBox="0 0 52 52">
+                            <path class="checkmark-path" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14 27l8 8 16-16"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">Request Confirmed!</h1>
+                <p class="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                    Thank you for contacting <strong class="text-green-600">NEXORA</strong>. Your inquiry has been received and logged in our system.
+                </p>
+            </div>
+            
+            <!-- Info Cards -->
+            <div class="grid md:grid-cols-3 gap-4 mb-12">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200 text-center">
+                    <i class="fas fa-envelope-open-text text-green-600 text-3xl mb-3"></i>
+                    <h3 class="font-bold text-slate-900 mb-2">Confirmation Sent</h3>
+                    <p class="text-sm text-slate-600">Check your inbox</p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200 text-center">
+                    <i class="fas fa-clock text-blue-600 text-3xl mb-3"></i>
+                    <h3 class="font-bold text-slate-900 mb-2">Response Time</h3>
+                    <p class="text-sm text-slate-600">Within 24 hours</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 text-center">
+                    <i class="fas fa-user-md text-purple-600 text-3xl mb-3"></i>
+                    <h3 class="font-bold text-slate-900 mb-2">Clinical Team</h3>
+                    <p class="text-sm text-slate-600">Reviewing request</p>
+                </div>
+            </div>
+            
+            <!-- What Happens Next -->
+            <div class="bg-slate-50 rounded-2xl p-8 mb-12">
+                <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                    <i class="fas fa-route text-sky-600"></i>
+                    What Happens Next?
+                </h2>
+                <div class="space-y-4">
+                    <div class="timeline-item flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-200">
+                        <div class="w-10 h-10 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold shadow-lg">1</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-1">Email Confirmation</h4>
+                            <p class="text-sm text-slate-600">You'll receive an automated confirmation with your request details and tracking reference.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-200">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold shadow-lg">2</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-1">Team Review</h4>
+                            <p class="text-sm text-slate-600">Our clinical engineering team will assess your inquiry and prepare a personalized response.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item flex items-start gap-4 p-4 bg-white rounded-xl border border-slate-200">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold shadow-lg">3</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 mb-1">Direct Contact</h4>
+                            <p class="text-sm text-slate-600">A specialist will reach out via email or phone to discuss your needs and next steps.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Cards -->
+            <div class="grid md:grid-cols-2 gap-6 mb-10">
+                <a href="/help" class="action-card group p-8 rounded-2xl border-2 border-slate-200 hover:border-sky-300 bg-white text-left">
+                    <div class="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-question-circle text-white text-2xl"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-lg mb-2 group-hover:text-sky-600 transition">Visit Help Center</h4>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-3">Browse technical FAQs, troubleshooting guides, and system documentation.</p>
+                    <div class="flex items-center gap-2 text-sky-600 font-semibold text-sm">
+                        <span>Explore Resources</span>
+                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+                
+                <a href="/static/NEXORA MediTwin Documentation.pdf" download class="action-card group p-8 rounded-2xl border-2 border-slate-200 hover:border-teal-300 bg-white text-left">
+                    <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-medical text-white text-2xl"></i>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-lg mb-2 group-hover:text-teal-600 transition">Technical Documentation</h4>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-3">Download our comprehensive AI & hardware architecture whitepaper (PDF).</p>
+                    <div class="flex items-center gap-2 text-teal-600 font-semibold text-sm">
+                        <span>Download Now</span>
+                        <i class="fas fa-download group-hover:translate-y-1 transition-transform"></i>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Bottom CTA -->
+            <div class="text-center pt-8 border-t border-slate-200">
+                <a href="/" class="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg hover:shadow-xl">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Return to Dashboard</span>
+                </a>
+                <p class="text-xs text-slate-500 mt-4">
+                    <i class="fas fa-headset mr-1"></i>
+                    Need immediate assistance? Email us at <a href="mailto:support@nexora.tech" class="text-sky-600 font-semibold hover:underline">support@nexora.tech</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    </script>
+</body>
+</html>

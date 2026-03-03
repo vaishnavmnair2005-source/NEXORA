@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Security & Clinical Compliance | NEXORA Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-glow: rgba(14, 165, 233, 0.4);
+            --success-glow: rgba(16, 185, 129, 0.4);
+            --danger-glow: rgba(239, 68, 68, 0.4);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Rich Hero Background */
+        .hero-medical {
+            background: radial-gradient(circle at 10% 20%, rgb(15, 23, 42) 0%, rgb(30, 41, 59) 90%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-medical::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+            animation: rotateBg 60s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* Premium Security Cards */
+        .security-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        /* Animated Gradient Border on Hover */
+        .security-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, #0ea5e9, #06b6d4, #22d3ee);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        
+        .security-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.1), 0 10px 10px -5px rgba(14, 165, 233, 0.04);
+            border-color: #bae6fd;
+        }
+        
+        .security-card:hover::after {
+            transform: scaleX(1);
+        }
+        
+        /* Certification Badges */
+        .certification-badge {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .certification-badge:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+            transform: translateY(-5px);
+        }
+
+        /* Timeline / Steps */
+        .protocol-step {
+            position: relative;
+            padding-left: 5rem;
+        }
+        
+        .protocol-step::before {
+            content: '';
+            position: absolute;
+            left: 2rem;
+            top: 4rem;
+            bottom: -2rem;
+            width: 2px;
+            background: linear-gradient(to bottom, #e2e8f0 50%, transparent);
+            z-index: 0;
+        }
+        
+        .protocol-step:last-child::before { display: none; }
+        
+        .step-number {
+            position: absolute;
+            left: 0.25rem;
+            top: 0;
+            width: 3.5rem;
+            height: 3.5rem;
+            background: white;
+            border: 2px solid #0ea5e9;
+            color: #0ea5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            box-shadow: 0 0 0 4px #e0f2fe;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .protocol-step:hover .step-number {
+            background: #0ea5e9;
+            color: white;
+            box-shadow: 0 0 0 6px #bae6fd;
+        }
+        
+        /* Tech Grid */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+        }
+        
+        .tech-item {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .tech-item:hover {
+            border-color: #0ea5e9;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.15);
+        }
+        
+        /* Terminal Code Block */
+        .code-block {
+            background: #0f172a;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            font-family: 'Courier New', monospace;
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid #1e293b;
+        }
+
+        /* Mac Window Controls */
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 10px;
+            height: 10px;
+            background: #ff5f56;
+            border-radius: 50%;
+            box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+        }
+        
+        .code-block .keyword { color: #c084fc; font-weight: bold; } /* Purple */
+        .code-block .string { color: #4ade80; } /* Green */
+        .code-block .comment { color: #64748b; font-style: italic; } /* Gray */
+        .code-block .func { color: #38bdf8; } /* Blue */
+        
+        /* Colored Boxes */
+        .security-metric { background: #f0f9ff; border-left: 4px solid #0ea5e9; }
+        .info-box { background: #f0fdf4; border-left: 4px solid #22c55e; border-radius: 0.75rem; transition: transform 0.3s; }
+        .info-box:hover { transform: scale(1.01); }
+        .warning-box { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0.75rem; transition: transform 0.3s; }
+        .warning-box:hover { transform: scale(1.01); }
+
+        /* Typography */
+        h1, h2, h3, h4 { letter-spacing: -0.025em; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <img src="/static/images/company_logo.png" alt="NEXORA" class="h-9 w-auto">
+                    <div>
+                        <div class="text-xl font-extrabold text-slate-900 tracking-tight">NEXORA</div>
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 -mt-1">Security & Compliance</div>
+                    </div>
+                </div>
+                <a href="/" class="group flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 hover:text-sky-600 transition-colors rounded-full hover:bg-slate-50">
+                    <i class="fas fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i> 
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-medical pt-40 pb-24 px-4 relative">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16" data-aos="fade-down">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full mb-8 border border-white/10 shadow-lg">
+                    <i class="fas fa-shield-virus text-cyan-400"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest text-white">HIPAA & GDPR Certified</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter leading-tight">
+                    Medical-Grade <br class="hidden md:block" />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 filter drop-shadow-lg">Security Infrastructure</span>
+                </h1>
+                <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed font-light">
+                    Multi-layered protection for your most sensitive health data, engineered from the hardware silicon up to the cloud.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-slate-800/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center hover:bg-slate-800/70 transition-colors group">
+                    <div class="text-3xl md:text-4xl font-black text-white mb-2 group-hover:text-cyan-400 transition-colors">256-bit</div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400">AES Encryption</div>
+                </div>
+                <div class="bg-slate-800/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center hover:bg-slate-800/70 transition-colors group">
+                    <div class="text-3xl md:text-4xl font-black text-white mb-2 group-hover:text-cyan-400 transition-colors">99.9%</div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Uptime SLA</div>
+                </div>
+                <div class="bg-slate-800/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center hover:bg-slate-800/70 transition-colors group">
+                    <div class="text-3xl md:text-4xl font-black text-white mb-2 group-hover:text-cyan-400 transition-colors">24/7</div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Threat Monitoring</div>
+                </div>
+                <div class="bg-slate-800/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center hover:bg-slate-800/70 transition-colors group">
+                    <div class="text-3xl md:text-4xl font-black text-white mb-2 group-hover:text-cyan-400 transition-colors">SOC 2</div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Type II Certified</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-24">
+        
+        <section class="mb-32">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Regulatory Certifications</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+                    Our platform maintains the highest standards of healthcare data security and regulatory compliance globally.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <div class="certification-badge p-10 text-center group" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-hospital text-green-500 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">HIPAA Compliant</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+                        Full adherence to Health Insurance Portability and Accountability Act standards for Protected Health Information (PHI).
+                    </p>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-bold tracking-wide uppercase">
+                        <i class="fas fa-check-circle"></i> Certified
+                    </div>
+                </div>
+
+                <div class="certification-badge p-10 text-center group" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-globe-europe text-blue-500 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">GDPR Compliant</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+                        Strict European General Data Protection Regulation compliance with data sovereignty and user rights management.
+                    </p>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold tracking-wide uppercase">
+                        <i class="fas fa-check-circle"></i> Certified
+                    </div>
+                </div>
+
+                <div class="certification-badge p-10 text-center group" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-20 h-20 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-certificate text-purple-500 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">SOC 2 Type II</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+                        Service Organization Control 2 certification demonstrating rigorous security, availability, and confidentiality controls.
+                    </p>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs font-bold tracking-wide uppercase">
+                        <i class="fas fa-check-circle"></i> Audited
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- LIVE SECURITY PULSE MONITOR           -->
+        <!-- ═══════════════════════════════════════ -->
+        <section class="mb-32" data-aos="fade-up">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Live Security Pulse</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">Real-time protection metrics — running around the clock to keep your health data safe.</p>
+            </div>
+
+            <div class="rounded-3xl overflow-hidden border border-slate-200 shadow-2xl" style="background: #0a0f1e;">
+                <!-- Top bar -->
+                <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+                        </div>
+                        <span class="text-xs font-mono text-slate-500 ml-2">nexora.security.monitor — live</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-xs font-mono text-emerald-400">ALL SYSTEMS SECURE</span>
+                    </div>
+                </div>
+
+                <!-- ECG Canvas + Stats -->
+                <div class="p-6 md:p-10 grid lg:grid-cols-3 gap-8 items-center">
+                    <!-- ECG Waveform -->
+                    <div class="lg:col-span-2">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i class="fas fa-heartbeat text-cyan-400 text-sm"></i>
+                            <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">Security Heartbeat · Threat Detection Signal</span>
+                        </div>
+                        <canvas id="ecgCanvas" width="700" height="140" class="w-full rounded-xl" style="background: #060c1a;"></canvas>
+                        <div class="flex items-center justify-between mt-3 px-1">
+                            <span class="text-xs font-mono text-slate-600">0ms</span>
+                            <span class="text-xs font-mono text-slate-600">Real-time anomaly scan · 500ms window</span>
+                            <span class="text-xs font-mono text-slate-600">now</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Stats -->
+                    <div class="flex flex-col gap-4">
+                        <div class="rounded-2xl border border-white/5 p-5" style="background: #060c1a;">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Threats Neutralized Today</div>
+                            <div class="text-3xl font-black text-cyan-400 font-mono" id="ctr-threats">0</div>
+                        </div>
+                        <div class="rounded-2xl border border-white/5 p-5" style="background: #060c1a;">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Packets Encrypted / sec</div>
+                            <div class="text-3xl font-black text-sky-400 font-mono" id="ctr-packets">0</div>
+                        </div>
+                        <div class="rounded-2xl border border-white/5 p-5" style="background: #060c1a;">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Auth Requests Verified</div>
+                            <div class="text-3xl font-black text-violet-400 font-mono" id="ctr-auth">0</div>
+                        </div>
+                        <div class="rounded-2xl border border-white/5 p-5" style="background: #060c1a;">
+                            <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Uptime Streak</div>
+                            <div class="text-3xl font-black text-emerald-400 font-mono">99.97%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Event Feed -->
+                <div class="border-t border-white/5 px-6 md:px-10 py-5">
+                    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-4">Security Event Log · Live Feed</div>
+                    <div id="event-feed" class="space-y-2 font-mono text-xs overflow-hidden" style="max-height: 130px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- INTERACTIVE ENCRYPTION VISUALIZER      -->
+        <!-- ═══════════════════════════════════════ -->
+        <section class="mb-32" data-aos="fade-up">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">See Encryption in Action</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">Type any text below and watch NEXORA's AES-256 encryption pipeline transform it in real time — layer by layer.</p>
+            </div>
+
+            <div class="rounded-3xl overflow-hidden border border-slate-200 shadow-xl bg-white">
+                <!-- Input -->
+                <div class="p-8 md:p-12 border-b border-slate-100">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+                        <i class="fas fa-keyboard mr-2 text-sky-500"></i>Your plaintext health data
+                    </label>
+                    <div class="relative">
+                        <input id="enc-input" type="text" maxlength="40"
+                            value="HeartRate: 72bpm | SpO2: 98%"
+                            class="w-full px-5 py-4 text-base font-mono border-2 border-slate-200 rounded-xl focus:outline-none focus:border-sky-400 transition-colors bg-slate-50 text-slate-800 pr-16"
+                            placeholder="Type your health data here..." />
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400" id="char-count">30/40</span>
+                    </div>
+                </div>
+
+                <!-- Layers -->
+                <div class="p-8 md:p-12 space-y-6">
+                    <!-- Layer 1: Encoding -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-black">1</span>
+                            <span class="text-sm font-bold text-slate-700">UTF-8 Encoding</span>
+                            <span class="ml-auto text-xs font-mono text-slate-400">hex bytes</span>
+                        </div>
+                        <div id="layer-utf" class="font-mono text-xs bg-blue-50 border border-blue-100 rounded-xl p-4 text-blue-700 break-all leading-relaxed transition-all duration-300 min-h-[3rem]"></div>
+                    </div>
+                    <!-- Layer 2: Key mixing -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 text-xs font-black">2</span>
+                            <span class="text-sm font-bold text-slate-700">Key Expansion · AES-256 Round Keys</span>
+                            <span class="ml-auto text-xs font-mono text-slate-400">256-bit key schedule</span>
+                        </div>
+                        <div id="layer-key" class="font-mono text-xs bg-violet-50 border border-violet-100 rounded-xl p-4 text-violet-700 break-all leading-relaxed transition-all duration-300 min-h-[3rem]"></div>
+                    </div>
+                    <!-- Layer 3: Cipher -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 text-xs font-black">3</span>
+                            <span class="text-sm font-bold text-slate-700">AES-256 Ciphertext · Base64 Encoded</span>
+                            <div class="ml-auto flex
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+                    Every layer of the NEXORA platform incorporates zero-trust principles and comprehensive security controls.
+                </p>
+            </div>
+
+            <div class="space-y-12">
+                <div class="protocol-step" data-aos="fade-right">
+                    <div class="step-number">1</div>
+                    <div class="security-card p-8 md:p-10">
+                        <div class="flex flex-col md:flex-row gap-8 items-start">
+                            <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-red-500 shadow-sm">
+                                <i class="fas fa-microchip text-3xl"></i>
+                            </div>
+                            <div class="flex-1 w-full">
+                                <h3 class="text-2xl font-bold text-slate-900 mb-3">Hardware Layer Security</h3>
+                                <p class="text-slate-600 mb-6 leading-relaxed">
+                                    The Bio-Patch ESP32 microcontroller implements silicon-level security from the moment sensors capture biological data.
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-lock text-red-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">On-Chip Encryption</h4>
+                                            <p class="text-xs text-slate-500">AES-256 embedded in silicon</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-key text-red-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Secure Boot</h4>
+                                            <p class="text-xs text-slate-500">Cryptographic firmware verification</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-shield-alt text-red-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Flash Encryption</h4>
+                                            <p class="text-xs text-slate-500">Protected key storage</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-fingerprint text-red-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Device Auth</h4>
+                                            <p class="text-xs text-slate-500">Unique hardware IDs per unit</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="protocol-step" data-aos="fade-right" data-aos-delay="100">
+                    <div class="step-number">2</div>
+                    <div class="security-card p-8 md:p-10">
+                        <div class="flex flex-col md:flex-row gap-8 items-start">
+                            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-blue-500 shadow-sm">
+                                <i class="fas fa-exchange-alt text-3xl"></i>
+                            </div>
+                            <div class="flex-1 w-full">
+                                <h3 class="text-2xl font-bold text-slate-900 mb-3">Transport Layer Security</h3>
+                                <p class="text-slate-600 mb-6 leading-relaxed">
+                                    All data transmission between the Bio-Patch and our cloud infrastructure is secured with industry-leading encryption tunnels.
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-certificate text-blue-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">TLS 1.3</h4>
+                                            <p class="text-xs text-slate-500">Modern transport security standard</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-network-wired text-blue-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">WSS Protocol</h4>
+                                            <p class="text-xs text-slate-500">Encrypted real-time data streams</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-thumbtack text-blue-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Cert Pinning</h4>
+                                            <p class="text-xs text-slate-500">Prevents Man-in-the-Middle attacks</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-ban text-blue-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Anti-Replay</h4>
+                                            <p class="text-xs text-slate-500">Timestamped packet validation</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="protocol-step" data-aos="fade-right" data-aos-delay="200">
+                    <div class="step-number">3</div>
+                    <div class="security-card p-8 md:p-10">
+                        <div class="flex flex-col md:flex-row gap-8 items-start">
+                            <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-purple-500 shadow-sm">
+                                <i class="fas fa-code text-3xl"></i>
+                            </div>
+                            <div class="flex-1 w-full">
+                                <h3 class="text-2xl font-bold text-slate-900 mb-3">Application Layer Security</h3>
+                                <p class="text-slate-600 mb-6 leading-relaxed">
+                                    Our Python FastAPI backend implements rigorous input validation and access controls to mitigate all OWASP Top 10 vulnerabilities.
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-check-double text-purple-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Pydantic Validation</h4>
+                                            <p class="text-xs text-slate-500">Strict schema enforcement at ingress</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-user-shield text-purple-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">OAuth 2.0 + JWT</h4>
+                                            <p class="text-xs text-slate-500">Stateless, secure session management</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-filter text-purple-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">SQLi Protection</h4>
+                                            <p class="text-xs text-slate-500">Parameterized queries via ORM</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-bolt text-purple-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Rate Limiting</h4>
+                                            <p class="text-xs text-slate-500">DDoS and abuse mitigation</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="protocol-step" data-aos="fade-right" data-aos-delay="300">
+                    <div class="step-number">4</div>
+                    <div class="security-card p-8 md:p-10">
+                        <div class="flex flex-col md:flex-row gap-8 items-start">
+                            <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center flex-shrink-0 text-green-500 shadow-sm">
+                                <i class="fas fa-database text-3xl"></i>
+                            </div>
+                            <div class="flex-1 w-full">
+                                <h3 class="text-2xl font-bold text-slate-900 mb-3">Data Layer Security</h3>
+                                <p class="text-slate-600 mb-6 leading-relaxed">
+                                    Patient health data is encrypted at rest in SOC 2 Type II certified cloud storage with immutable audit trails.
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-hdd text-green-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Encryption at Rest</h4>
+                                            <p class="text-xs text-slate-500">AES-256 database encryption</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-users-cog text-green-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">RBAC System</h4>
+                                            <p class="text-xs text-slate-500">Granular role-based access</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-history text-green-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Audit Logging</h4>
+                                            <p class="text-xs text-slate-500">Immutable forensic trails</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                                        <i class="fas fa-trash-restore text-green-500 mt-1"></i>
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-sm mb-1">Secure Backups</h4>
+                                            <p class="text-xs text-slate-500">Encrypted daily snapshots</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-32">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Technical Security Stack</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+                    The modern, battle-tested technologies protecting your ecosystem.
+                </p>
+            </div>
+
+            <div class="tech-grid mb-16" data-aos="fade-up">
+                <div class="tech-item">
+                    <i class="fas fa-lock text-4xl text-sky-500 mb-4"></i>
+                    <h4 class="font-bold text-slate-900 mb-2">AES-256</h4>
+                    <p class="text-xs text-slate-500 font-medium">Military-grade Std.</p>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-python text-4xl text-blue-500 mb-4"></i>
+                    <h4 class="font-bold text-slate-900 mb-2">FastAPI</h4>
+                    <p class="text-xs text-slate-500 font-medium">High Performance</p>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-check-double text-4xl text-purple-500 mb-4"></i>
+                    <h4 class="font-bold text-slate-900 mb-2">Pydantic</h4>
+                    <p class="text-xs text-slate-500 font-medium">Data Validation</p>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-database text-4xl text-teal-500 mb-4"></i>
+                    <h4 class="font-bold text-slate-900 mb-2">PostgreSQL</h4>
+                    <p class="text-xs text-slate-500 font-medium">Secure Storage</p>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-server text-4xl text-red-500 mb-4"></i>
+                    <h4 class="font-bold text-slate-900 mb-2">Redis</h4>
+                    <p class="text-xs text-slate-500 font-medium">Secure Caching</p>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-shield-alt text-4xl text-green-500 mb-4"></i>
+                    <h4 class="font-bold text-slate-900 mb-2">TLS 1.3</h4>
+                    <p class="text-xs text-slate-500 font-medium">Transport Layer</p>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto" data-aos="fade-up">
+                <h3 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+                    <span class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white text-sm"><i class="fas fa-code"></i></span>
+                    Security Implementation Example
+                </h3>
+                <div class="code-block">
+                    <div class="mb-4"><span class="comment"># FastAPI Backend - Secure Data Ingestion with Pydantic</span></div>
+                    <div><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, validator</div>
+                    <div><span class="keyword">from</span> fastapi <span class="keyword">import</span> HTTPException</div>
+                    <div class="mt-4"><span class="keyword">class</span> <span class="func">VitalsData</span>(BaseModel):</div>
+                    <div class="ml-4">heart_rate: <span class="keyword">int</span></div>
+                    <div class="ml-4">sp02: <span class="keyword">int</span></div>
+                    <div class="ml-4">temperature: <span class="keyword">float</span></div>
+                    <div class="ml-4">device_id: <span class="keyword">str</span></div>
+                    <div class="mt-4 ml-4"><span class="keyword">@validator</span>(<span class="string">'heart_rate'</span>)</div>
+                    <div class="ml-4"><span class="keyword">def</span> <span class="func">validate_hr</span>(<span class="keyword">cls</span>, v):</div>
+                    <div class="ml-8"><span class="comment"># Clinically realistic range validation</span></div>
+                    <div class="ml-8"><span class="keyword">if not</span> 30 <= v <= 220:</div>
+                    <div class="ml-12"><span class="keyword">raise</span> ValueError(<span class="string">'Invalid Heart Rate Range Detected'</span>)</div>
+                    <div class="ml-8"><span class="keyword">return</span> v</div>
+                    <div class="mt-4"><span class="comment"># Data is strictly typed and validated before touching the DB</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-32">
+            <h2 class="text-3xl font-bold text-slate-900 mb-12 flex items-center gap-4">
+                <i class="fas fa-user-shield text-sky-500"></i> User Security Guidelines
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="info-box p-8 h-full" data-aos="fade-right">
+                    <h4 class="font-bold text-green-900 text-xl mb-6 flex items-center gap-3">
+                        <i class="fas fa-check-circle text-green-600"></i> Recommended Practices
+                    </h4>
+                    <ul class="space-y-4 text-sm text-green-800 font-medium">
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-shield-alt text-green-600 w-5"></i>
+                            <span>Enable two-factor authentication (2FA) immediately</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-key text-green-600 w-5"></i>
+                            <span>Use unique passwords (min 12 characters, symbols)</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-sync-alt text-green-600 w-5"></i>
+                            <span>Regularly review authorized devices in settings</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-bell text-green-600 w-5"></i>
+                            <span>Keep security alerts enabled for login attempts</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-sign-out-alt text-green-600 w-5"></i>
+                            <span>Log out from shared devices after every session</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="warning-box p-8 h-full" data-aos="fade-left">
+                    <h4 class="font-bold text-amber-900 text-xl mb-6 flex items-center gap-3">
+                        <i class="fas fa-exclamation-triangle text-amber-600"></i> Critical Warnings
+                    </h4>
+                    <ul class="space-y-4 text-sm text-amber-900 font-medium">
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-times-circle text-amber-600 w-5"></i>
+                            <span>Never share your password or OTP with anyone</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-times-circle text-amber-600 w-5"></i>
+                            <span>Ignore emails asking for passwords (Phishing)</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-times-circle text-amber-600 w-5"></i>
+                            <span>Avoid public Wi-Fi for checking health data</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-times-circle text-amber-600 w-5"></i>
+                            <span>Report unrecognized dashboard activity instantly</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fas fa-times-circle text-amber-600 w-5"></i>
+                            <span>Do not physically tamper with Bio-Patch hardware</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- LIVE SECURITY MONITOR                          -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <section class="mb-32" data-aos="fade-up">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Live Security Monitor</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">Real-time insight into the health of our security infrastructure — updated every 30 seconds.</p>
+            </div>
+
+            <!-- Dark terminal panel -->
+            <div class="bg-slate-900 rounded-3xl p-8 md:p-12 relative overflow-hidden border border-white/5 shadow-2xl">
+                <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style="background: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(6,182,212,0.4) 29px);"></div>
+                <div class="absolute top-0 right-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Monitor header -->
+                <div class="flex items-center justify-between mb-10 relative z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500"></span><span class="w-3 h-3 rounded-full bg-yellow-400"></span><span class="w-3 h-3 rounded-full bg-green-400"></span></div>
+                        <span class="text-slate-500 text-xs font-mono ml-2">nexora-security-ops — live feed</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-emerald-400 font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        ALL SYSTEMS NOMINAL
+                    </div>
+                </div>
+
+                <!-- Stats row -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10 relative z-10">
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-all group">
+                        <div class="text-4xl font-black text-cyan-400 mb-1 tabular-nums" id="cnt-threats">0</div>
+                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Threats Blocked Today</div>
+                        <div class="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full w-4/5 bg-gradient-to-r from-cyan-400 to-sky-500 rounded-full animate-pulse"></div></div>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-all">
+                        <div class="text-4xl font-black text-emerald-400 mb-1 tabular-nums" id="cnt-uptime">99.9%</div>
+                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Platform Uptime</div>
+                        <div class="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full w-[99%] bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"></div></div>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-all">
+                        <div class="text-4xl font-black text-violet-400 mb-1 tabular-nums" id="cnt-records">0</div>
+                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Records Encrypted</div>
+                        <div class="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full w-full bg-gradient-to-r from-violet-400 to-purple-500 rounded-full"></div></div>
+                    </div>
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:bg-white/10 transition-all">
+                        <div class="text-4xl font-black text-amber-400 mb-1 tabular-nums" id="cnt-audits">0</div>
+                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Audit Events / Min</div>
+                        <div class="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full" id="audit-bar" style="width:60%"></div></div>
+                    </div>
+                </div>
+
+                <!-- Service health grid -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-5 py-3 border border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                        <span class="text-sm text-slate-300 font-medium">Encryption Engine</span>
+                        <span class="ml-auto text-xs text-emerald-400 font-mono">Operational</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-5 py-3 border border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                        <span class="text-sm text-slate-300 font-medium">Auth Service (MFA)</span>
+                        <span class="ml-auto text-xs text-emerald-400 font-mono">Operational</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-5 py-3 border border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                        <span class="text-sm text-slate-300 font-medium">Intrusion Detection</span>
+                        <span class="ml-auto text-xs text-emerald-400 font-mono">Operational</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-5 py-3 border border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                        <span class="text-sm text-slate-300 font-medium">Audit Log Pipeline</span>
+                        <span class="ml-auto text-xs text-emerald-400 font-mono">Operational</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-5 py-3 border border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                        <span class="text-sm text-slate-300 font-medium">TLS Certificate Mgr</span>
+                        <span class="ml-auto text-xs text-emerald-400 font-mono">Operational</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-5 py-3 border border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 animate-pulse"></span>
+                        <span class="text-sm text-slate-300 font-medium">Backup & Recovery</span>
+                        <span class="ml-auto text-xs text-emerald-400 font-mono">Operational</span>
+                    </div>
+                </div>
+
+                <p class="relative z-10 text-center text-xs text-slate-600 font-mono mt-8">
+                    <i class="fas fa-sync-alt mr-2"></i>Last refreshed: <span id="last-refresh">just now</span> · Next refresh in <span id="countdown">30s</span>
+                </p>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- DATA JOURNEY                                    -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <section class="mb-32" data-aos="fade-up">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">How Your Data Travels Safely</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">Every packet of health data is protected, validated, and encrypted at every single hop — from your Bio-Patch to the cloud.</p>
+            </div>
+
+            <div class="relative">
+                <!-- Connector line (desktop) -->
+                <div class="hidden md:block absolute top-12 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-cyan-200 via-sky-400 to-violet-400 z-0 rounded-full"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 relative z-10">
+                    <!-- Step 1 -->
+                    <div class="text-center group">
+                        <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-cyan-400 to-sky-500 flex items-center justify-center shadow-lg shadow-cyan-400/30 group-hover:scale-110 transition-transform duration-300 mb-4 relative">
+                            <i class="fas fa-microchip text-white text-3xl"></i>
+                            <span class="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-cyan-400 rounded-full text-xs font-black text-cyan-600 flex items-center justify-center">1</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">Bio-Patch Sensor</h4>
+                        <p class="text-xs text-slate-500">Local AES-128 hardware encryption before transmission</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="text-center group">
+                        <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-lg shadow-sky-400/30 group-hover:scale-110 transition-transform duration-300 mb-4 relative">
+                            <i class="fas fa-wifi text-white text-3xl"></i>
+                            <span class="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-sky-400 rounded-full text-xs font-black text-sky-600 flex items-center justify-center">2</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">TLS 1.3 Transit</h4>
+                        <p class="text-xs text-slate-500">Mutual TLS handshake, certificate pinning enforced</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="text-center group">
+                        <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-400/30 group-hover:scale-110 transition-transform duration-300 mb-4 relative">
+                            <i class="fas fa-server text-white text-3xl"></i>
+                            <span class="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-blue-400 rounded-full text-xs font-black text-blue-600 flex items-center justify-center">3</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">API Gateway</h4>
+                        <p class="text-xs text-slate-500">Rate-limiting, JWT auth validation & Pydantic schema checks</p>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="text-center group">
+                        <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-400/30 group-hover:scale-110 transition-transform duration-300 mb-4 relative">
+                            <i class="fas fa-brain text-white text-3xl"></i>
+                            <span class="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-indigo-400 rounded-full text-xs font-black text-indigo-600 flex items-center justify-center">4</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">AI Processing</h4>
+                        <p class="text-xs text-slate-500">Anomaly detection in isolated sandboxed compute environment</p>
+                    </div>
+                    <!-- Step 5 -->
+                    <div class="text-center group">
+                        <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-400/30 group-hover:scale-110 transition-transform duration-300 mb-4 relative">
+                            <i class="fas fa-database text-white text-3xl"></i>
+                            <span class="absolute -top-2 -right-2 w-6 h-6 bg-white border-2 border-purple-400 rounded-full text-xs font-black text-purple-600 flex items-center justify-center">5</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm mb-1">Encrypted Storage</h4>
+                        <p class="text-xs text-slate-500">AES-256 at rest, RBAC access, immutable audit trail</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guarantee strip -->
+            <div class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="flex items-center gap-4 bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-5">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-shield-check text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-emerald-900 text-sm">Zero Trust Architecture</div>
+                        <div class="text-xs text-emerald-700">Every request verified, nothing assumed safe</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 bg-sky-50 border border-sky-100 rounded-2xl px-6 py-5">
+                    <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-eye-slash text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sky-900 text-sm">End-to-End Encryption</div>
+                        <div class="text-xs text-sky-700">Data never decrypted in transit, ever</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 bg-violet-50 border border-violet-100 rounded-2xl px-6 py-5">
+                    <div class="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-scroll text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-violet-900 text-sm">Immutable Audit Log</div>
+                        <div class="text-xs text-violet-700">Every access stamped, signed & tamper-proof</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- TRANSPARENCY REPORT                             -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <section class="mb-16" data-aos="fade-up">
+            <div class="text-center mb-14">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">2024 Transparency Report</h2>
+                <div class="h-1 w-20 bg-sky-500 mx-auto rounded-full mb-6"></div>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">We publish annual security metrics because we believe trust is earned through radical transparency.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Left: stat bars -->
+                <div class="security-card p-10" data-aos="fade-right">
+                    <h3 class="text-lg font-bold text-slate-900 mb-8 flex items-center gap-3">
+                        <span class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white text-sm"><i class="fas fa-chart-bar"></i></span>
+                        Threat Response Performance
+                    </h3>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2"><span class="text-slate-700">Threats Auto-Blocked</span><span class="text-sky-600">98.7%</span></div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-cyan-400 transition-all duration-1000" style="width:98.7%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2"><span class="text-slate-700">Mean Time to Detect (MTTD)</span><span class="text-emerald-600">&lt; 2 min</span></div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400" style="width:94%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2"><span class="text-slate-700">Patch Deployment Speed</span><span class="text-violet-600">4.2 hrs avg</span></div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-violet-400 to-purple-500" style="width:88%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2"><span class="text-slate-700">Pen Test Pass Rate</span><span class="text-amber-600">100%</span></div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400" style="width:100%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-2"><span class="text-slate-700">Uptime SLA Achievement</span><span class="text-sky-600">99.97%</span></div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-sky-400 to-blue-500" style="width:99.97%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: key disclosures -->
+                <div class="security-card p-10" data-aos="fade-left">
+                    <h3 class="text-lg font-bold text-slate-900 mb-8 flex items-center gap-3">
+                        <span class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white text-sm"><i class="fas fa-file-alt"></i></span>
+                        Key Disclosures
+                    </h3>
+                    <div class="space-y-5">
+                        <div class="flex items-start gap-4 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+                            <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fas fa-times-circle text-emerald-600"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-emerald-900 text-sm">Zero Confirmed Data Breaches</div>
+                                <div class="text-xs text-emerald-700 mt-0.5">No unauthorized access to patient records since inception.</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 p-4 bg-sky-50 border border-sky-100 rounded-xl">
+                            <div class="w-10 h-10 bg-sky-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fas fa-gavel text-sky-600"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sky-900 text-sm">0 Government Data Requests Fulfilled</div>
+                                <div class="text-xs text-sky-700 mt-0.5">No user data shared with any government agency in 2024.</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 p-4 bg-violet-50 border border-violet-100 rounded-xl">
+                            <div class="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fas fa-bug text-violet-600"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-violet-900 text-sm">12 Responsible Disclosures Rewarded</div>
+                                <div class="text-xs text-violet-700 mt-0.5">External researchers helped us close 12 low-risk edge cases via our bug bounty program.</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                            <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fas fa-certificate text-amber-600"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-amber-900 text-sm">3rd-Party Audit Completed Q3 2024</div>
+                                <div class="text-xs text-amber-700 mt-0.5">Independent SOC 2 Type II audit passed with zero exceptions noted.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-6">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                        <span class="text-2xl font-bold text-white tracking-tighter">NEXORA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        Empowering the future of proactive healthcare through AI-driven Digital Twin technology and medical-grade IoT sensing.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/#features" class="footer-link transition hover:text-sky-400">Vital Monitoring</a></li>
+                        <li><a href="/#how-it-works" class="footer-link transition hover:text-sky-400">Cloud Digital Twin</a></li>
+                        <li><a href="/#tech" class="footer-link transition hover:text-sky-400">Edge AI Engine</a></li>
+                        <li><a href="/#live-demo" class="footer-link transition hover:text-sky-400">Live Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Resources</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/static/NEXORA MediTwin Documentation.pdf" download class="footer-link transition hover:text-sky-400">Technical Whitepaper</a></li>
+                        <li><a href="/about" class="footer-link transition hover:text-sky-400">Architecture Guide</a></li>
+                        <li><a href="/enquire-locally" class="footer-link transition hover:text-sky-400">Clinical Partners</a></li>
+                        <li><a href="/privacy" class="footer-link transition hover:text-sky-400">Privacy Protocols</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/about" class="footer-link transition hover:text-sky-400">About Us</a></li>
+                        <li><a href="/help" class="footer-link transition hover:text-sky-400">Help Center & FAQ</a></li>
+                        <li><a href="/contact" class="footer-link transition hover:text-sky-400">Contact Sales</a></li>
+                        <li><a href="/enquire-locally" class="footer-link transition hover:text-sky-400">Regional Support</a></li>
+                        <li><a href="/security" class="footer-link transition hover:text-sky-400">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    © 2025 NEXORA Technologies Inc. All rights reserved.
+                </p>
+                <div class="flex gap-8 text-xs text-slate-500 uppercase tracking-widest">
+                    <a href="/terms" class="hover:text-white transition">Terms of Use</a>
+                    <a href="/privacy" class="hover:text-white transition">Privacy Policy</a>
+                    <a href="/regulatory" class="hover:text-white transition">Regulatory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        // ── Animated counter utility ──────────────────────
+        function animateCount(el, target, duration, prefix = '', suffix = '') {
+            let start = 0, startTime = null;
+            function step(ts) {
+                if (!startTime) startTime = ts;
+                const progress = Math.min((ts - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = prefix + Math.floor(eased * target).toLocaleString() + suffix;
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        // ── Run counters when monitor section enters view ─
+        const monitorObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    animateCount(document.getElementById('cnt-threats'), 3847, 2000);
+                    animateCount(document.getElementById('cnt-records'), 1200000, 2200, '', '+');
+                    animateCount(document.getElementById('cnt-audits'), 2340, 1800);
+                    monitorObs.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+
+        const monitorEl = document.getElementById('cnt-threats');
+        if (monitorEl) monitorObs.observe(monitorEl.closest('section'));
+
+        // ── Countdown timer ───────────────────────────────
+        let secs = 30;
+        const countdownEl = document.getElementById('countdown');
+        const refreshEl   = document.getElementById('last-refresh');
+        setInterval(() => {
+            secs--;
+            if (secs <= 0) {
+                secs = 30;
+                if (refreshEl) refreshEl.textContent = 'just now';
+            } else {
+                if (refreshEl) {
+                    const ago = 30 - secs;
+                    refreshEl.textContent = ago + 's ago';
+                }
+            }
+            if (countdownEl) countdownEl.textContent = secs + 's';
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | NEXORA MediTwin Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; }
+
+        /* ── PAGE BACKGROUND ── */
+        .medical-pattern {
+            background: #f8fafc;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(14,165,233,0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(6,182,212,0.04)  0%, transparent 50%);
+        }
+
+        /* ── HERO PANEL (left) ── */
+        .hero-panel {
+            position: relative;
+            background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 50%, #0c4a6e 100%);
+            overflow: hidden;
+        }
+        .hero-panel::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=900&auto=format&fit=crop&q=60');
+            background-size: cover; background-position: center; opacity: 0.18; z-index: 0;
+        }
+        .hero-panel::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(160deg, rgba(14,165,233,0.55) 0%, rgba(15,23,42,0.85) 100%);
+            z-index: 1;
+        }
+        .hero-content { position: relative; z-index: 2; }
+
+        /* ── ANIMATED ORBS ── */
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(60px); z-index: 1;
+            animation: floatOrb 8s ease-in-out infinite;
+        }
+        .orb-1 { width:300px; height:300px; background:rgba(56,189,248,0.25); top:-60px;    right:-80px; animation-delay:0s; }
+        .orb-2 { width:220px; height:220px; background:rgba(99,102,241,0.2);  bottom:40px;  left:-60px;  animation-delay:3s; }
+        .orb-3 { width:150px; height:150px; background:rgba(16,185,129,0.2);  bottom:200px; right:40px;  animation-delay:5s; }
+        @keyframes floatOrb {
+            0%,100% { transform:translateY(0)    scale(1);    }
+            50%     { transform:translateY(-20px) scale(1.05); }
+        }
+
+        /* ── FLOATING ICONS ── */
+        .float-icon { position:absolute; z-index:2; opacity:0.2; animation:floatIcon 6s ease-in-out infinite; }
+        @keyframes floatIcon {
+            0%,100% { transform:translateY(0) rotate(0deg);    opacity:0.18; }
+            50%     { transform:translateY(-12px) rotate(8deg); opacity:0.28; }
+        }
+
+        /* ── DNA DOTS ── */
+        .dna-dot { position:absolute; border-radius:50%; z-index:2; animation:pulseDot 2.5s ease-in-out infinite; }
+        @keyframes pulseDot {
+            0%,100% { transform:scale(1);   opacity:0.4; }
+            50%     { transform:scale(1.3); opacity:0.7; }
+        }
+
+        /* ── ROLE CARDS ── */
+        .role-card-label { cursor:pointer; display:block; }
+        .role-card {
+            position:relative; border:2.5px solid #e2e8f0; border-radius:1.25rem;
+            padding:1.25rem 1rem; text-align:center; background:white; overflow:hidden;
+            transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .role-card::before {
+            content:''; position:absolute; inset:0; opacity:0;
+            transition:opacity 0.3s ease; border-radius:1.1rem;
+        }
+        .doctor-card::before   { background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%); }
+        .caregiver-card::before{ background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%); }
+
+        input[type="radio"].peer:checked ~ .role-card           { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,0.1); }
+        input[type="radio"].peer:checked ~ .doctor-card         { border-color:#8b5cf6; box-shadow:0 12px 30px rgba(139,92,246,0.25); }
+        input[type="radio"].peer:checked ~ .caregiver-card      { border-color:#10b981; box-shadow:0 12px 30px rgba(16,185,129,0.25);  }
+        input[type="radio"].peer:checked ~ .role-card::before   { opacity:1; }
+
+        .role-icon-wrap {
+            width:60px; height:60px; border-radius:50%; margin:0 auto 0.75rem;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.6rem; position:relative; z-index:1; transition:all 0.3s ease;
+        }
+        .doctor-icon-wrap   { background:linear-gradient(135deg,#ddd6fe,#c4b5fd); color:#6d28d9; }
+        .caregiver-icon-wrap{ background:linear-gradient(135deg,#bbf7d0,#86efac); color:#15803d; }
+        input[type="radio"].peer:checked ~ .doctor-card   .doctor-icon-wrap   { background:linear-gradient(135deg,#8b5cf6,#7c3aed); color:white; box-shadow:0 6px 16px rgba(139,92,246,0.4); }
+        input[type="radio"].peer:checked ~ .caregiver-card .caregiver-icon-wrap{ background:linear-gradient(135deg,#10b981,#059669); color:white; box-shadow:0 6px 16px rgba(16,185,129,0.4); }
+
+        .role-card-title { font-weight:700; font-size:0.95rem; color:#1e293b; position:relative; z-index:1; }
+        .role-card-desc  { font-size:0.72rem; color:#64748b; margin-top:0.25rem; position:relative; z-index:1; }
+        .role-badge {
+            display:inline-block; font-size:0.6rem; font-weight:700; letter-spacing:0.05em;
+            padding:2px 8px; border-radius:9999px; margin-top:0.5rem;
+            position:relative; z-index:1; text-transform:uppercase;
+        }
+        .doctor-badge   { background:#ede9fe; color:#6d28d9; }
+        .caregiver-badge{ background:#d1fae5; color:#065f46; }
+        input[type="radio"].peer:checked ~ .doctor-card   .doctor-badge   { background:#8b5cf6; color:white; }
+        input[type="radio"].peer:checked ~ .caregiver-card .caregiver-badge{ background:#10b981; color:white; }
+
+        .card-features { margin-top:0.75rem; display:flex; flex-direction:column; gap:0.3rem; position:relative; z-index:1; }
+        .card-feature  { display:flex; align-items:center; gap:0.35rem; font-size:0.67rem; color:#64748b; text-align:left; }
+        .card-feature i{ font-size:0.6rem; }
+
+        /* ── ROLE SECTION CONTAINERS ── */
+        #doctorContainer {
+            background: linear-gradient(135deg,#faf5ff,#f5f3ff);
+            border:1.5px solid #e9d5ff; border-radius:1rem; padding:1.25rem;
+        }
+        #doctorContainer .input-field:focus         { border-color:#8b5cf6 !important; box-shadow:0 8px 20px rgba(139,92,246,0.15); }
+        #doctorContainer .input-field:focus + .floating-label { color:#8b5cf6; }
+
+        #caregiverContainer {
+            background: linear-gradient(135deg,#f0fdf4,#f7fffe);
+            border:1.5px solid #a7f3d0; border-radius:1rem; padding:1.25rem;
+        }
+        #caregiverContainer .input-field:focus         { border-color:#10b981 !important; box-shadow:0 8px 20px rgba(16,185,129,0.15); }
+        #caregiverContainer .input-field:focus + .floating-label { color:#10b981; }
+
+        /* ── INPUTS ── */
+        .input-field { transition:all 0.3s ease; }
+        .input-field:focus { transform:translateY(-2px); box-shadow:0 8px 20px rgba(14,165,233,0.15); }
+        .floating-label {
+            position:absolute; left:1rem; top:1rem; color:#94a3b8; pointer-events:none;
+            transition:all 0.3s ease; background:white; padding:0 0.25rem;
+        }
+        .input-field:focus + .floating-label,
+        .input-field:not(:placeholder-shown) + .floating-label,
+        select.input-field:valid + .floating-label {
+            top:-0.5rem; left:0.75rem; font-size:0.75rem; color:#0ea5e9; font-weight:600;
+        }
+        select.input-field { -webkit-appearance:none; -moz-appearance:none; appearance:none; }
+
+        /* Dr. prefix on name field */
+        .doc-prefix {
+            position:absolute; left:1rem; top:1rem; font-weight:600; color:#0f172a;
+            pointer-events:none; display:none; z-index:10;
+        }
+        .is-doc-active .doc-prefix { display:block; }
+        .is-doc-active #full_name  { padding-left:2.5rem; }
+        .is-doc-active .floating-label { left:2.5rem; }
+        .is-doc-active .input-field:focus + .floating-label,
+        .is-doc-active .input-field:not(:placeholder-shown) + .floating-label { left:0.75rem !important; }
+
+        /* ── PASSWORD STRENGTH ── */
+        .strength-bar { height:4px; border-radius:2px; background:#e2e8f0; transition:all 0.3s ease; }
+        .strength-weak   { background:#ef4444; }
+        .strength-fair   { background:#f59e0b; }
+        .strength-good   { background:#3b82f6; }
+        .strength-strong { background:#10b981; }
+
+        .requirement { transition:all 0.3s ease; }
+        .requirement.met   { color:#10b981; }
+        .requirement.met i { color:#10b981; }
+
+        /* ── VALIDATION ── */
+        .is-invalid { border-color:#ef4444 !important; background-color:#fef2f2; }
+        .is-invalid + .floating-label { color:#ef4444; }
+        .is-valid   { border-color:#10b981 !important; }
+        .error-msg  { color:#ef4444; font-size:0.75rem; margin-top:0.25rem; display:none; font-weight:600; margin-left:0.5rem; }
+
+        /* ── STEPS INDICATOR ── */
+        .step-indicator::after {
+            content:''; position:absolute; top:1.5rem; left:1rem; right:1rem;
+            height:2px; background:rgba(255,255,255,0.3); z-index:-1;
+        }
+
+        /* ── STAT CHIP ── */
+        .stat-chip {
+            background:rgba(255,255,255,0.12); backdrop-filter:blur(8px);
+            border:1px solid rgba(255,255,255,0.2); border-radius:0.75rem;
+            padding:0.6rem 1rem; text-align:center;
+        }
+
+        /* ── ERROR BANNER ── */
+        .error-banner { animation:slideDown 0.4s ease-out; }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to   { opacity:1; transform:translateY(0);     }
+        }
+    </style>
+</head>
+<body class="min-h-screen medical-pattern">
+
+    <!-- ── NAVBAR ── -->
+    <nav class="bg-white/80 backdrop-blur-lg border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img src="static/images/company_logo.png" alt="NEXORA" class="w-8 h-8 object-contain">
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-slate-900">NEXORA</div>
+                        <div class="text-xs text-slate-500 -mt-1">MediTwin Platform</div>
+                    </div>
+                </div>
+                <a href="/" class="text-sm font-medium text-slate-600 hover:text-sky-600 transition flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-xs"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex min-h-[calc(100vh-4rem)]">
+
+        <!-- ══════════════════════════════════════════════════════
+             LEFT — HERO PANEL
+             ══════════════════════════════════════════════════════ -->
+        <div class="hidden lg:flex lg:w-5/12 hero-panel items-center justify-center p-10">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+
+            <div class="float-icon text-white text-6xl" style="top:8%;left:6%;animation-delay:0s">     <i class="fas fa-heartbeat"></i></div>
+            <div class="float-icon text-white text-4xl" style="top:18%;right:8%;animation-delay:1.5s"> <i class="fas fa-dna"></i></div>
+            <div class="float-icon text-white text-5xl" style="bottom:22%;left:8%;animation-delay:2.5s"><i class="fas fa-brain"></i></div>
+            <div class="float-icon text-white text-3xl" style="bottom:10%;right:12%;animation-delay:4s"><i class="fas fa-pills"></i></div>
+            <div class="float-icon text-white text-4xl" style="top:45%;right:4%;animation-delay:0.8s"> <i class="fas fa-microscope"></i></div>
+            <div class="float-icon text-white text-3xl" style="top:65%;left:4%;animation-delay:3.2s">  <i class="fas fa-stethoscope"></i></div>
+
+            <div class="dna-dot bg-cyan-400"  style="width:8px;height:8px;top:30%;left:50%;animation-delay:0s"></div>
+            <div class="dna-dot bg-sky-300"   style="width:5px;height:5px;top:33%;left:55%;animation-delay:0.4s"></div>
+            <div class="dna-dot bg-indigo-400"style="width:7px;height:7px;top:36%;left:48%;animation-delay:0.8s"></div>
+            <div class="dna-dot bg-cyan-300"  style="width:4px;height:4px;top:39%;left:57%;animation-delay:1.2s"></div>
+
+            <div class="hero-content max-w-sm w-full text-white">
+
+                <!-- Steps indicator -->
+                <div class="mb-8 step-indicator relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col items-center">
+                            <div class="w-11 h-11 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center font-bold text-base mb-2 border-2 border-white shadow-lg">1</div>
+                            <span class="text-xs font-semibold tracking-wide">Account</span>
+                        </div>
+                        <div class="flex flex-col items-center opacity-50">
+                            <div class="w-11 h-11 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center font-bold text-base mb-2 border border-white/40">2</div>
+                            <span class="text-xs font-medium">Profile</span>
+                        </div>
+                        <div class="flex flex-col items-center opacity-50">
+                            <div class="w-11 h-11 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center font-bold text-base mb-2 border border-white/40">3</div>
+                            <span class="text-xs font-medium">Verify</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headline -->
+                <div class="mb-7">
+                    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 mb-4">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-semibold tracking-wide text-white/90">AI-POWERED HEALTH PLATFORM</span>
+                    </div>
+                    <h2 class="text-4xl font-extrabold mb-4 leading-tight">
+                        Start Your<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-sky-300">Health Journey</span>
+                    </h2>
+                    <p class="text-white/75 text-base leading-relaxed">
+                        Join thousands monitoring health with AI-powered digital twin technology designed for patients and clinicians.
+                    </p>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-3 mb-7">
+                    <div class="stat-chip"><div class="text-xl font-extrabold text-cyan-300">50K+</div><div class="text-xs text-white/60 mt-0.5">Users</div></div>
+                    <div class="stat-chip"><div class="text-xl font-extrabold text-cyan-300">2K+</div><div class="text-xs text-white/60 mt-0.5">Doctors</div></div>
+                    <div class="stat-chip"><div class="text-xl font-extrabold text-cyan-300">99%</div><div class="text-xs text-white/60 mt-0.5">Uptime</div></div>
+                </div>
+
+                <!-- Features -->
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3 bg-sky-400/15 backdrop-blur-sm rounded-xl p-3 border border-sky-300/25">
+                        <div class="w-9 h-9 bg-sky-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-shield text-sky-200 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-sm">Patient & Caregiver Access</h4>
+                            <p class="text-xs text-white/65 mt-0.5">Monitor vitals, receive alerts & coordinate care securely</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-violet-400/15 backdrop-blur-sm rounded-xl p-3 border border-violet-300/25">
+                        <div class="w-9 h-9 bg-violet-400/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-md text-violet-200 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-sm">Doctor Portal</h4>
+                            <p class="text-xs text-white/65 mt-0.5">Advanced clinical dashboard, patient monitoring & analytics</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════
+             RIGHT — SIGN UP FORM
+             ══════════════════════════════════════════════════════ -->
+        <div class="w-full lg:w-7/12 flex items-center justify-center p-8 overflow-y-auto">
+            <div class="w-full max-w-lg">
+
+                <!-- Error banner -->
+                <div id="error-banner" style="display:none;"
+                     class="mb-6 bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4 error-banner shadow-sm">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+                        <div>
+                            <h4 class="font-semibold text-red-800 text-sm" id="error-title">Registration Error</h4>
+                            <p class="text-red-600 text-xs mt-1" id="error-message">Please correct the errors below.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-slate-900 mb-2">Create Your Account</h1>
+                    <p class="text-slate-600">Start monitoring your health in minutes</p>
+                </div>
+
+                <form action="/api/register" method="POST" id="signupForm" class="space-y-6" novalidate>
+
+                    <!-- Role selection -->
+                    <div>
+                        <label class="text-sm font-semibold text-slate-700 mb-3 block">I am signing up as a</label>
+                        <div class="grid grid-cols-2 gap-3">
+
+                            <!-- Doctor card -->
+                            <label class="role-card-label">
+                                <input type="radio" name="role" value="doctor" checked class="peer sr-only" onchange="switchRole('doctor')">
+                                <div class="role-card doctor-card">
+                                    <div class="role-icon-wrap doctor-icon-wrap"><i class="fas fa-user-md"></i></div>
+                                    <div class="role-card-title">Doctor</div>
+                                    <div class="role-card-desc">Clinical professional access</div>
+                                    <div class="role-badge doctor-badge">Verified Pro</div>
+                                    <div class="card-features">
+                                        <div class="card-feature"><i class="fas fa-check-circle text-violet-500"></i><span>Patient dashboard</span></div>
+                                        <div class="card-feature"><i class="fas fa-check-circle text-violet-500"></i><span>Clinical analytics</span></div>
+                                        <div class="card-feature"><i class="fas fa-check-circle text-violet-500"></i><span>License verification</span></div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Caregiver card -->
+                            <label class="role-card-label">
+                                <input type="radio" name="role" value="caregiver" class="peer sr-only" onchange="switchRole('caregiver')">
+                                <div class="role-card caregiver-card">
+                                    <div class="role-icon-wrap caregiver-icon-wrap"><i class="fas fa-hands-helping"></i></div>
+                                    <div class="role-card-title">Caregiver</div>
+                                    <div class="role-card-desc">Patient support & care</div>
+                                    <div class="role-badge caregiver-badge">Care Access</div>
+                                    <div class="card-features">
+                                        <div class="card-feature"><i class="fas fa-check-circle text-emerald-500"></i><span>Monitor patient vitals</span></div>
+                                        <div class="card-feature"><i class="fas fa-check-circle text-emerald-500"></i><span>Alert notifications</span></div>
+                                        <div class="card-feature"><i class="fas fa-check-circle text-emerald-500"></i><span>Care coordination</span></div>
+                                    </div>
+                                </div>
+                            </label>
+
+                        </div>
+                    </div>
+
+                    <!-- Caregiver extra fields (shown when caregiver is selected) -->
+                    <div id="caregiverContainer" class="hidden space-y-5">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-hands-helping text-emerald-500 text-sm"></i>
+                            <span class="text-sm font-bold text-emerald-700 uppercase tracking-wider">Caregiver Details</span>
+                        </div>
+
+                        <!-- Mobile app patient ID info banner -->
+                        <div class="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                            <i class="fas fa-mobile-alt text-emerald-500 mt-0.5 text-sm"></i>
+                            <div class="text-xs text-emerald-800">
+                                <p class="font-semibold mb-0.5">Linked to the NEXORA Mobile App</p>
+                                <p class="text-emerald-700">The <strong>Patient ID</strong> is assigned to your patient when they register in the NEXORA mobile app. You can find it in the patient's app profile (e.g. <code class="bg-emerald-100 px-1 rounded">PT-1234</code>).</p>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <input type="text" name="relation" id="relation" placeholder=" "
+                                class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:outline-none text-slate-900 bg-white">
+                            <label for="relation" class="floating-label">Relation to Patient (e.g. Son, Nurse)</label>
+                            <p class="error-msg" id="relation-error">❌ Relation is required (letters only)</p>
+                        </div>
+
+                        <div class="relative">
+                            <input type="text" name="patient_id" id="patient_id" placeholder=" "
+                                class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:outline-none text-slate-900 bg-white">
+                            <label for="patient_id" class="floating-label">Patient ID (e.g. PT-8949)</label>
+                            <i class="fas fa-user-injured absolute right-4 top-4 text-slate-300 text-sm"></i>
+                            <p class="error-msg" id="patient-id-error">❌ Must be in format PT-1234 (e.g. PT-8949)</p>
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-semibold text-slate-700 mb-3 block">Are you the primary caregiver?</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="radio" name="is_primary" value="yes" id="primary_yes" class="w-4 h-4 accent-emerald-500">
+                                    <span class="text-sm font-medium text-slate-700 group-hover:text-emerald-700 transition">
+                                        <i class="fas fa-star text-emerald-500 text-xs mr-1"></i>Yes, I am the primary caregiver
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer group">
+                                    <input type="radio" name="is_primary" value="no" id="primary_no" class="w-4 h-4 accent-slate-400">
+                                    <span class="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition">No, secondary</span>
+                                </label>
+                            </div>
+                            <p class="error-msg" id="primary-error">❌ Please select yes or no</p>
+                        </div>
+                    </div>
+
+                    <!-- Full name -->
+                    <div class="relative" id="name-wrapper">
+                        <span class="doc-prefix">Dr.</span>
+                        <input type="text" name="full_name" id="full_name" placeholder=" " required
+                            class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-slate-900">
+                        <label for="full_name" class="floating-label">Full Name</label>
+                        <p class="error-msg" id="name-error">❌ Only letters (A–Z) allowed</p>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="relative">
+                        <input type="tel" name="phone" id="phone" placeholder=" " maxlength="10" required
+                            class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-slate-900">
+                        <label for="phone" class="floating-label">Phone Number</label>
+                        <p class="error-msg" id="phone-error">❌ Must be exactly 10 digits</p>
+                    </div>
+
+                    <!-- Doctor-specific credentials -->
+                    <div id="doctorContainer" class="hidden space-y-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-id-badge text-violet-500 text-sm"></i>
+                            <span class="text-sm font-bold text-violet-700 uppercase tracking-wider">Professional Credentials</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="relative">
+                                <input type="text" name="doctor_id" id="doctor_id" placeholder=" "
+                                    class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:outline-none text-slate-900 bg-white">
+                                <label for="doctor_id" class="floating-label">Doctor ID</label>
+                                <p class="error-msg" id="doc-id-error">❌ Required</p>
+                            </div>
+                            <div class="relative">
+                                <input type="text" name="license_number" id="license_number" placeholder=" "
+                                    class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:outline-none text-slate-900 bg-white">
+                                <label for="license_number" class="floating-label">License No.</label>
+                                <p class="error-msg" id="license-error">❌ Required</p>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <select name="specialization" id="specialization"
+                                class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-slate-900 bg-white">
+                                <option value="" disabled selected></option>
+                                <option>General Practice</option>
+                                <option>Cardiology</option>
+                                <option>Neurology</option>
+                                <option>Pediatrics</option>
+                                <option>Dermatology</option>
+                                <option>Orthopedics</option>
+                                <option>Surgery</option>
+                            </select>
+                            <label for="specialization" class="floating-label">Specialization</label>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                            <p class="error-msg" id="spec-error">❌ Please select an option</p>
+                        </div>
+
+                        <div class="relative">
+                            <select name="hospital" id="hospital"
+                                class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-slate-900 bg-white">
+                                <option value="" disabled selected></option>
+                                <option>Amrita Hospital, Kochi</option>
+                                <option>Aster Medcity, Kochi</option>
+                                <option>KIMSHealth, Trivandrum</option>
+                                <option>Rajagiri Hospital, Kochi</option>
+                                <option>Medical Trust Hospital, Kochi</option>
+                                <option>Baby Memorial Hospital, Kozhikode</option>
+                                <option>Lakeshore Hospital, Kochi</option>
+                                <option>Lisie Hospital, Kochi</option>
+                                <option>Sree Chitra Tirunal, Trivandrum</option>
+                                <option>Renai Medicity, Kochi</option>
+                            </select>
+                            <label for="hospital" class="floating-label">Hospital Affiliation</label>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                            <p class="error-msg" id="hospital-error">❌ Please select an option</p>
+                        </div>
+                    </div>
+
+                    <!-- Email (hidden for caregiver) -->
+                    <div class="relative" id="email-wrapper">
+                        <input type="email" name="email" id="email" placeholder=" " required
+                            class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-slate-900 pr-10">
+                        <label for="email" class="floating-label">Email Address</label>
+                        <i class="fas fa-check-circle absolute right-4 top-4 text-green-500" id="email-check" style="display:none;"></i>
+                        <p class="error-msg" id="email-error">❌ Please enter a valid @gmail.com address</p>
+                    </div>
+
+                    <!-- Password (hidden for caregiver) -->
+                    <div class="relative" id="password-wrapper">
+                        <input type="password" name="password" id="password" placeholder=" " required
+                            class="input-field w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-sky-500 focus:outline-none text-slate-900 pr-12">
+                        <label for="password" class="floating-label">Create Password</label>
+                        <button type="button" onclick="togglePasswordVisibility()"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                        <p class="error-msg" id="password-error">Password must meet all requirements</p>
+                    </div>
+
+                    <!-- Password strength (hidden for caregiver) -->
+                    <div id="strength-wrapper">
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <div class="strength-bar" id="bar1"></div>
+                            <div class="strength-bar" id="bar2"></div>
+                            <div class="strength-bar" id="bar3"></div>
+                            <div class="strength-bar" id="bar4"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="requirement flex items-center gap-2" id="req-length">
+                                <i class="fas fa-circle text-slate-300"></i><span class="text-slate-600">8+ characters</span>
+                            </div>
+                            <div class="requirement flex items-center gap-2" id="req-case">
+                                <i class="fas fa-circle text-slate-300"></i><span class="text-slate-600">Upper & lowercase</span>
+                            </div>
+                            <div class="requirement flex items-center gap-2" id="req-number">
+                                <i class="fas fa-circle text-slate-300"></i><span class="text-slate-600">One number</span>
+                            </div>
+                            <div class="requirement flex items-center gap-2" id="req-special">
+                                <i class="fas fa-circle text-slate-300"></i><span class="text-slate-600">Special character</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms -->
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="terms" required class="w-5 h-5 accent-sky-500 rounded mt-0.5">
+                        <span class="text-sm text-slate-600 leading-relaxed">
+                            I agree to the
+                            <a href="/terms"   class="text-sky-600 hover:underline font-medium">Terms of Service</a> and
+                            <a href="/privacy" class="text-sky-600 hover:underline font-medium">Privacy Policy</a>
+                        </span>
+                    </label>
+
+                    <button type="submit"
+                        class="w-full py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition transform hover:scale-[1.02]">
+                        <span class="flex items-center justify-center gap-2">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </span>
+                    </button>
+
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-slate-600">
+                        Already have an account?
+                        <a href="/login" class="text-sky-600 font-semibold hover:underline ml-1">Sign In</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- /flex -->
+
+    <script>
+        // ── DOM refs ──────────────────────────────────────────────────────
+        const form              = document.getElementById('signupForm');
+        const nameWrapper       = document.getElementById('name-wrapper');
+        const nameInput         = document.getElementById('full_name');
+        const phoneInput        = document.getElementById('phone');
+        const emailInput        = document.getElementById('email');
+        const passwordInput     = document.getElementById('password');
+        const docIdInput        = document.getElementById('doctor_id');
+        const licenseInput      = document.getElementById('license_number');
+        const specInput         = document.getElementById('specialization');
+        const hospitalInput     = document.getElementById('hospital');
+        const relationInput     = document.getElementById('relation');
+        const patientIdInput    = document.getElementById('patient_id');
+        const doctorContainer   = document.getElementById('doctorContainer');
+        const caregiverContainer= document.getElementById('caregiverContainer');
+
+        const GMAIL_RE    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        let   currentRole = 'doctor';
+
+        // ── Role switching ────────────────────────────────────────────────
+        function switchRole(role) {
+            currentRole   = role;
+            const isDoc   = role === 'doctor';
+            const isCg    = role === 'caregiver';
+
+            // Doctor section
+            doctorContainer.classList.toggle('hidden', !isDoc);
+            setRequired([docIdInput, licenseInput, specInput, hospitalInput], isDoc);
+            isDoc ? nameWrapper.classList.add('is-doc-active')
+                  : nameWrapper.classList.remove('is-doc-active');
+
+            // Caregiver section
+            caregiverContainer.classList.toggle('hidden', !isCg);
+            setRequired([relationInput, patientIdInput], isCg);
+
+            // Email + password hidden for caregivers (they log in with patient_id + phone)
+            const emailWrap    = document.getElementById('email-wrapper');
+            const pwWrap       = document.getElementById('password-wrapper');
+            const strengthWrap = document.getElementById('strength-wrapper');
+            emailWrap.classList.toggle('hidden', isCg);
+            pwWrap.classList.toggle('hidden', isCg);
+            strengthWrap.classList.toggle('hidden', isCg);
+            setRequired([emailInput, passwordInput], !isCg);
+        }
+
+        function setRequired(els, required) {
+            els.forEach(el => {
+                if (!el) return;
+                required ? el.setAttribute('required', 'true') : el.removeAttribute('required');
+            });
+        }
+
+        function showError(id, inputEl, show) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = show ? 'block' : 'none';
+            if (inputEl) inputEl.classList.toggle('is-invalid', show);
+        }
+
+        // ── Live validation — Name ────────────────────────────────────────
+        nameInput.addEventListener('input', function () {
+            if (!/^[a-zA-Z\s\.]*$/.test(this.value)) {
+                this.value = this.value.replace(/[^a-zA-Z\s\.]/g, '');
+                showError('name-error', this, true);
+            } else {
+                showError('name-error', this, false);
+            }
+        });
+
+        // ── Live validation — Phone ───────────────────────────────────────
+        phoneInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '');
+            const bad = this.value.length > 0 && this.value.length !== 10;
+            showError('phone-error', this, bad);
+        });
+
+        // ── Live validation — Email ───────────────────────────────────────
+        emailInput.addEventListener('input', function () {
+            const val = this.value.trim();
+            const ck  = document.getElementById('email-check');
+            const valid = GMAIL_RE.test(val);
+            if (!val) {
+                showError('email-error', this, false);
+                this.classList.remove('is-valid');
+                if (ck) ck.style.display = 'none';
+            } else if (!valid) {
+                showError('email-error', this, true);
+                this.classList.remove('is-valid');
+                if (ck) ck.style.display = 'none';
+            } else {
+                showError('email-error', this, false);
+                this.classList.add('is-valid');
+                if (ck) ck.style.display = 'block';
+            }
+        });
+
+        // ── Live validation — Password strength ───────────────────────────
+        passwordInput.addEventListener('input', function () {
+            const v = this.value;
+            const checks = {
+                length:  v.length >= 8,
+                case:    /[A-Z]/.test(v) && /[a-z]/.test(v),
+                number:  /[0-9]/.test(v),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(v),
+            };
+            updateReq('req-length',  checks.length);
+            updateReq('req-case',    checks.case);
+            updateReq('req-number',  checks.number);
+            updateReq('req-special', checks.special);
+
+            const strength = Object.values(checks).filter(Boolean).length;
+            updateStrengthBars(strength);
+            if (strength === 4) showError('password-error', this, false);
+        });
+
+        function updateReq(id, met) {
+            const el   = document.getElementById(id);
+            const icon = el.querySelector('i');
+            el.classList.toggle('met', met);
+            icon.className = met ? 'fas fa-check-circle' : 'fas fa-circle text-slate-300';
+        }
+
+        function updateStrengthBars(strength) {
+            const levels = ['strength-weak', 'strength-fair', 'strength-good', 'strength-strong'];
+            ['bar1','bar2','bar3','bar4'].forEach((barId, i) => {
+                const el = document.getElementById(barId);
+                el.className = 'strength-bar';
+                if (i < strength) el.classList.add(levels[strength - 1]);
+            });
+        }
+
+        // ── Live validation — Relation ────────────────────────────────────
+        if (relationInput) {
+            relationInput.addEventListener('input', function () {
+                if (!/^[a-zA-Z\s]*$/.test(this.value)) {
+                    this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+                    showError('relation-error', this, true);
+                } else {
+                    showError('relation-error', this, false);
+                }
+            });
+        }
+
+        // ── Live validation — Patient ID ──────────────────────────────────
+        if (patientIdInput) {
+            patientIdInput.addEventListener('input', function () {
+                const val = this.value.trim().toUpperCase();
+                this.value = val; // auto-uppercase as they type
+                const bad = val.length > 0 && !/^PT-\d*$/.test(val);
+                showError('patient-id-error', this, bad);
+            });
+        }
+
+        // ── Toggle password visibility ────────────────────────────────────
+        function togglePasswordVisibility() {
+            const inp  = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                inp.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // ── Form submit validation ────────────────────────────────────────
+        form.addEventListener('submit', function (e) {
+            let ok = true;
+
+            if (!/^[a-zA-Z\s\.]+$/.test(nameInput.value.trim())) {
+                showError('name-error', nameInput, true); ok = false;
+            }
+            if (!/^\d{10}$/.test(phoneInput.value)) {
+                showError('phone-error', phoneInput, true); ok = false;
+            }
+
+            if (currentRole !== 'caregiver') {
+                if (!GMAIL_RE.test(emailInput.value.trim())) {
+                    showError('email-error', emailInput, true); ok = false;
+                }
+                const metCount = document.querySelectorAll('.requirement.met').length;
+                if (metCount < 4) {
+                    showError('password-error', passwordInput, true); ok = false;
+                }
+            }
+
+            if (currentRole === 'doctor') {
+                if (!docIdInput.value.trim())  { showError('doc-id-error', docIdInput, true);      ok = false; }
+                if (!licenseInput.value.trim()) { showError('license-error', licenseInput, true);   ok = false; }
+                if (!specInput.value)           { showError('spec-error', specInput, true);          ok = false; }
+                if (!hospitalInput.value)       { showError('hospital-error', hospitalInput, true);  ok = false; }
+            }
+
+            if (currentRole === 'caregiver') {
+                const relVal = relationInput.value.trim();
+                if (!relVal || !/^[a-zA-Z\s]+$/.test(relVal)) {
+                    showError('relation-error', relationInput, true); ok = false;
+                }
+                const pidVal = patientIdInput.value.trim().toUpperCase();
+                if (!pidVal || !/^PT-\d+$/.test(pidVal)) {
+                    showError('patient-id-error', patientIdInput, true); ok = false;
+                }
+                if (!document.querySelector('input[name="is_primary"]:checked')) {
+                    document.getElementById('primary-error').style.display = 'block'; ok = false;
+                }
+            }
+
+            if (!document.getElementById('terms').checked) {
+                alert('Please accept the Terms of Service and Privacy Policy.');
+                ok = false;
+            }
+
+            if (!ok) e.preventDefault();
+        });
+
+        // ── Read URL error param ──────────────────────────────────────────
+        function showUrlError() {
+            const param = new URLSearchParams(window.location.search).get('error');
+            if (!param) return;
+
+            const messages = {
+                email_exists:           ['Email Exists',            'This email is already registered.'],
+                doctor_already_registered: ['Doctor Already Registered', 'This Doctor ID has already been used to create an account. Each Doctor ID can only be registered once.'],
+                license_exists:         ['License Number Taken',    'This medical license number is already associated with another account. Each license number must be unique.'],
+                invalid_phone:          ['Invalid Phone',           'Please enter a valid 10-digit number.'],
+                invalid_doctor_id:      ['Unauthorized ID',         'The Doctor ID provided is not recognised.'],
+                name_mismatch:          ['Identity Mismatch',       'The name entered does not match the record for this Doctor ID.'],
+                invalid_relation:       ['Invalid Relation',        'Please enter a valid relation to the patient.'],
+                invalid_patient_id:     ['Invalid Patient ID',      'Patient ID must be in the format PT-1234 (e.g. PT-8949).'],
+                patient_not_found:      ['Patient Not Found',       'No patient was found with that ID. Please verify the Patient ID from the NEXORA mobile app.'],
+                patient_already_linked: ['Already Registered',      'A caregiver with this phone number is already linked to that patient.'],
+                invalid_name:           ['Invalid Name',            'Full name must contain letters only.'],
+                caregiver_limit_reached:    ['Caregiver Limit Reached',     'This patient already has 3 registered caregivers — the maximum allowed. No more caregivers can be added.'],
+                web_caregiver_limit_reached:['Web Caregiver Limit Reached',  'This patient already has 2 web-registered caregivers. Only 1 caregiver can be added via the mobile app and 2 via the website.'],
+            };
+
+            const banner  = document.getElementById('error-banner');
+            const title   = document.getElementById('error-title');
+            const message = document.getElementById('error-message');
+            banner.style.display = 'block';
+
+            if (messages[param]) {
+                title.textContent   = messages[param][0];
+                message.textContent = messages[param][1];
+            }
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            switchRole('doctor');  // Initialise fields for default role
+            showUrlError();
+        });
+    </script>
+</body>
+</html>

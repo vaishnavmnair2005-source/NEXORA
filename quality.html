@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMS Manual | NEXORA Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@300;400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #e2e8f0; color: #334155; font-family: 'Inter', sans-serif; }
+        .paper-sheet { 
+            background: white; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            min-height: 29.7cm; /* A4 Height */
+            width: 21cm;        /* A4 Width */
+            margin: 3rem auto;
+            padding: 4rem;
+            position: relative;
+        }
+        /* Typography */
+        h1 { font-size: 2.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; letter-spacing: -0.025em; }
+        h2 { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-top: 3rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+        h3 { font-size: 1.1rem; font-weight: 600; color: #334155; margin-top: 2rem; margin-bottom: 1rem; }
+        p, li { font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.75; color: #475569; margin-bottom: 1rem; }
+        .code-ref { font-family: 'JetBrains Mono', monospace; background: #f1f5f9; padding: 0.1rem 0.3rem; rounded: 0.25rem; font-size: 0.8em; color: #0ea5e9; }
+        
+        /* Components */
+        .doc-header { border-bottom: 4px solid #0f172a; padding-bottom: 2rem; margin-bottom: 4rem; }
+        .meta-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-family: 'Inter', sans-serif; margin-bottom: 2rem; }
+        .meta-table th { text-align: left; color: #64748b; font-weight: 600; padding: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        .meta-table td { padding: 0.5rem; border-bottom: 1px solid #e2e8f0; color: #0f172a; }
+        
+        .risk-table { width: 100%; border: 1px solid #cbd5e1; font-size: 0.85rem; font-family: 'Inter', sans-serif; margin-bottom: 2rem; }
+        .risk-table th { background: #f8fafc; padding: 0.75rem; text-align: left; border-bottom: 1px solid #cbd5e1; font-weight: 700; }
+        .risk-table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        .risk-high { background-color: #fef2f2; color: #991b1b; font-weight: bold; border-radius: 4px; padding: 2px 6px; display: inline-block; font-size: 0.7rem; }
+        .risk-low { background-color: #f0fdf4; color: #166534; font-weight: bold; border-radius: 4px; padding: 2px 6px; display: inline-block; font-size: 0.7rem; }
+
+        /* Print Settings */
+        @media print {
+            body { background: white; }
+            .paper-sheet { box-shadow: none; margin: 0; width: 100%; padding: 2rem; }
+            .no-print { display: none !important; }
+            a { text-decoration: none; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="fixed w-full z-50 bg-slate-900/95 backdrop-blur shadow-lg h-16 flex items-center px-8 justify-between no-print border-b border-white/10">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-file-contract text-sky-500 text-xl"></i>
+            <span class="font-bold text-white tracking-tight">NEXORA <span class="text-slate-400 font-normal">Quality Management System</span></span>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="window.print()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold rounded-lg transition shadow-lg shadow-sky-900/20">
+                <i class="fas fa-print mr-2"></i> Download as PDF
+            </button>
+        </div>
+    </nav>
+
+    <div class="pt-24 pb-20">
+        <div class="paper-sheet">
+            <header class="doc-header flex justify-between items-start">
+                <div>
+                    <h1 class="uppercase">Quality Manual</h1>
+                    <p class="!mb-0 text-slate-500 !font-sans">ISO 13485:2016 & IEC 62304 Compliance</p>
+                </div>
+                <div class="text-right">
+                    <img src="/static/images/company_logo.png" alt="NEXORA" class="h-12 w-auto mb-2 opacity-80 mix-blend-multiply">
+                    <div class="text-xs font-mono text-slate-400">Doc ID: QMS-NEX-001</div>
+                </div>
+            </header>
+
+            <table class="meta-table">
+                <tr>
+                    <th width="20%">Document Status</th>
+                    <td width="30%"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold uppercase">Effective</span></td>
+                    <th width="20%">Version</th>
+                    <td width="30%">2.4.0 (Build 2025-A)</td>
+                </tr>
+                <tr>
+                    <th>Approved By</th>
+                    <td>Dr. A. Sharma, Chief Clinical Officer</td>
+                    <th>Last Audit</th>
+                    <td>Dec 15, 2025</td>
+                </tr>
+            </table>
+
+            <h2>1.0 Scope & Purpose</h2>
+            <p>
+                This Quality Manual outlines the Quality Management System (QMS) for <strong>NEXORA Technologies</strong>. It governs the design, development, manufacture, and cloud deployment of the <strong>MediTwin Bio-Patch</strong> (Class IIa Software as a Medical Device).
+            </p>
+            <p>
+                The scope encompasses:
+            </p>
+            <ul class="list-disc pl-6">
+                <li><strong>Hardware:</strong> ESP32-based microcontroller integration with MAX30102 (SpO2) and AD8232 (ECG) sensors.</li>
+                <li><strong>Firmware:</strong> Embedded C++ logic for 500Hz data sampling and I2C communication.</li>
+                <li><strong>Cloud Software:</strong> Python (FastAPI) backend, Pydantic validation layers, and LSTM predictive models.</li>
+            </ul>
+
+            <h2>2.0 Normative References</h2>
+            <p>The system is designed in strict accordance with the following international standards:</p>
+            <ul class="list-disc pl-6 font-sans text-sm text-slate-600 space-y-2">
+                <li><strong>ISO 13485:2016</strong> - Medical devices — Quality management systems.</li>
+                <li><strong>ISO 14971:2019</strong> - Application of risk management to medical devices.</li>
+                <li><strong>IEC 62304:2006</strong> - Medical device software — Software life cycle processes.</li>
+                <li><strong>IEC 60601-1-2</strong> - Medical electrical equipment — Electromagnetic disturbances.</li>
+            </ul>
+        </div>
+
+        <div class="paper-sheet">
+            <div class="absolute top-10 right-12 text-xs text-slate-300 font-mono">Page 2 of 3</div>
+            
+            <h2>3.0 Risk Management (ISO 14971)</h2>
+            <p>
+                NEXORA employs a "Safety by Design" approach. The following Risk Matrix identifies critical hazards associated with the Bio-Patch and their implemented engineering controls.
+            </p>
+
+            <table class="risk-table mt-6">
+                <thead>
+                    <tr>
+                        <th width="15%">Hazard ID</th>
+                        <th width="25%">Failure Mode</th>
+                        <th width="10%">Risk</th>
+                        <th width="50%">Mitigation Control (Engineering)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-mono text-xs">HZ-001</td>
+                        <td><strong>Sensor Drift</strong><br>MAX30102 provides inaccurate SpO2 readings due to ambient light.</td>
+                        <td><span class="risk-high">HIGH</span></td>
+                        <td>
+                            1. Implementation of DSP (Digital Signal Processing) filter in Python backend.<br>
+                            2. Firmware check: <span class="code-ref">if(confidence < 90%) discard_packet();</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-xs">HZ-002</td>
+                        <td><strong>Data Loss</strong><br>WiFi disconnection during critical event.</td>
+                        <td><span class="risk-low">MED</span></td>
+                        <td>
+                            1. On-chip circular buffer (ESP32) stores last 60 seconds of data.<br>
+                            2. <strong>TinyML</strong> Edge model triggers local alarm buzzer if threshold breached offline.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-xs">HZ-003</td>
+                        <td><strong>Injection Attack</strong><br>Malicious payload sent to Cloud API.</td>
+                        <td><span class="risk-high">CRITICAL</span></td>
+                        <td>
+                            1. <strong>Pydantic</strong> schema validation enforces strict types (float, int) on all ingress traffic.<br>
+                            2. TLS 1.3 Encryption for all WebSockets.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>4.0 Software Lifecycle (IEC 62304)</h2>
+            <p>
+                The MediTwin platform is classified as <strong>Software Safety Class B</strong> (Non-serious injury possible). Development follows the V-Model lifecycle.
+            </p>
+            
+            <h3>4.1 Version Control & CI/CD</h3>
+            <p>
+                All code is managed via Git with strict branch protection rules.
+            </p>
+            <ul class="list-disc pl-6">
+                <li><strong>Master Branch:</strong> Production-ready code (Locked). Requires 2 senior approvals.</li>
+                <li><strong>Dev Branch:</strong> Integration testing environment.</li>
+                <li><strong>Firmware Tagging:</strong> Semantic versioning (e.g., <span class="code-ref">v2.4.1-esp32</span>) corresponds to hardware revisions.</li>
+            </ul>
+        </div>
+
+        <div class="paper-sheet">
+            <div class="absolute top-10 right-12 text-xs text-slate-300 font-mono">Page 3 of 3</div>
+
+            <h2>5.0 AI & Algorithm Validation</h2>
+            <p>
+                The "Digital Twin" predictive capability relies on LSTM (Long Short-Term Memory) neural networks. To prevent "Black Box" errors, the following validation protocols are enforced:
+            </p>
+
+            <h3>5.1 Data Separation</h3>
+            <p>
+                Clinical datasets are strictly partitioned to prevent data leakage:
+            </p>
+            <div class="flex gap-4 mb-6 mt-4">
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded text-center w-1/3">
+                    <div class="text-2xl font-bold text-slate-700">70%</div>
+                    <div class="text-xs uppercase tracking-widest text-slate-500">Training</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded text-center w-1/3">
+                    <div class="text-2xl font-bold text-slate-700">15%</div>
+                    <div class="text-xs uppercase tracking-widest text-slate-500">Validation</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded text-center w-1/3">
+                    <div class="text-2xl font-bold text-slate-700">15%</div>
+                    <div class="text-xs uppercase tracking-widest text-slate-500">Blind Test</div>
+                </div>
+            </div>
+
+            <h3>5.2 Performance Thresholds</h3>
+            <p>
+                A model candidate is only pushed to production if it meets the following KPIs on the "Blind Test" set:
+            </p>
+            <ul class="list-disc pl-6">
+                <li><strong>Arrhythmia Sensitivity:</strong> > 94.0%</li>
+                <li><strong>False Positive Rate:</strong> < 2.5%</li>
+                <li><strong>Inference Latency:</strong> < 200ms (Cloud), < 50ms (Edge)</li>
+            </ul>
+
+            <div class="mt-20 pt-8 border-t-2 border-slate-900">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <div class="h-16 w-48 mb-2">
+                             <span class="font-cursive text-3xl text-blue-900" style="font-family: 'Brush Script MT', cursive;">Dr. Sharma</span>
+                        </div>
+                        <div class="border-t border-slate-400 w-64 pt-2">
+                            <p class="!text-xs uppercase font-bold text-slate-500 !mb-0">Authorized Signature</p>
+                            <p class="!text-xs text-slate-400">Head of Quality Assurance</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="border-2 border-slate-200 p-4 rounded-lg inline-block">
+                            <p class="!text-xs uppercase font-bold text-slate-400 !mb-1">Official Seal</p>
+                            <i class="fas fa-stamp text-4xl text-slate-200 rotate-12"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

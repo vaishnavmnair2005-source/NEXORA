@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regional Healthcare Partners | NEXORA Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        .hero-medical {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-medical::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            animation: rotate 60s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 35px 60px -15px rgba(20, 184, 166, 0.3);
+        }
+        
+        .input-field {
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .input-field:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.15);
+            border-color: #14b8a6;
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            color: #94a3b8;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: white;
+            padding: 0 0.25rem;
+        }
+        
+        .input-field:focus + .floating-label,
+        .input-field:not(:placeholder-shown) + .floating-label {
+            top: -0.5rem;
+            left: 0.75rem;
+            font-size: 0.75rem;
+            color: #14b8a6;
+            font-weight: 600;
+        }
+        
+        .benefit-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+        
+        .district-tag {
+            transition: all 0.2s ease;
+        }
+        
+        .district-tag:hover {
+            background: #14b8a6;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(20, 184, 166, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+        }
+        
+        .success-animation {
+            animation: successPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes successPop {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .kerala-pattern {
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(20, 184, 166, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+        }
+
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #14b8a6, #10b981);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+<body class="kerala-pattern bg-slate-50">
+
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center overflow-hidden">
+                    <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">                    
+                </div>
+                    <div>
+                        <div class="text-xl font-bold text-slate-900">NEXORA</div>
+                        <div class="text-xs text-teal-600 font-semibold -mt-1">Regional Healthcare</div>
+                    </div>
+                </div>
+                <a href="/" class="text-sm font-semibold text-slate-600 hover:text-teal-600 transition flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-xs"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-medical pt-32 pb-24 px-4 relative">
+        <div class="absolute top-20 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-12" data-aos="fade-down">
+                <div class="inline-flex items-center gap-2 px-5 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-8 border border-white/20">
+                    <div class="w-2 h-2 bg-emerald-400 rounded-full pulse-ring"></div>
+                    <span class="text-sm font-bold text-white">Serving Kerala Healthcare Providers</span>
+                </div>
+                <h1 class="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight">
+                    Bringing MediTwin to<br />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-400 to-green-400">Your Community</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
+                    Partner with NEXORA to deliver cutting-edge health monitoring to patients across Kerala. Local support, regional implementation, clinical excellence.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-card bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-emerald-400 mb-2">14</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Districts Covered</div>
+                </div>
+                <div class="stat-card bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-emerald-400 mb-2">4h</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Response Time</div>
+                </div>
+                <div class="stat-card bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-emerald-400 mb-2">50+</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Clinical Partners</div>
+                </div>
+                <div class="stat-card bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-emerald-400 mb-2">24/7</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Technical Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-4 -mt-12 relative z-10 pb-20">
+
+        <div class="grid md:grid-cols-3 gap-6 mb-16" data-aos="fade-up">
+            <div class="benefit-card glass-card rounded-3xl p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <i class="fas fa-hospital-user text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">For Hospitals & Clinics</h3>
+                <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                    Bulk device procurement, EMR integration support, and dedicated clinical training for your medical staff.
+                </p>
+                <ul class="space-y-2 text-xs text-slate-500">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Volume pricing available
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        On-site setup assistance
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Staff training included
+                    </li>
+                </ul>
+            </div>
+
+            <div class="benefit-card glass-card rounded-3xl p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <i class="fas fa-user-md text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">For Private Practitioners</h3>
+                <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                    Individual doctor accounts with patient dashboard access, local regulatory compliance support.
+                </p>
+                <ul class="space-y-2 text-xs text-slate-500">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Simple practice integration
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Patient monitoring tools
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Kerala medical board compliant
+                    </li>
+                </ul>
+            </div>
+
+            <div class="benefit-card glass-card rounded-3xl p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <i class="fas fa-hands-helping text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">For Health NGOs</h3>
+                <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                    Special pricing for non-profits serving rural communities and underserved populations.
+                </p>
+                <ul class="space-y-2 text-xs text-slate-500">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Subsidized device pricing
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Community health programs
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-teal-500"></i>
+                        Rural deployment support
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 mb-16">
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12" data-aos="fade-right">
+                <div class="mb-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-map-marker-alt text-teal-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-900">Regional Partnership Inquiry</h2>
+                            <p class="text-sm text-slate-500">Kerala Clinical Network</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-600">Connect with our local field representative. Response within 4-6 hours during business hours.</p>
+                </div>
+
+                <form id="localForm" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="name" 
+                                required 
+                                placeholder=" " 
+                                class="input-field w-full px-5 py-4 rounded-xl focus:outline-none text-slate-900 peer"
+                            >
+                            <label class="floating-label peer-focus:text-teal-600">Full Name *</label>
+                            <p id="name-error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                name="email" 
+                                required 
+                                placeholder=" " 
+                                class="input-field w-full px-5 py-4 rounded-xl focus:outline-none text-slate-900 peer"
+                            >
+                            <label class="floating-label peer-focus:text-teal-600">Gmail Address *</label>
+                            <p id="email-error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <select 
+                            name="region" 
+                            required
+                            class="input-field w-full px-5 py-4 rounded-xl focus:outline-none appearance-none text-slate-900 cursor-pointer"
+                        >
+                            <option value="">Select Your District</option>
+                            <option value="thiruvananthapuram">Thiruvananthapuram</option>
+                            <option value="kollam">Kollam</option>
+                            <option value="pathanamthitta">Pathanamthitta</option>
+                            <option value="alappuzha">Alappuzha</option>
+                            <option value="kottayam">Kottayam</option>
+                            <option value="idukki">Idukki</option>
+                            <option value="ernakulam">Ernakulam</option>
+                            <option value="thrissur">Thrissur</option>
+                            <option value="palakkad">Palakkad</option>
+                            <option value="malappuram">Malappuram</option>
+                            <option value="kozhikode">Kozhikode</option>
+                            <option value="wayanad">Wayanad</option>
+                            <option value="kannur">Kannur</option>
+                            <option value="kasaragod">Kasaragod</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    <div class="relative">
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            placeholder=" " 
+                            class="input-field w-full px-5 py-4 rounded-xl focus:outline-none text-slate-900 peer"
+                        >
+                        <label class="floating-label peer-focus:text-teal-600">Contact Number</label>
+                        <p id="phone-error" class="text-red-500 text-xs mt-1 hidden"></p>
+                    </div>
+
+                    <div class="relative">
+                        <select 
+                            name="type" 
+                            required
+                            class="input-field w-full px-5 py-4 rounded-xl focus:outline-none appearance-none text-slate-900"
+                        >
+                            <option value="">Partnership Type</option>
+                            <option value="hospital">Hospital / Multi-Specialty</option>
+                            <option value="clinic">Private Clinic</option>
+                            <option value="doctor">Individual Practitioner</option>
+                            <option value="ngo">Health NGO / Trust</option>
+                            <option value="pharmacy">Pharmacy Chain</option>
+                            <option value="other">Other Healthcare Entity</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    <div class="relative">
+                        <textarea 
+                            name="message" 
+                            required 
+                            rows="4" 
+                            placeholder=" " 
+                            class="input-field w-full px-5 py-4 rounded-xl focus:outline-none resize-none text-slate-900 peer"
+                        ></textarea>
+                        <label class="floating-label peer-focus:text-teal-600">Your Requirements *</label>
+                    </div>
+
+                    <div class="bg-teal-50 border-l-4 border-teal-500 rounded-r-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-teal-600 mt-0.5"></i>
+                            <div>
+                                <p class="text-xs text-teal-800 leading-relaxed">
+                                    <strong>Priority Processing:</strong> Clinical partnerships in Kerala receive expedited review. Our regional coordinator will contact you within 4 hours during business hours (9 AM - 6 PM IST).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="form-error" class="text-red-500 text-sm text-center mb-4 hidden"></div>
+
+                    <button 
+                        type="submit"
+                        class="w-full py-5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3 text-lg"
+                    >
+                        <span>Submit Regional Inquiry</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+
+                <div id="successMessage" class="hidden mt-8 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-500 rounded-2xl p-6 text-center success-animation">
+                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-check text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-green-900 mb-2">Request Submitted Successfully!</h3>
+                    <p class="text-green-700 mb-4">Your regional partnership inquiry has been received. Our Kerala field team will contact you shortly.</p>
+                    <div class="flex items-center justify-center gap-4 text-sm">
+                        <div class="flex items-center gap-2 text-green-800">
+                            <i class="fas fa-clock"></i>
+                            <span>Response: 4-6 hours</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-green-800">
+                            <i class="fas fa-envelope"></i>
+                            <span>Check your email</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6" data-aos="fade-left">
+                <div class="glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-map text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">District Coverage</h3>
+                            <p class="text-sm text-slate-500">All 14 Kerala districts</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Thiruvananthapuram</span>
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Ernakulam</span>
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Kozhikode</span>
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Thrissur</span>
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Kollam</span>
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">Kottayam</span>
+                        <span class="district-tag px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold">+8 More</span>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-headset text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">Direct Contact</h3>
+                            <p class="text-sm text-slate-500">Regional support team</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                            <i class="fas fa-envelope text-teal-500"></i>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold">Email Support</p>
+                                <p class="text-sm text-slate-800">kerala@nexora.tech</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                            <i class="fas fa-phone text-teal-500"></i>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold">Regional Hotline</p>
+                                <p class="text-sm text-slate-800">+91 (800) NEXORA-KL</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                            <i class="fas fa-clock text-teal-500"></i>
+                            <div>
+                                <p class="text-xs text-slate-500 font-semibold">Business Hours</p>
+                                <p class="text-sm text-slate-800">Mon-Sat: 9 AM - 6 PM IST</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-clipboard-list text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">What We Provide</h3>
+                            <p class="text-sm text-slate-500">Comprehensive support</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-teal-500 mt-1"></i>
+                            <span class="text-sm text-slate-700">On-site device demonstrations</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-teal-500 mt-1"></i>
+                            <span class="text-sm text-slate-700">Staff training & certification</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-teal-500 mt-1"></i>
+                            <span class="text-sm text-slate-700">EMR integration assistance</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-teal-500 mt-1"></i>
+                            <span class="text-sm text-slate-700">Local regulatory compliance</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-teal-500 mt-1"></i>
+                            <span class="text-sm text-slate-700">Volume pricing & payment plans</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fas fa-check-circle text-teal-500 mt-1"></i>
+                            <span class="text-sm text-slate-700">Ongoing technical support</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPQfqg13BeiaZKrzjMsTA58_bh__K1PmFmlg&s" class="w-10 h-10 rounded-full" alt="Star">
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">Partner Testimonials</h3>
+                            <p class="text-sm text-slate-500">Kerala success stories</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
+                            <div class="flex items-center gap-3 mb-2">
+                                <img src="https://max-website20-images.s3.ap-south-1.amazonaws.com/dr_anjali_sharma_232309feb0.jpg" class="w-10 h-10 rounded-full" alt="Doctor">
+                                <div>
+                                    <p class="font-bold text-slate-900 text-sm">Dr. Anjali Sharma</p>
+                                    <p class="text-xs text-slate-500">Medical Hospital, Kochi</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-600 italic">"NEXORA's regional support team made our integration seamless. 50+ patients now monitored daily."</p>
+                        </div>
+                        <div class="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                            <div class="flex items-center gap-3 mb-2">
+                                <img src="https://www.skincarespeciality.com/wp-content/uploads/2019/08/Dr.Rajesh-Nair_Skin-Care-Trivandrum-1-1.jpg" class="w-10 h-10 rounded-full" alt="Doctor">
+                                <div>
+                                    <p class="font-bold text-slate-900 text-sm">Dr. Raj Nair</p>
+                                    <p class="text-xs text-slate-500">Care Clinic, Trivandrum</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-600 italic">"Exceptional local support. The device accuracy and AI predictions have transformed our practice."</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-8 md:p-12 mb-16" data-aos="fade-up">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">Kerala-Wide Healthcare Network</h2>
+                <p class="text-slate-600">Serving medical professionals across all districts with dedicated regional support</p>
+            </div>
+            <div class="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-12 overflow-hidden" style="height: 400px;">
+                <div class="absolute inset-0 flex items-center justify-center opacity-20">
+                    <i class="fas fa-map-marked-alt text-teal-500 text-9xl"></i>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <svg viewBox="0 0 800 400" class="w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M200 80 L250 60 L300 70 L320 90 L340 120 L350 160 L340 200 L320 240 L300 280 L280 320 L250 350 L220 360 L190 350 L170 320 L160 280 L170 240 L180 200 L185 160 L190 120 Z" 
+                              stroke="#14b8a6" stroke-width="3" fill="none" opacity="0.5"/>
+                        
+                        <circle cx="230" cy="350" r="6" fill="#14b8a6" class="animate-pulse" />
+                        <text x="245" y="355" fill="#14b8a6" font-size="12" font-weight="bold">TVM</text>
+                        
+                        <circle cx="300" cy="200" r="6" fill="#14b8a6" class="animate-pulse" style="animation-delay: 0.3s;" />
+                        <text x="315" y="205" fill="#14b8a6" font-size="12" font-weight="bold">EKM</text>
+                        
+                        <circle cx="280" cy="120" r="6" fill="#14b8a6" class="animate-pulse" style="animation-delay: 0.6s;" />
+                        <text x="295" y="125" fill="#14b8a6" font-size="12" font-weight="bold">KKD</text>
+                        
+                        <circle cx="250" cy="280" r="6" fill="#14b8a6" class="animate-pulse" style="animation-delay: 0.9s;" />
+                        <text x="265" y="285" fill="#14b8a6" font-size="12" font-weight="bold">KTM</text>
+                    </svg>
+                </div>
+                <div class="absolute bottom-8 left-8 right-8 text-center">
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                        <p class="text-white text-sm font-semibold">
+                            <i class="fas fa-hospital text-teal-400 mr-2"></i>
+                            Regional field representatives available in all major cities
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-8 md:p-12 mb-16" data-aos="fade-up">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">Frequently Asked Questions</h2>
+                <p class="text-slate-600">Quick answers for Kerala healthcare providers</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-clock text-teal-500"></i>
+                        How quickly can we get started?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Our Kerala team can schedule an on-site demonstration within 48 hours. Full deployment typically takes 5-7 business days including staff training.
+                    </p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-rupee-sign text-teal-500"></i>
+                        What about pricing and payment?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        We offer flexible pricing based on volume. Payment plans available for hospitals. NGOs receive special subsidized rates. Contact us for a custom quote.
+                    </p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-language text-teal-500"></i>
+                        Is Malayalam support available?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Yes! Our dashboard supports Malayalam language interface. Regional support staff are bilingual (English/Malayalam) for seamless communication.
+                    </p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-certificate text-teal-500"></i>
+                        What about regulatory compliance?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        MediTwin is compliant with Kerala Medical Council regulations and Indian medical device standards. We assist with all local licensing requirements.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-12 text-center bg-gradient-to-br from-teal-500 to-emerald-600 text-white overflow-hidden relative" data-aos="zoom-in">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="relative z-10">
+                <i class="fas fa-handshake text-5xl mb-6 opacity-90"></i>
+                <h2 class="text-4xl font-bold mb-4">Ready to Partner with NEXORA?</h2>
+                <p class="text-xl text-teal-50 mb-8 max-w-2xl mx-auto">
+                    Join the growing network of Kerala healthcare providers delivering proactive, AI-powered patient care.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="document.getElementById('localForm').scrollIntoView({behavior: 'smooth'})" class="px-8 py-4 bg-white text-teal-600 rounded-xl font-bold hover:bg-teal-50 transition shadow-xl">
+                        <i class="fas fa-edit mr-2"></i>
+                        Submit Inquiry
+                    </button>
+                    <a href="/contact" class="px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-xl font-bold hover:bg-white/30 transition">
+                        <i class="fas fa-phone mr-2"></i>
+                        Contact Global Team
+                    </a>
+                </div>
+                <div class="mt-8 flex items-center justify-center gap-8 text-sm">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i>
+                        <span>No Setup Fees</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Free Training</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-6">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                        <span class="text-2xl font-bold text-white tracking-tighter">NEXORA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        Empowering the future of proactive healthcare through AI-driven Digital Twin technology and medical-grade IoT sensing.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-teal-500 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-teal-500 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-teal-500 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/#features" class="hover:text-teal-400 transition">Vital Monitoring</a></li>
+                        <li><a href="/#how-it-works" class="hover:text-teal-400 transition">Cloud Digital Twin</a></li>
+                        <li><a href="/#tech" class="hover:text-teal-400 transition">Edge AI Engine</a></li>
+                        <li><a href="/#live-demo" class="hover:text-teal-400 transition">Live Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Resources</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/static/NEXORA MediTwin Documentation.pdf" download class="hover:text-teal-400 transition">Technical Whitepaper</a></li>
+                        <li><a href="/about" class="hover:text-teal-400 transition">Architecture Guide</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-teal-400 transition">Clinical Partners</a></li>
+                        <li><a href="/privacy" class="hover:text-teal-400 transition">Privacy Protocols</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/about" class="hover:text-teal-400 transition">About Us</a></li>
+                        <li><a href="/help" class="hover:text-teal-400 transition">Help Center & FAQ</a></li>
+                        <li><a href="/contact" class="hover:text-teal-400 transition">Contact Sales</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-teal-400 transition">Regional Support</a></li>
+                        <li><a href="/security" class="hover:text-teal-400 transition">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    © 2025 NEXORA Technologies Inc. All rights reserved.
+                </p>
+                <div class="flex gap-8 text-xs text-slate-500 uppercase tracking-widest">
+                    <a href="/terms" class="hover:text-white transition">Terms of Use</a>
+                    <a href="/privacy" class="hover:text-white transition">Privacy Policy</a>
+                    <a href="/regulatory" class="hover:text-white transition">Regulatory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ 
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+        
+        // Show/Hide Error Message
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.innerText = message;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        // Clear All Errors
+        function clearErrors() {
+            document.querySelectorAll('.text-red-500').forEach(el => {
+                if (!el.id.includes('form-error')) { // Don't clear form-error immediately if not intended
+                    el.classList.add('hidden');
+                    el.innerText = '';
+                }
+            });
+            const formError = document.getElementById('form-error');
+            if (formError) {
+                formError.classList.add('hidden');
+                formError.innerText = '';
+            }
+        }
+
+        document.getElementById('localForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const successMsg = document.getElementById('successMessage');
+            
+            // --- VALIDATION START ---
+            clearErrors();
+            
+            // 1. Name Validation (Letters only)
+            const nameInput = form.elements['name'];
+            const nameValue = nameInput.value.trim();
+            // Regex: Start to end, char class a-z, A-Z and whitespace.
+            if (!/^[A-Za-z\s]+$/.test(nameValue)) {
+                showError('name-error', '❌ Invalid Name: Please use only letters (A-Z).');
+                nameInput.focus();
+                return;
+            }
+
+            // 2. Email Validation (Gmail only)
+            const emailInput = form.elements['email'];
+            const emailValue = emailInput.value.trim();
+            const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+            if (!gmailPattern.test(emailValue)) {
+                showError('email-error', '❌ Invalid Email: Only @gmail.com addresses are accepted.');
+                emailInput.focus();
+                return;
+            }
+
+            // 3. Phone Validation (Numbers only, exactly 10 digits)
+            const phoneInput = form.elements['phone'];
+            const phoneValue = phoneInput.value.trim();
+            // Check if user entered something (since it might be optional in HTML)
+            if (phoneValue.length > 0) {
+                if (!/^\d{10}$/.test(phoneValue)) {
+                    showError('phone-error', '❌ Invalid Phone: Must be exactly 10 digits. Numbers only.');
+                    phoneInput.focus();
+                    return;
+                }
+            }
+
+            // --- VALIDATION END ---
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="flex items-center justify-center gap-3"><i class="fas fa-spinner fa-spin"></i> Submitting...</span>';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/local-inquiry', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // Redirect to the local success page
+                    window.location.href = "/local-success"; 
+                } else {
+                    const errData = await response.json();
+                    const formError = document.getElementById('form-error');
+                    if (formError) {
+                        formError.innerText = "❌ Error: " + (errData.detail || "Submission failed. Please try again.");
+                        formError.classList.remove('hidden');
+                    } else {
+                        alert("❌ Error: " + (errData.detail || "Submission failed. Please try again."));
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>Submit Regional Inquiry</span><i class="fas fa-paper-plane"></i>';
+                }
+            } catch (err) {
+                const formError = document.getElementById('form-error');
+                if (formError) {
+                    formError.innerText = "❌ Connection Error. Please email kerala@nexora.tech directly.";
+                    formError.classList.remove('hidden');
+                } else {
+                    alert("❌ Connection Error. Please email kerala@nexora.tech directly.");
+                }
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Submit Regional Inquiry</span><i class="fas fa-paper-plane"></i>';
+            }
+        });
+
+        // Add floating label behavior for select fields
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', function() {
+                if (this.value !== '') {
+                    this.classList.add('has-value');
+                } else {
+                    this.classList.remove('has-value');
+                }
+            });
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

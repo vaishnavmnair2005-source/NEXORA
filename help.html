@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center | NEXORA Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .bg-mesh {
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, hsla(199,89%,84%,1) 0, transparent 50%), 
+                              radial-gradient(at 100% 100%, hsla(187,92%,86%,1) 0, transparent 50%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .footer-link:hover { color: #0ea5e9; }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            padding-bottom: 1.5rem;
+        }
+        .faq-item.active i {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-mesh min-h-screen text-slate-800 flex flex-col">
+
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+            <a href="/" class="flex items-center gap-3">
+                <img src="/static/images/company_logo.png" alt="NEXORA" class="h-8 w-auto">
+                <div class="text-2xl font-bold text-sky-600">NEXORA</div>
+            </a>
+            <a href="/" class="text-sm font-semibold text-slate-600 hover:text-sky-600 transition flex items-center gap-2">
+                <i class="fas fa-arrow-left text-xs"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-grow pt-32 pb-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16" data-aos="fade-down">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                    How can we <span class="text-sky-600">help?</span>
+                </h1>
+                <p class="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">
+                    Search our technical FAQ, access clinical resources, or open a support ticket.
+                </p>
+            </div>
+
+            <section id="faq" class="mb-24">
+                <div class="max-w-3xl mx-auto space-y-4">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-8 text-center uppercase tracking-widest text-sm">Common Questions</h2>
+                    
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>1. How accurate is the MediTwin disease prediction?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            Our system currently maintains a 94.2% accuracy rate by combining real-time 500Hz sampling with LSTM-based health trajectory forecasting.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>2. Is my clinical data encrypted and secure?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            Yes. Data is encrypted at the hardware level using ESP32 core protocols and validated using Pydantic schemas before cloud ingestion.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>3. What vital signs does the Bio-Patch monitor?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            The patch monitors Heart Rate (BPM), SpO2 levels, core body temperature, ECG waveforms, and stress levels via GSR.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>4. How does the fall detection system work?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            We use TinyML Random Forest models running directly on the ESP32 chip to analyze accelerometer data and detect falls in real-time.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>5. Can local clinics integrate their own EMR systems?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            Absolutely. Through our "Enquire Locally" program, we offer technical assistance for regional implementation and EMR integration.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>6. What is the sampling rate of the Bio-Patch?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            The Bio-Patch utilizes a high-frequency 500Hz sampling rate to ensure precise morphological heart activity analysis.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>7. How does the AI "Digital Twin" learn my body?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            The system uses CNN Analyzers and LSTM networks to build a personalized baseline of your unique biological patterns over time.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>8. What sensors are included in the hardware?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            The hardware suite includes the MAX30102 for pulse/SpO2 and the AD8232 for heart activity monitoring.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>9. How can I reach technical support for hardware issues?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            You can open a support ticket on this page; our team typically responds within 2 hours to prioritize clinical hardware issues.
+                        </div>
+                    </div>
+
+                    <div class="faq-item glass-card rounded-2xl border border-slate-200" data-aos="fade-up">
+                        <button class="w-full flex justify-between items-center p-6 text-left font-bold text-slate-800 focus:outline-none" onclick="toggleFAQ(this)">
+                            <span>10. What backend technology powers the dashboard?</span>
+                            <i class="fas fa-chevron-down text-sky-500 transition-transform duration-300"></i>
+                        </button>
+                        <div class="faq-answer px-6 text-slate-600 text-sm leading-relaxed">
+                            The dashboard is powered by a FastAPI backend, utilizing Pydantic schema validation for robust and secure data ingestion.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid md:grid-cols-3 gap-8 mb-24">
+                <div class="glass-card p-8 rounded-3xl text-center hover:translate-y-[-10px] transition-all duration-300" data-aos="fade-up">
+                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3 text-slate-900">Documentation</h3>
+                    <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                        Deep dive into our 500Hz sampling architecture, IoT core, and LSTM forecasting models.
+                    </p>
+                    <a href="/static/NEXORA MediTwin Documentation.pdf" download class="text-sky-600 font-bold hover:text-sky-700 transition inline-flex items-center gap-2">
+                        Read Whitepaper <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl text-center hover:translate-y-[-10px] transition-all duration-300" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3 text-slate-900">Clinical Setup</h3>
+                    <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                        Regional implementation guides designed specifically for private clinics and partner hospitals.
+                    </p>
+                    <a href="/enquire-locally" class="text-teal-600 font-bold hover:text-teal-700 transition inline-flex items-center gap-2">
+                        Local Support <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl text-center hover:translate-y-[-10px] transition-all duration-300" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl shadow-inner">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3 text-slate-900">Data Privacy</h3>
+                    <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                        Understand our hardware-level encryption and secure Pydantic data validation protocols.
+                    </p>
+                    <a href="/privacy" class="text-purple-600 font-bold hover:text-purple-700 transition inline-flex items-center gap-2">
+                        Privacy Policy <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="glass-card p-10 md:p-16 rounded-[3.5rem] shadow-2xl relative overflow-hidden mb-24" data-aos="zoom-in">
+                <div class="absolute top-0 right-0 w-80 h-80 bg-sky-200 rounded-full blur-3xl opacity-20 -mr-32 -mt-32"></div>
+                <div class="grid md:grid-cols-2 gap-12 items-center relative z-10">
+                    <div>
+                        <h2 class="text-3xl font-bold text-slate-900 mb-6">Open a Support Ticket</h2>
+                        <p class="text-slate-600 mb-8 leading-relaxed">
+                            If you are experiencing issues with Bio-Patch synchronization or Cloud Dashboard latency, submit a formal request.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4 text-sky-600 font-bold">
+                                <i class="fas fa-clock"></i> Response time: < 2 Hours
+                            </div>
+                            <div class="flex items-center gap-4 text-slate-500 text-sm italic">
+                                <i class="fas fa-shield-alt"></i> Secure encrypted routing
+                            </div>
+                        </div>
+                    </div>
+                    <form id="helpTicket" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <input 
+                                    id="ticketName"
+                                    type="text" 
+                                    placeholder="Name" 
+                                    required 
+                                    class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50"
+                                >
+                                <p id="nameError" class="text-red-500 text-xs mt-1 ml-1 hidden"></p>
+                            </div>
+
+                            <div>
+                                <input 
+                                    id="ticketEmail"
+                                    type="email" 
+                                    placeholder="Email" 
+                                    required 
+                                    class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50"
+                                >
+                                <p id="emailError" class="text-red-500 text-xs mt-1 ml-1 hidden"></p>
+                            </div>
+                        </div>
+                        <select class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50">
+                            <option>Technical Issue (Hardware)</option>
+                            <option>Software/Dashboard Issue</option>
+                            <option>Clinical Partnership</option>
+                            <option>Account Management</option>
+                            <option>Privacy & Data Governance</option>
+                            <option>Other</option>
+                        </select>
+                        <textarea rows="4" placeholder="How can our engineering team assist you today?" required class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50"></textarea>
+                        <button type="submit" class="w-full py-5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition transform active:scale-95 shadow-xl">
+                            Submit Support Request
+                        </button>
+                    </form>
+                </div>
+                <div id="ticketResponse" class="hidden mt-8 text-center text-green-600 font-bold bg-green-50 p-4 rounded-2xl animate-pulse">
+                    <i class="fas fa-check-circle mr-2"></i> Ticket Received. We will contact you shortly.
+                </div>
+            </div>
+
+            <section id="updates" class="py-20 border-t border-slate-200">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-12 flex items-center gap-4">
+                        <i class="fas fa-rocket text-sky-500"></i> Release Notes & System Status
+                    </h2>
+
+                    <div class="space-y-12">
+                        <div class="relative pl-8 border-l-2 border-sky-100 pb-10" data-aos="fade-right">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-sky-500 rounded-full border-4 border-white"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="text-xl font-bold text-slate-800">Version 2.4: Neural Backbone Refinement</h4>
+                                <span class="text-xs font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase tracking-tighter">Dec 2025</span>
+                            </div>
+                            <ul class="text-slate-600 text-sm space-y-3 leading-relaxed">
+                                <li><i class="fas fa-check text-green-500 mr-2"></i> **AI Accuracy**: Improved LSTM forecasting trajectory precision to 94.2%.</li>
+                                <li><i class="fas fa-check text-green-500 mr-2"></i> **DSP Algorithm**: Refined Python-based digital signal processing to eliminate low-frequency artifacts.</li>
+                                <li><i class="fas fa-check text-green-500 mr-2"></i> **Validation**: Enhanced Pydantic schema validation for robust cloud-data ingestion.</li>
+                            </ul>
+                        </div>
+
+                        <div class="relative pl-8 border-l-2 border-slate-100" data-aos="fade-right" data-aos-delay="100">
+                            <div class="absolute -left-[9px] top-0 w-4 h-4 bg-slate-300 rounded-full border-4 border-white"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="text-xl font-bold text-slate-800">Version 2.3: Edge Intelligence Optimization</h4>
+                                <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-tighter">Oct 2025</span>
+                            </div>
+                            <ul class="text-slate-600 text-sm space-y-3 leading-relaxed">
+                                <li><i class="fas fa-check text-green-500 mr-2"></i> **Edge Processing**: Optimized TinyML Random Forest models for ESP32 on-chip fall detection.</li>
+                                <li><i class="fas fa-check text-green-500 mr-2"></i> **Hardware Protocol**: Reduced I2C communication overhead between clinical sensors and the core processor.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-6">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                        <span class="text-2xl font-bold text-white tracking-tighter">NEXORA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        Empowering the future of proactive healthcare through AI-driven Digital Twin technology and medical-grade IoT sensing.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="#features" class="footer-link transition">Vital Monitoring</a></li>
+                        <li><a href="#how-it-works" class="footer-link transition">Cloud Digital Twin</a></li>
+                        <li><a href="#tech" class="footer-link transition">Edge AI Engine</a></li>
+                        <li><a href="#live-demo" class="footer-link transition">Live Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Resources</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/static/NEXORA MediTwin Documentation.pdf" download class="footer-link transition">Technical Whitepaper</a></li>
+                        <li><a href="/about" class="footer-link transition">Architecture Guide</a></li>
+                        <li><a href="/enquire-locally" class="footer-link transition">Clinical Partners</a></li>
+                        <li><a href="/privacy" class="footer-link transition">Privacy Protocols</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/about" class="footer-link transition">About Us</a></li>
+                        <li><a href="/help" class="footer-link transition">Help Center & FAQ</a></li>
+                        <li><a href="/contact" class="footer-link transition">Contact Sales</a></li>
+                        <li><a href="/enquire-locally" class="footer-link transition">Regional Support</a></li>
+                        <li><a href="/security" class="footer-link transition">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    © 2025 NEXORA Technologies Inc. All rights reserved.
+                </p>
+                <div class="flex gap-8 text-xs text-slate-500 uppercase tracking-widest">
+                    <a href="/terms" class="hover:text-white transition">Terms of Use</a>
+                    <a href="/privacy" class="hover:text-white transition">Privacy Policy</a>
+                    <a href="/regulatory" class="hover:text-white transition">Regulatory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1000, once: true });
+        
+        function toggleFAQ(button) {
+            const item = button.parentElement;
+            const isActive = item.classList.contains('active');
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+            if (!isActive) item.classList.add('active');
+        }
+
+        document.getElementById('helpTicket').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 1. Setup variables
+            const nameInput = document.getElementById('ticketName');
+            const emailInput = document.getElementById('ticketEmail');
+            const nameError = document.getElementById('nameError');
+            const emailError = document.getElementById('emailError');
+            
+            // 2. Reset Errors
+            nameError.classList.add('hidden');
+            emailError.classList.add('hidden');
+            nameInput.classList.remove('border-red-500');
+            emailInput.classList.remove('border-red-500');
+            
+            let isValid = true;
+
+            // 3. Name Validation (Letters & Spaces only)
+            const nameRegex = /^[A-Za-z\s]+$/;
+            if (!nameRegex.test(nameInput.value.trim())) {
+                nameError.innerText = "❌ Name must contain only letters.";
+                nameError.classList.remove('hidden');
+                nameInput.classList.add('border-red-500'); // Optional: Highlights box red
+                isValid = false;
+            }
+
+            // 4. Email Validation (Gmail Only)
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+            if (!emailRegex.test(emailInput.value.trim())) {
+                emailError.innerText = "❌ Only @gmail.com addresses are accepted.";
+                emailError.classList.remove('hidden');
+                emailInput.classList.add('border-red-500');
+                isValid = false;
+            }
+
+            // 5. Stop if invalid
+            if (!isValid) return;
+
+            // 6. Success: Show confirmation
+            this.classList.add('hidden');
+            document.getElementById('ticketResponse').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

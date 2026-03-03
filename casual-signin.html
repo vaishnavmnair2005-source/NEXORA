@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | NEXORA MediTwin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* ── PAGE ── */
+        .page-bg {
+            min-height: 100vh;
+            background: #f0f6ff;
+            background-image:
+                radial-gradient(ellipse at 8% 18%, rgba(14,165,233,0.09) 0%, transparent 55%),
+                radial-gradient(ellipse at 92% 88%, rgba(99,102,241,0.07) 0%, transparent 55%);
+        }
+
+        /* ── LEFT HERO PANEL ── */
+        .hero-panel {
+            position: relative;
+            background: linear-gradient(155deg, #0f172a 0%, #1e3a5f 50%, #0c4a6e 100%);
+            overflow: hidden;
+        }
+        .hero-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=900&auto=format&fit=crop&q=60');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.10;
+            z-index: 0;
+        }
+        .hero-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(160deg, rgba(14,165,233,0.45) 0%, rgba(15,23,42,0.92) 100%);
+            z-index: 1;
+        }
+        .hero-content { position: relative; z-index: 2; }
+
+        /* ── ORBS ── */
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(70px);
+            animation: floatOrb 9s ease-in-out infinite; z-index: 1;
+        }
+        .orb-1 { width: 300px; height: 300px; background: rgba(56,189,248,0.20); top:-50px; left:-60px; animation-delay:0s; }
+        .orb-2 { width: 220px; height: 220px; background: rgba(99,102,241,0.16); bottom:40px; right:-40px; animation-delay:3s; }
+        .orb-3 { width: 140px; height: 140px; background: rgba(16,185,129,0.16); top:50%; left:30%; animation-delay:6s; }
+        @keyframes floatOrb {
+            0%,100% { transform: translateY(0) scale(1); }
+            50%      { transform: translateY(-20px) scale(1.05); }
+        }
+
+        /* ── FLOATING ICONS ── */
+        .float-icon {
+            position: absolute; z-index: 2; opacity: 0.16;
+            animation: iconDrift 7s ease-in-out infinite;
+        }
+        @keyframes iconDrift {
+            0%,100% { transform: translateY(0) rotate(0deg); opacity: 0.14; }
+            50%      { transform: translateY(-12px) rotate(5deg); opacity: 0.26; }
+        }
+
+        /* ── LIVE ECG ── */
+        .ecg-container { position: relative; height: 50px; overflow: hidden; }
+        .ecg-svg { width: 200%; animation: scrollEcg 3s linear infinite; }
+        @keyframes scrollEcg {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ── FORM PANEL ── */
+        .form-panel { background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); }
+
+        /* ── INPUT STYLES ── */
+        .input-field {
+            transition: all 0.25s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.9rem;
+        }
+        .input-field:focus { border-color: #0ea5e9 !important; box-shadow: 0 0 0 3px rgba(14,165,233,0.12); }
+        .input-field.is-valid { border-color: #10b981 !important; }
+        .input-field.is-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.10); }
+
+        /* Floating label */
+        .input-wrap { position: relative; }
+        .floating-label {
+            position: absolute; top: 50%; left: 1rem;
+            transform: translateY(-50%);
+            color: #94a3b8; font-size: 0.85rem;
+            pointer-events: none; transition: all 0.2s ease;
+            background: white; padding: 0 4px;
+        }
+        .input-field:focus ~ .floating-label,
+        .input-field:not(:placeholder-shown) ~ .floating-label {
+            top: 0; font-size: 0.72rem; color: #0ea5e9; font-weight: 600;
+        }
+
+        /* Error text */
+        .field-error {
+            display: none; color: #ef4444;
+            font-size: 0.72rem; font-weight: 600;
+            margin-top: 4px; padding-left: 2px;
+        }
+
+        /* ── SUBMIT BUTTON ── */
+        .submit-btn {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            transition: all 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(14,165,233,0.4); }
+        .submit-btn:active { transform: translateY(0); }
+
+        /* ── PULSE RING ── */
+        .pulse-ring { position: relative; display: flex; align-items: center; justify-content: center; }
+        .pulse-ring::before {
+            content: ''; position: absolute;
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid rgba(52,211,153,0.5);
+            animation: pulseOut 2s ease-out infinite;
+        }
+        @keyframes pulseOut {
+            0%   { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* ── DIVIDER ── */
+        .or-divider { display: flex; align-items: center; gap: 12px; }
+        .or-divider::before, .or-divider::after {
+            content: ''; flex: 1; height: 1px; background: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="page-bg">
+
+    <div class="flex min-h-screen">
+
+        <!-- ══ LEFT HERO ══ -->
+        <div class="hero-panel hidden lg:flex lg:w-5/12 xl:w-4/12 flex-col justify-between p-10">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+
+            <i class="float-icon fas fa-shield-heart text-5xl text-sky-300" style="top:12%;right:10%;animation-delay:0s;"></i>
+            <i class="float-icon fas fa-heart-pulse text-4xl text-cyan-300" style="bottom:28%;left:8%;animation-delay:2s;"></i>
+            <i class="float-icon fas fa-stethoscope text-3xl text-indigo-300" style="top:58%;right:18%;animation-delay:4.5s;"></i>
+
+            <div class="hero-content">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 mb-12">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-8 w-auto brightness-150" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-dna text-sky-300 text-lg\'></i>'">
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-white tracking-tight">NEXORA</div>
+                        <div class="text-xs text-sky-300/80 font-medium">MediTwin Platform</div>
+                    </div>
+                </a>
+
+                <!-- Headline -->
+                <div class="mb-8">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 border border-sky-400/30 rounded-full mb-5">
+                        <div class="pulse-ring">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full relative z-10"></div>
+                        </div>
+                        <span class="text-xs font-semibold text-sky-300 tracking-wider uppercase">Secure Access</span>
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-white mb-3 leading-snug">
+                        Welcome<br/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-cyan-300">Back!</span>
+                    </h1>
+                    <p class="text-white/60 text-sm leading-relaxed">
+                        Sign in to pick up right where you left off — access support, resources, and our sales team.
+                    </p>
+                </div>
+
+                <!-- Live ECG -->
+                <div class="mb-8">
+                    <div class="ecg-container">
+                        <svg class="ecg-svg" viewBox="0 0 800 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0,30 L80,30 L100,30 L110,5 L120,55 L130,30 L160,30 L170,20 L180,40 L190,30 L240,30 L260,30 L270,5 L280,55 L290,30 L320,30 L330,20 L340,40 L350,30 L400,30 L420,30 L430,5 L440,55 L450,30 L480,30 L490,20 L500,40 L510,30 L560,30 L580,30 L590,5 L600,55 L610,30 L640,30 L650,20 L660,40 L670,30 L720,30 L740,30 L750,5 L760,55 L770,30 L800,30"
+                                stroke="rgba(56,189,248,0.7)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-sky-400/60 mt-1">Live health monitoring — always on</p>
+                </div>
+
+                <!-- Access list -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-400/25 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-sky-300 text-xs"></i>
+                        </div>
+                        <span class="text-white/70">Contact Sales &amp; Support</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/25 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-emerald-300 text-xs"></i>
+                        </div>
+                        <span class="text-white/70">Schedule product demonstrations</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-400/25 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-violet-300 text-xs"></i>
+                        </div>
+                        <span class="text-white/70">Access clinical whitepapers</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-400/25 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-amber-300 text-xs"></i>
+                        </div>
+                        <span class="text-white/70">Find regional partners</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer note -->
+            <div class="hero-content mt-8">
+                <p class="text-xs text-white/35 leading-relaxed">
+                    Looking for the clinical portal?
+                    <a href="/signin" class="text-sky-400 hover:text-sky-300 font-semibold underline underline-offset-2 transition">Doctor / Caregiver Sign In →</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- ══ RIGHT FORM PANEL ══ -->
+        <div class="form-panel flex-1 flex items-center justify-center p-6 md:p-10 overflow-y-auto">
+            <div class="w-full max-w-md">
+
+                <!-- Mobile logo -->
+                <div class="lg:hidden flex items-center gap-3 mb-8">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center">
+                        <img src="/static/images/company_logo.png" alt="N" class="h-7 w-auto brightness-200" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-dna text-white text-sm\'></i>'">
+                    </div>
+                    <div>
+                        <div class="text-lg font-bold text-slate-900">NEXORA</div>
+                        <div class="text-xs text-slate-500">MediTwin Platform</div>
+                    </div>
+                </div>
+
+                <!-- Error Banner -->
+                <div id="error-banner" style="display:none;" class="mb-5 bg-red-50 border-l-4 border-red-500 rounded-r-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 text-sm"></i>
+                        <div>
+                            <h4 class="font-bold text-red-800 text-sm" id="error-title">Authentication Failed</h4>
+                            <p class="text-red-600 text-xs mt-0.5" id="error-message">Please check your credentials and try again.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heading -->
+                <div class="mb-7">
+                    <div class="inline-flex items-center gap-2 bg-sky-50 border border-sky-200 rounded-full px-3 py-1 mb-4">
+                        <div class="pulse-ring" style="transform:scale(0.65);">
+                            <div class="w-2 h-2 bg-emerald-500 rounded-full relative z-10"></div>
+                        </div>
+                        <span class="text-xs font-bold text-sky-700 tracking-wide uppercase">NEXORA MEDITWIN — Secure Access</span>
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 mb-1.5">Welcome<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-cyan-500">Back!</span></h1>
+                    <p class="text-slate-500 text-sm">Sign in to access support, resources & our sales team.</p>
+                </div>
+
+                <!-- Form -->
+                <form action="/login-process" method="POST" id="casualSigninForm" novalidate class="space-y-4">
+                    <input type="hidden" name="role" value="casual">
+                    <input type="hidden" name="next" id="next-field" value="">
+
+                    <!-- Email -->
+                    <div>
+                        <div class="input-wrap relative">
+                            <input type="email" name="email" id="email" placeholder=" " autocomplete="email"
+                                class="input-field w-full px-4 py-3.5 pr-10 border-2 border-slate-200 rounded-xl focus:outline-none text-slate-900 bg-white">
+                            <label for="email" class="floating-label">Email Address</label>
+                            <i id="email-check" class="fas fa-check-circle absolute right-4 top-4 text-green-500 text-sm" style="display:none;"></i>
+                            <i id="email-icon" class="fas fa-envelope absolute right-4 top-4 text-slate-300 text-sm"></i>
+                        </div>
+                        <p class="field-error" id="email-error"><i class="fas fa-times-circle mr-1"></i>Please enter a valid @gmail.com address</p>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <div class="input-wrap relative">
+                            <input type="password" name="password" id="password" placeholder=" " autocomplete="current-password"
+                                class="input-field w-full px-4 py-3.5 pr-10 border-2 border-slate-200 rounded-xl focus:outline-none text-slate-900 bg-white">
+                            <label for="password" class="floating-label">Password</label>
+                            <button type="button" id="toggle-pw" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition">
+                                <i class="fas fa-eye text-sm" id="pw-eye"></i>
+                            </button>
+                        </div>
+                        <p class="field-error" id="password-error"><i class="fas fa-times-circle mr-1"></i>Password is required</p>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="submit-btn w-full py-3.5 text-white font-bold rounded-xl text-sm mt-1">
+                        <span class="flex items-center justify-center gap-2">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="or-divider my-5">
+                    <span class="text-xs text-slate-400 font-semibold">OR</span>
+                </div>
+
+                <!-- Create account -->
+                <div class="text-center">
+                    <p class="text-sm text-slate-600">
+                        Don't have an account?
+                        <a href="/casual-signup" id="signup-link" class="text-sky-600 font-bold hover:underline ml-1">Create one free →</a>
+                    </p>
+                </div>
+
+                <!-- Clinical portal note -->
+                <div class="mt-6 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    <p class="text-xs text-slate-500 text-center leading-relaxed">
+                        <i class="fas fa-stethoscope text-slate-400 mr-1.5"></i>
+                        Are you a <strong class="text-slate-700">Doctor or Caregiver?</strong>
+                        <a href="/signin" class="text-sky-600 font-semibold hover:underline ml-1">Use the clinical portal →</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Read ?next= and pass to form + signup link ──
+        const params = new URLSearchParams(window.location.search);
+        const nextUrl = params.get('next') || '';
+        document.getElementById('next-field').value = nextUrl;
+        if (nextUrl) {
+            document.getElementById('signup-link').href = '/casual-signup?next=' + encodeURIComponent(nextUrl);
+        }
+
+        // ── Input refs ──
+        const emailInput = document.getElementById('email');
+        const pwInput    = document.getElementById('password');
+
+        // ── Show / hide error ──
+        function showErr(inputEl, errId, show) {
+            const errEl = document.getElementById(errId);
+            if (show) {
+                errEl.style.display = 'block';
+                inputEl.classList.remove('is-valid');
+                inputEl.classList.add('is-invalid');
+            } else {
+                errEl.style.display = 'none';
+                inputEl.classList.remove('is-invalid');
+            }
+        }
+
+        // ── Email live validation ──
+        const GMAIL_RE = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        emailInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            const ck = document.getElementById('email-check');
+            const ei = document.getElementById('email-icon');
+            if (!val) {
+                showErr(this, 'email-error', false);
+                this.classList.remove('is-valid', 'is-invalid');
+                ck.style.display = 'none'; ei.style.display = 'inline';
+            } else if (!GMAIL_RE.test(val)) {
+                showErr(this, 'email-error', true);
+                ck.style.display = 'none'; ei.style.display = 'none';
+            } else {
+                showErr(this, 'email-error', false);
+                this.classList.add('is-valid');
+                ck.style.display = 'inline'; ei.style.display = 'none';
+            }
+        });
+
+        // ── Password live validation ──
+        pwInput.addEventListener('input', function() {
+            if (this.value.length > 0) showErr(this, 'password-error', false);
+        });
+        pwInput.addEventListener('blur', function() {
+            if (!this.value.trim()) showErr(this, 'password-error', true);
+        });
+
+        // ── Toggle password visibility ──
+        document.getElementById('toggle-pw').addEventListener('click', function() {
+            const t = pwInput.type === 'password' ? 'text' : 'password';
+            pwInput.type = t;
+            document.getElementById('pw-eye').classList.toggle('fa-eye', t === 'password');
+            document.getElementById('pw-eye').classList.toggle('fa-eye-slash', t === 'text');
+        });
+
+        // ── Submit validation ──
+        document.getElementById('casualSigninForm').addEventListener('submit', function(e) {
+            let ok = true;
+            if (!GMAIL_RE.test(emailInput.value.trim())) {
+                showErr(emailInput, 'email-error', true);
+                ok = false;
+            }
+            if (!pwInput.value.trim()) {
+                showErr(pwInput, 'password-error', true);
+                ok = false;
+            }
+            if (!ok) e.preventDefault();
+        });
+
+        // ── Server-side URL errors ──
+        window.addEventListener('DOMContentLoaded', () => {
+            const err = params.get('error');
+            if (!err) return;
+            const banner = document.getElementById('error-banner');
+            const title  = document.getElementById('error-title');
+            const msg    = document.getElementById('error-message');
+            banner.style.display = 'block';
+            const map = {
+                invalid_credentials: ['Invalid Credentials', 'The email or password you entered is incorrect. Please try again.'],
+                user_not_found:      ['Account Not Found', null], // custom below
+                Please_Login_First:  ['Authentication Required', 'Please sign in to access that page.'],
+            };
+            if (err === 'user_not_found') {
+                title.textContent = 'Account Not Found';
+                msg.innerHTML = 'No account found with this email. <a href="/casual-signup" class="underline font-bold hover:text-red-800">Create one here?</a>';
+            } else if (map[err]) {
+                title.textContent = map[err][0];
+                msg.textContent   = map[err][1];
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caregiver Dashboard | MediTwin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f0f4f9;
+  --sidebar: #080e1d;
+  --sidebar-border: rgba(255,255,255,.06);
+  --accent: #14b8a6;
+  --accent2: #22d3ee;
+  --accent3: #0ea5e9;
+  --danger: #f43f5e;
+  --warn: #f59e0b;
+  --success: #10b981;
+  --card-bg: #ffffff;
+  --card-border: #e8eef5;
+  --text-primary: #0b1120;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --mono: 'JetBrains Mono', monospace;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Figtree', sans-serif; }
+body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); }
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(100,116,139,.25); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,.45); }
+
+/* ── LOADING SCREEN ── */
+#loadScreen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--sidebar);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  transition: opacity .5s ease;
+}
+#loadScreen.fade { opacity: 0; pointer-events: none; }
+.load-logo {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: white;
+  box-shadow: 0 0 40px rgba(20,184,166,.5);
+  animation: logoPulse 2s ease infinite;
+}
+@keyframes logoPulse { 0%,100%{box-shadow:0 0 40px rgba(20,184,166,.5);} 50%{box-shadow:0 0 60px rgba(20,184,166,.8);} }
+.load-label { font-size: 22px; font-weight: 800; color: white; letter-spacing: -.5px; }
+.load-sub { font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: 3px; text-transform: uppercase; }
+.load-bar-wrap { width: 200px; height: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
+.load-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; animation: loadAnim 1.8s ease forwards; }
+@keyframes loadAnim { from{width:0%} to{width:100%} }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 272px; flex-shrink: 0; height: 100vh;
+  display: flex; flex-direction: column;
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  box-shadow: 4px 0 40px rgba(0,0,0,.35);
+  z-index: 50;
+}
+
+/* ── MAIN ── */
+#main { flex: 1; min-width: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── TOPBAR ── */
+#topbar {
+  flex-shrink: 0; height: 68px;
+  background: rgba(255,255,255,.97); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 1px 12px rgba(0,0,0,.06);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px; z-index: 40;
+}
+
+/* ── CONTENT ── */
+#content {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 18px; display: flex; flex-direction: column; gap: 14px;
+}
+
+/* ── SIDEBAR LOGO ── */
+.sb-logo-ring {
+  width: 42px; height: 42px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 17px;
+  box-shadow: 0 0 20px rgba(20,184,166,.4);
+}
+.sb-brand { font-size: 16px; font-weight: 900; color: white; letter-spacing: -.4px; line-height: 1.1; }
+.sb-tagline { font-size: 9px; font-weight: 700; color: var(--accent); letter-spacing: 2.5px; text-transform: uppercase; }
+
+/* ── LIVE DOT ── */
+.live-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success); flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(16,185,129,.4);
+  animation: livePulse 1.8s ease infinite;
+}
+@keyframes livePulse {
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.4);}
+  70%{box-shadow:0 0 0 7px rgba(16,185,129,0);}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,0);}
+}
+
+/* ── PATIENT CARDS (SIDEBAR) ── */
+.pc-card {
+  padding: 11px 13px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.05);
+  cursor: pointer; transition: all .2s; margin-bottom: 6px;
+  position: relative; overflow: hidden;
+}
+.pc-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  border-radius: 0 2px 2px 0; transition: width .2s;
+}
+.pc-card:hover { border-color: rgba(34,211,238,.18); background: rgba(255,255,255,.03); }
+.pc-card.active { border-color: rgba(34,211,238,.3); background: rgba(255,255,255,.055); }
+.pc-card.active::before { width: 3px; }
+.pc-name { font-size: 12.5px; font-weight: 700; color: #e2e8f0; padding-left: 9px; margin-bottom: 4px; transition: color .2s; }
+.pc-card.active .pc-name { color: var(--accent2); }
+.pc-ids { display: flex; flex-direction: column; gap: 2px; padding-left: 9px; }
+.pc-id-tag { font-size: 10px; font-family: var(--mono); color: #475569; display: flex; align-items: center; gap: 5px; }
+.pc-id-tag i { width: 11px; text-align: center; opacity: .6; }
+.pc-status { display: flex; align-items: center; gap: 5px; margin-top: 5px; padding-left: 9px; }
+.pc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.pc-status-text { font-size: 10px; color: #475569; }
+.pc-chips { display: flex; gap: 4px; margin-top: 5px; padding-left: 9px; flex-wrap: wrap; }
+.pc-chip {
+  font-size: 10px; font-family: var(--mono); padding: 2px 6px;
+  border-radius: 5px; background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07); color: #64748b;
+}
+.pc-chip.warn { border-color: rgba(244,63,94,.35); color: var(--danger); background: rgba(244,63,94,.07); }
+.btn-remove-pc {
+  position: absolute; top: 8px; right: 8px; width: 18px; height: 18px;
+  border-radius: 5px; background: rgba(244,63,94,.1); border: 1px solid rgba(244,63,94,.2);
+  color: var(--danger); font-size: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s;
+}
+.pc-card:hover .btn-remove-pc { opacity: 1; }
+
+/* ── GLASS CARDS ── */
+.g-card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 16px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,.04);
+}
+.g-card-header {
+  padding: 13px 18px; border-bottom: 1px solid #f0f5fb;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.g-card-title {
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.g-card-body { padding: 16px 18px; }
+
+/* ── VITALS GRID ── */
+.vitals-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; }
+@media(max-width:1400px){.vitals-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.vitals-grid{grid-template-columns:repeat(2,1fr);}}
+
+.vital-card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 14px; padding: 16px;
+  position: relative; overflow: hidden; cursor: pointer;
+  transition: all .25s; box-shadow: 0 2px 10px rgba(0,0,0,.03);
+}
+.vital-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,.08); border-color: rgba(14,165,233,.25); }
+.vital-card::after {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .3s; pointer-events: none;
+}
+.vital-card:hover::after { opacity: 1; }
+.vital-card .vc-accent {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0;
+}
+.vital-card.heart .vc-accent { background: linear-gradient(90deg,#f43f5e,#fb7185); }
+.vital-card.oxygen .vc-accent { background: linear-gradient(90deg,#3b82f6,#60a5fa); }
+.vital-card.temp .vc-accent { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+.vital-card.stress .vc-accent { background: linear-gradient(90deg,#a78bfa,#c4b5fd); }
+.vital-card.fall .vc-accent { background: linear-gradient(90deg,#06b6d4,#22d3ee); }
+
+.vc-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; margin-bottom: 11px; flex-shrink: 0;
+}
+.vital-card.heart .vc-icon { background: #fff1f2; color: #f43f5e; }
+.vital-card.oxygen .vc-icon { background: #eff6ff; color: #3b82f6; }
+.vital-card.temp .vc-icon { background: #fffbeb; color: #f59e0b; }
+.vital-card.stress .vc-icon { background: #faf5ff; color: #a78bfa; }
+.vital-card.fall .vc-icon { background: #ecfeff; color: #06b6d4; }
+
+.vital-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.vital-value {
+  font-size: 27px; font-weight: 800; letter-spacing: -1.5px;
+  color: var(--text-primary); line-height: 1;
+  transition: all .3s;
+}
+.vital-value.updating { animation: numFlash .3s ease; }
+@keyframes numFlash { 0%,100%{opacity:1} 50%{opacity:.4} }
+.vital-unit { font-size: 11px; color: var(--text-muted); margin-left: 2px; }
+.vital-mini { margin-top: 9px; height: 34px; }
+.trend-pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px; margin-top: 9px;
+}
+.trend-pill.normal { background: #f0fdf4; color: #10b981; }
+.trend-pill.warning { background: #fffbeb; color: #f59e0b; }
+.trend-pill.critical { background: #fff1f2; color: #f43f5e; }
+.trend-pill.safe { background: #f0fdf4; color: #10b981; }
+.trend-pill.alert { background: #fff1f2; color: #f43f5e; animation: fallPulse 1s ease infinite; }
+@keyframes fallPulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+
+/* ── ECG ── */
+.ecg-screen {
+  background: #020d0a; border-radius: 11px; height: 145px;
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(16,185,129,.12);
+}
+.ecg-screen::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(16,185,129,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(16,185,129,.03) 1px,transparent 1px);
+  background-size: 20px 20px;
+}
+.ecg-canvas { width: 100%; height: 100%; display: block; }
+.ecg-overlay {
+  position: absolute; top: 10px; right: 12px;
+  font-family: var(--mono); font-size: 10px; color: #10b981;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+}
+.ecg-bpm { font-size: 24px; font-weight: 600; line-height: 1; }
+.ecg-lbl { font-size: 8px; opacity: .55; letter-spacing: 1.5px; }
+.status-strip {
+  display: flex; gap: 16px; padding: 9px 18px;
+  border-top: 1px solid #f0f5fb; flex-wrap: wrap;
+}
+.sdot-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+.sdot { width: 6px; height: 6px; border-radius: 50%; }
+.sdot.green { background: var(--success); }
+.sdot.cyan { background: var(--accent3); }
+.sdot.amber { background: var(--warn); }
+
+/* ── CHART TABS ── */
+.chart-tabs { display: flex; gap: 4px; }
+.chart-tab {
+  padding: 4px 11px; border-radius: 7px; font-size: 11px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--card-border);
+  color: var(--text-muted); background: transparent; transition: all .2s; font-family: 'Figtree', sans-serif;
+}
+.chart-tab.active { background: #f0f9ff; color: var(--accent3); border-color: #bae6fd; }
+.chart-tab:hover:not(.active) { background: #f8fafc; }
+
+/* ── DASH TABS ── */
+.dash-tabs {
+  display: flex; gap: 0; padding: 0 16px;
+  background: var(--card-bg); border-bottom: 1px solid var(--card-border);
+}
+.dash-tab {
+  padding: 11px 16px; font-size: 13px; font-weight: 600;
+  color: var(--text-muted); cursor: pointer; border: none; background: none;
+  border-bottom: 2.5px solid transparent; transition: all .2s;
+  display: flex; align-items: center; gap: 6px; font-family: 'Figtree', sans-serif;
+}
+.dash-tab:hover { color: #475569; }
+.dash-tab.active { color: var(--accent3); border-bottom-color: var(--accent3); }
+
+/* ── ALERT BANNER ── */
+.alert-banner {
+  background: rgba(244,63,94,.05); border: 1px solid rgba(244,63,94,.3);
+  border-radius: 13px; padding: 13px 18px;
+  display: flex; align-items: center; gap: 12px;
+  animation: alertPulse 2.5s ease infinite;
+}
+.alert-banner.hidden { display: none; }
+@keyframes alertPulse{0%,100%{border-color:rgba(244,63,94,.3);}50%{border-color:rgba(244,63,94,.6);}}
+.btn-dismiss {
+  padding: 5px 12px; background: rgba(244,63,94,.08);
+  border: 1px solid rgba(244,63,94,.25); border-radius: 7px;
+  color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.btn-dismiss:hover { background: rgba(244,63,94,.18); }
+
+/* ── TAB PANELS ── */
+.tab-panel { display: none; flex-direction: column; gap: 14px; }
+.tab-panel.active { display: flex; }
+
+/* ── MAIN GRID ── */
+.main-grid { display: grid; grid-template-columns: 1fr 300px; gap: 14px; }
+@media(max-width:1100px){.main-grid{grid-template-columns:1fr;}}
+.left-col { display: flex; flex-direction: column; gap: 14px; }
+.right-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── MEDS ── */
+.med-list { display: flex; flex-direction: column; gap: 7px; }
+.med-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: 10px; background: #f8fafc;
+  border: 1px solid var(--card-border); transition: all .2s; cursor: pointer;
+}
+.med-item:hover { border-color: #bae6fd; background: #f0f9ff; }
+.med-check {
+  width: 20px; height: 20px; border-radius: 6px; border: 2px solid #cbd5e1;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; transition: all .2s; color: white;
+}
+.med-item.done .med-check { background: var(--success); border-color: var(--success); }
+.med-item.done .med-name { text-decoration: line-through; color: var(--text-muted); }
+.med-info { flex: 1; min-width: 0; }
+.med-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); transition: all .2s; }
+.med-time { font-size: 10px; color: var(--text-muted); font-family: var(--mono); margin-top: 2px; }
+.med-dose { font-size: 10px; color: var(--text-muted); background: #f1f5f9; padding: 2px 7px; border-radius: 5px; font-family: var(--mono); }
+.btn-add-dashed {
+  width: 100%; padding: 9px; border-radius: 10px;
+  border: 1.5px dashed #cbd5e1; background: transparent;
+  color: var(--text-muted); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .2s; margin-top: 6px; font-family: 'Figtree', sans-serif;
+}
+.btn-add-dashed:hover { color: var(--accent3); border-color: #7dd3fc; background: #f0f9ff; }
+
+/* ── NOTES ── */
+.notes-list { display: flex; flex-direction: column; gap: 7px; max-height: 200px; overflow-y: auto; }
+.notes-list::-webkit-scrollbar { width: 3px; }
+.note-item {
+  padding: 10px 12px; background: #f8fafc;
+  border: 1px solid var(--card-border); border-radius: 10px;
+  position: relative; transition: all .2s;
+}
+.note-item:hover { border-color: #bae6fd; }
+.note-item:hover .note-del { opacity: 1; }
+.note-author { font-size: 10px; font-weight: 700; color: var(--accent3); margin-bottom: 4px; }
+.note-time { font-size: 9px; color: var(--text-muted); float: right; font-family: var(--mono); }
+.note-text { font-size: 12px; color: #475569; line-height: 1.5; }
+.note-del {
+  position: absolute; top: 8px; right: 8px; width: 20px; height: 20px;
+  border-radius: 5px; background: rgba(244,63,94,.08);
+  border: 1px solid rgba(244,63,94,.18); color: var(--danger);
+  font-size: 9px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; opacity: 0; transition: opacity .2s;
+}
+.note-input-row { display: flex; gap: 7px; margin-top: 8px; }
+.note-input {
+  flex: 1; background: #f8fafc; border: 1px solid var(--card-border);
+  border-radius: 9px; padding: 9px 12px; color: var(--text-primary);
+  font-size: 12px; font-family: 'Figtree', sans-serif;
+  outline: none; transition: border-color .2s;
+}
+.note-input:focus { border-color: #7dd3fc; background: white; }
+.note-input::placeholder { color: var(--text-muted); }
+.btn-note {
+  padding: 9px 14px; background: #f0f9ff; border: 1px solid #bae6fd;
+  border-radius: 9px; color: var(--accent3); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+}
+.btn-note:hover { background: #e0f2fe; }
+
+/* ── ACTIVITY ── */
+.act-list { display: flex; flex-direction: column; }
+.act-item { display: flex; gap: 10px; padding: 9px 0; position: relative; }
+.act-item:not(:last-child)::after { content: ''; position: absolute; left: 12px; top: 33px; bottom: 0; width: 1px; background: #f0f5fb; }
+.act-dot {
+  width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; position: relative; z-index: 1;
+}
+.act-dot.info { background: #f0f9ff; color: var(--accent3); border: 1px solid #bae6fd; }
+.act-dot.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+.act-dot.warn { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
+.act-dot.danger { background: #fff1f2; color: var(--danger); border: 1px solid #fecdd3; }
+.act-content { flex: 1; }
+.act-text { font-size: 12px; font-weight: 500; color: #334155; line-height: 1.4; }
+.act-time { font-size: 10px; color: var(--text-muted); font-family: var(--mono); margin-top: 2px; }
+
+/* ── DEVICE INFO ── */
+.device-info-strip {
+  background: linear-gradient(135deg,#f0fdfa,#ecfdf5);
+  border: 1px solid rgba(20,184,166,.18); border-radius: 14px; padding: 14px 16px;
+}
+.device-items { display: flex; flex-direction: column; gap: 9px; }
+.device-item { display: flex; align-items: flex-start; gap: 10px; }
+.device-item i { color: var(--accent3); width: 14px; flex-shrink: 0; margin-top: 1px; font-size: 11px; }
+.device-item-label { font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
+.device-item-val { font-size: 12px; font-family: var(--mono); color: #334155; margin-top: 1px; }
+
+/* ── REPORTS ── */
+.report-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 12px; }
+.report-card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 14px; padding: 18px; cursor: pointer;
+  transition: all .25s; box-shadow: 0 2px 10px rgba(0,0,0,.03);
+  position: relative; overflow: hidden;
+}
+.report-card:hover { border-color: #bae6fd; transform: translateY(-3px); box-shadow: 0 14px 36px rgba(0,0,0,.09); }
+.report-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2.5px; border-radius: 0 0 14px 14px; }
+.report-card.blue::after { background: linear-gradient(90deg,#3b82f6,#60a5fa); }
+.report-card.green::after { background: linear-gradient(90deg,#10b981,#34d399); }
+.report-card.amber::after { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+.report-card.purple::after { background: linear-gradient(90deg,#a78bfa,#c4b5fd); }
+.report-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 12px; }
+.report-icon.blue { background: #eff6ff; color: #3b82f6; }
+.report-icon.green { background: #f0fdf4; color: #10b981; }
+.report-icon.amber { background: #fffbeb; color: #f59e0b; }
+.report-icon.purple { background: #faf5ff; color: #a78bfa; }
+.report-name { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.report-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.report-date { font-size: 10px; color: var(--text-muted); margin-top: 10px; font-family: var(--mono); }
+
+/* ── THRESHOLD ── */
+.thresh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.thresh-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+.thresh-row { display: flex; gap: 5px; align-items: center; }
+.thresh-input {
+  flex: 1; background: #f8fafc; border: 1px solid var(--card-border);
+  border-radius: 8px; padding: 8px 10px; color: var(--text-primary);
+  font-size: 12px; font-family: var(--mono); outline: none; transition: border-color .2s; width: 100%;
+}
+.thresh-input:focus { border-color: #7dd3fc; background: white; }
+.thresh-div { color: var(--text-muted); font-size: 12px; align-self: center; }
+.btn-save-thresh {
+  width: 100%; margin-top: 16px; padding: 10px; border-radius: 10px;
+  background: linear-gradient(135deg,var(--accent3),var(--accent));
+  border: none; color: white; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: 'Figtree', sans-serif; transition: opacity .2s;
+}
+.btn-save-thresh:hover { opacity: .9; }
+
+/* ── MODALS ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(8,14,29,.8);
+  backdrop-filter: blur(10px); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: white; border: 1px solid #e2e8f0;
+  border-radius: 20px; padding: 26px; width: 90%; max-width: 480px;
+  box-shadow: 0 40px 80px rgba(0,0,0,.2);
+  transform: translateY(14px) scale(.97); transition: transform .25s;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 17px; font-weight: 800; color: var(--text-primary); }
+.btn-close {
+  width: 30px; height: 30px; border-radius: 8px; background: #f1f5f9;
+  border: 1px solid var(--card-border); color: var(--text-muted);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;
+}
+.btn-close:hover { background: #e2e8f0; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.form-input {
+  width: 100%; background: #f8fafc; border: 1px solid var(--card-border);
+  border-radius: 10px; padding: 10px 13px; color: var(--text-primary);
+  font-size: 13px; font-family: 'Figtree', sans-serif; outline: none; transition: border-color .2s;
+}
+.form-input:focus { border-color: #7dd3fc; background: white; }
+.form-input::placeholder { color: var(--text-muted); }
+.form-select {
+  width: 100%; background: #f8fafc; border: 1px solid var(--card-border);
+  border-radius: 10px; padding: 10px 13px; color: var(--text-primary);
+  font-size: 13px; font-family: 'Figtree', sans-serif; outline: none; cursor: pointer;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-hint { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+.modal-actions { display: flex; gap: 9px; margin-top: 20px; }
+.btn-cancel {
+  flex: 1; padding: 10px; border-radius: 10px; background: #f1f5f9;
+  border: 1px solid var(--card-border); color: var(--text-muted);
+  font-weight: 600; cursor: pointer; font-size: 13px; transition: all .2s;
+  font-family: 'Figtree', sans-serif;
+}
+.btn-cancel:hover { background: #e2e8f0; }
+.btn-confirm {
+  flex: 1; padding: 10px; border-radius: 10px;
+  background: linear-gradient(135deg,var(--accent3),var(--accent));
+  border: none; color: white; font-weight: 700;
+  cursor: pointer; font-size: 13px; transition: all .2s; font-family: 'Figtree', sans-serif;
+}
+.btn-confirm:hover { opacity: .9; }
+.em-modal .btn-confirm { background: linear-gradient(135deg,#f43f5e,#e11d48); }
+.id-preview-row {
+  display: flex; gap: 8px; margin-top: 12px; padding: 12px;
+  background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px;
+}
+.id-preview-item { flex: 1; }
+.id-preview-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 3px; }
+.id-preview-val { font-family: var(--mono); font-size: 12px; color: var(--accent3); word-break: break-all; }
+.auto-id-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9px; font-weight: 700; color: var(--success);
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  padding: 2px 7px; border-radius: 20px; margin-left: 6px;
+}
+
+/* ── BADGES ── */
+.badge { font-size: 10px; padding: 3px 9px; border-radius: 20px; font-weight: 700; font-family: var(--mono); }
+.badge-live { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+.badge-info { background: #f0f9ff; color: var(--accent3); border: 1px solid #bae6fd; }
+.badge-warn { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
+
+/* ── TOAST ── */
+.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+  background: white; border: 1px solid var(--card-border);
+  border-radius: 13px; min-width: 270px;
+  box-shadow: 0 10px 36px rgba(0,0,0,.12);
+  animation: slideIn .3s cubic-bezier(.34,1.56,.64,1); font-size: 12.5px; font-weight: 600;
+  color: var(--text-primary);
+}
+.toast.success { border-color: #bbf7d0; } .toast.success .toast-icon { color: var(--success); }
+.toast.error { border-color: #fecdd3; } .toast.error .toast-icon { color: var(--danger); }
+.toast.info { border-color: #bae6fd; } .toast.info .toast-icon { color: var(--accent3); }
+@keyframes slideIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* ── STATS BAR ── */
+.stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 14px; }
+.stat-item {
+  background: #f8fafc; border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 10px 14px; text-align: center;
+}
+.stat-val { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+.stat-lbl { font-size: 9.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .8px; margin-top: 2px; }
+
+/* ── SPINNER ── */
+.spinner {
+  width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3);
+  border-top-color: white; border-radius: 50%;
+  animation: spin .7s linear infinite; display: inline-block; margin-right: 6px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── TOPBAR BTN ── */
+.tbtn {
+  display: flex; align-items: center; gap: 7px; padding: 8px 14px;
+  border-radius: 10px; font-size: 12.5px; font-weight: 700;
+  cursor: pointer; transition: all .2s; font-family: 'Figtree', sans-serif; border: none;
+}
+
+/* ── EMPTY STATES ── */
+.empty-state { text-align: center; padding: 28px 14px; }
+.empty-state i { font-size: 26px; margin-bottom: 10px; display: block; opacity: .2; color: var(--text-muted); }
+.empty-state p { font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+.no-pt { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; padding: 40px; }
+.no-pt i { font-size: 56px; opacity: .08; color: var(--accent3); }
+.no-pt h3 { font-size: 20px; font-weight: 800; color: #64748b; }
+.no-pt p { font-size: 13px; color: var(--text-muted); }
+
+/* ── VITALS TAB ── */
+.vitals-full-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+@media(max-width:900px){.vitals-full-grid{grid-template-columns:repeat(2,1fr);}}
+
+/* ── SKELETON ── */
+.skeleton { background: linear-gradient(90deg,#f0f5fb 25%,#e4ebf5 50%,#f0f5fb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+
+/* ── EXPORT MENU ── */
+.export-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 100;
+  background: white; border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 6px; min-width: 180px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.12);
+  display: none;
+}
+.export-menu.open { display: block; animation: popIn .2s cubic-bezier(.34,1.56,.64,1); }
+@keyframes popIn { from{transform:scale(.92) translateY(-6px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.export-item {
+  display: flex; align-items: center; gap: 9px; padding: 9px 11px;
+  border-radius: 8px; cursor: pointer; transition: all .15s;
+  font-size: 13px; font-weight: 600; color: #334155;
+}
+.export-item:hover { background: #f0f9ff; color: var(--accent3); }
+.export-item i { width: 16px; text-align: center; opacity: .7; }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOADING SCREEN ===================== -->
+<div id="loadScreen">
+  <div class="load-logo"><img src="/static/images/company_logo.png" alt="MediTwin"></div>
+  <div style="text-align:center;">
+    <div class="load-label">MediTwin</div>
+    <div class="load-sub" style="margin-top:4px;">Caregiver Portal</div>
+  </div>
+  <div class="load-bar-wrap"><div class="load-bar"></div></div>
+  <div style="font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1px;">Loading patient data…</div>
+</div>
+
+<!-- ===================== SIDEBAR ===================== -->
+<aside id="sidebar">
+  <div style="padding:14px 14px 0;flex-shrink:0;">
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.045);border-radius:14px;border:1px solid var(--sidebar-border);margin-bottom:16px;">
+      <div class="sb-logo-ring"><img src="/static/images/company_logo.png" alt="MediTwin"></div>
+      <div>
+        <div class="sb-brand">MediTwin</div>
+        <div class="sb-tagline">Caregiver Portal</div>
+      </div>
+    </div>
+    <!-- Patient header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#3d4f66;">
+        <i class="fas fa-users" style="margin-right:5px;opacity:.6;"></i>Patients
+      </span>
+      <span id="patientCountBadge" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f172a;font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;">0</span>
+    </div>
+
+  </div>
+
+  <!-- Patient list -->
+  <div id="patientList" style="flex:1;min-height:0;overflow-y:auto;padding:0 10px 10px;">
+    <div class="empty-state" id="emptyPatients">
+      <i class="fas fa-user-plus"></i>
+      <p>No patients yet.<br>Click <strong style="color:var(--accent);">Add Patient</strong> to begin.</p>
+    </div>
+  </div>
+
+  <!-- Sidebar footer -->
+  <div style="padding:10px 12px 14px;flex-shrink:0;border-top:1px solid var(--sidebar-border);">
+    <div id="liveBar" style="display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:10px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.18);margin-bottom:9px;">
+      <span class="live-dot"></span>
+      <span style="font-size:11px;font-weight:700;color:var(--success);flex:1;">Live Monitoring</span>
+      <span id="syncTime" style="font-size:9px;color:#475569;font-family:var(--mono);"></span>
+    </div>
+    <div style="padding:9px 12px;background:rgba(255,255,255,.045);border-radius:12px;border:1px solid var(--sidebar-border);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;"><i class="fas fa-user-shield"></i></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12.5px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="caregiver-name">Caregiver</div>
+        <div style="font-size:10px;color:var(--accent);font-weight:600;" id="caregiver-relation">Primary Caregiver</div>
+      </div>
+    </div>
+    <button onclick="logout()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;border-radius:10px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.14);color:#f87171;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Figtree',sans-serif;margin-bottom:6px;"
+      onmouseover="this.style.background='rgba(239,68,68,.16)';" onmouseout="this.style.background='rgba(239,68,68,.06)';">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+    <button onclick="deleteAccount()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;border-radius:10px;background:rgba(100,116,139,.05);border:1px solid rgba(100,116,139,.15);color:#94a3b8;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Figtree',sans-serif;"
+      onmouseover="this.style.background='rgba(244,63,94,.1)';this.style.borderColor='rgba(244,63,94,.25)';this.style.color='var(--danger)';" onmouseout="this.style.background='rgba(100,116,139,.05)';this.style.borderColor='rgba(100,116,139,.15)';this.style.color='#94a3b8';">
+      <i class="fas fa-trash-alt"></i> Delete Account
+    </button>
+  </div>
+</aside>
+
+<!-- ===================== MAIN ===================== -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div>
+      <div style="font-size:19px;font-weight:900;color:var(--text-primary);letter-spacing:-.5px;line-height:1.1;">Caregiver Dashboard</div>
+      <div style="font-size:11px;color:var(--text-muted);font-weight:500;margin-top:2px;">
+        <i class="fas fa-clock" style="color:var(--accent3);margin-right:4px;opacity:.8;"></i>
+        <span id="current-time">--:--:--</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:2px solid #bbf7d0;border-radius:11px;">
+        <div class="live-dot" style="width:8px;height:8px;"></div>
+        <div>
+          <div style="font-size:9px;font-weight:800;text-transform:uppercase;color:#065f46;letter-spacing:.5px;">System</div>
+          <div style="font-size:10px;font-weight:700;color:var(--success);">Live Active</div>
+        </div>
+      </div>
+      <button onclick="openEmergency()" class="tbtn" style="background:#fff1f2;border:2px solid #fecdd3;color:var(--danger);"
+        onmouseover="this.style.background='#fecdd3';" onmouseout="this.style.background='#fff1f2';">
+        <i class="fas fa-exclamation-triangle"></i> Emergency
+      </button>
+      <a href="/" class="tbtn" style="background:linear-gradient(135deg,#3b82f6,var(--accent3));color:white;text-decoration:none;box-shadow:0 4px 14px rgba(59,130,246,.25);"
+        onmouseover="this.style.opacity='.85';" onmouseout="this.style.opacity='1';">
+        <i class="fas fa-home"></i> Home
+      </a>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <div class="no-pt" id="noPatientMsg">
+      <i class="fas fa-hospital-user"></i>
+      <h3>No Patient Selected</h3>
+      <p>Add a patient from the sidebar to begin monitoring.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===================== MODALS ===================== -->
+<!-- ADD MED MODAL -->
+<div class="modal-overlay" id="addMedModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-pills" style="color:var(--warn);margin-right:10px;"></i>Add Medication</div>
+      <button class="btn-close" onclick="closeModal('addMedModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="form-group"><label class="form-label">Medication Name <span style="color:var(--danger);">*</span></label><input class="form-input" id="med-name" placeholder="e.g. Metoprolol"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Dosage</label><input class="form-input" id="med-dose" placeholder="e.g. 50mg"></div>
+      <div class="form-group"><label class="form-label">Scheduled Time</label><input class="form-input" id="med-time" type="time"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Frequency</label>
+      <select class="form-select" id="med-freq">
+        <option>Once daily</option><option>Twice daily</option>
+        <option>Three times daily</option><option>As needed</option><option>Weekly</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('addMedModal')">Cancel</button>
+      <button class="btn-confirm" onclick="addMedication()"><i class="fas fa-check" style="margin-right:6px;"></i>Add Medication</button>
+    </div>
+  </div>
+</div>
+
+<!-- THRESHOLD MODAL -->
+<div class="modal-overlay" id="thresholdModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-sliders-h" style="color:var(--accent3);margin-right:10px;"></i>Alert Thresholds</div>
+      <button class="btn-close" onclick="closeModal('thresholdModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">Readings outside these ranges will trigger alerts.</p>
+    <div class="thresh-grid" id="thresholdGrid"></div>
+    <button class="btn-save-thresh" onclick="saveThresholds()"><i class="fas fa-check" style="margin-right:8px;"></i>Save Thresholds</button>
+  </div>
+</div>
+
+<!-- EMERGENCY MODAL -->
+<div class="modal-overlay em-modal" id="emergencyModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--danger);"><i class="fas fa-exclamation-triangle" style="margin-right:10px;"></i>Emergency Alert</div>
+      <button class="btn-close" onclick="closeModal('emergencyModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">This will immediately notify the medical team and flag the patient as requiring urgent attention.</p>
+    <div class="form-group"><label class="form-label">Situation Note (optional)</label>
+      <textarea class="form-input" id="emergencyNote" rows="3" placeholder="Describe the emergency…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('emergencyModal')">Cancel</button>
+      <button class="btn-confirm" onclick="sendEmergency()"><i class="fas fa-bell" style="margin-right:6px;"></i>Send Alert Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box" style="max-width:380px;">
+    <div class="modal-header" style="border-bottom:none;padding-bottom:4px;">
+      <div class="modal-title" id="confirmTitle" style="display:flex;align-items:center;gap:10px;"><i class="fas fa-exclamation-circle" style="color:var(--danger);"></i>Confirm</div>
+      <button class="btn-close" onclick="closeModal('confirmModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:0 22px 8px;">
+      <p id="confirmMessage" style="font-size:13.5px;color:var(--text-secondary);line-height:1.6;"></p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn-confirm" id="confirmOkBtn" style="background:linear-gradient(135deg,var(--danger),#fb7185);box-shadow:0 4px 12px rgba(244,63,94,.3);"><i class="fas fa-check" style="margin-right:6px;"></i>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPT ===================== -->
+<script>
+// ===== STATE =====
+let patients = [], activePatientId = null;
+let miniCharts = {}, historyChartInst = null, historyChart2Inst = null;
+let ecgAnimId = null, activeChart = 'heart_rate', simInterval = null, liveInterval = null;
+let lastApiData = null, ecgPhase = 0;
+const DB_KEY = 'meditwin_patients_v4';
+const defaultThresholds = { heart_rate:[50,100], sp02:[92,100], temp:[35.5,37.5] };
+
+const vitalDefs = [
+  { key:'heart_rate', label:'Heart Rate',    unit:'bpm', cls:'heart',  icon:'fa-heart',            color:'#f43f5e', mini:true,  type:'numeric' },
+  { key:'sp02',       label:'SpO₂',          unit:'%',   cls:'oxygen', icon:'fa-lungs',            color:'#3b82f6', mini:true,  type:'numeric' },
+  { key:'temp',       label:'Temperature',   unit:'°C',  cls:'temp',   icon:'fa-thermometer-half', color:'#f59e0b', mini:false, type:'numeric' },
+  { key:'stress',     label:'Stress Level',  unit:'',    cls:'stress', icon:'fa-brain',            color:'#a78bfa', mini:false, type:'status'  },
+  { key:'fall',       label:'Fall Detection',unit:'',    cls:'fall',   icon:'fa-person-falling',   color:'#06b6d4', mini:false, type:'boolean' },
+];
+
+function uid()  { return Math.random().toString(36).slice(2,9); }
+function nowT() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function nowDT(){ return new Date().toLocaleString([],{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function calcAge(dob){ try{ if(!dob) return ''; const d=new Date(dob),t=new Date(); let a=t.getFullYear()-d.getFullYear(); if(t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate())) a--; return a; }catch(e){ return ''; } }
+
+// ===== DB (localStorage) =====
+function dbSave(){ try{localStorage.setItem(DB_KEY,JSON.stringify(patients));}catch(e){} }
+function dbLoad(){
+  try{ const raw=localStorage.getItem(DB_KEY); if(raw){patients=JSON.parse(raw);return true;} }catch(e){}
+  return false;
+}
+
+// ===== ID GENERATION =====
+function genPID(){ return 'PT-'+String(Math.floor(1000+Math.random()*9000)); }
+function genDID(){ return 'DEV-'+String(Math.floor(1000+Math.random()*9000)); }
+
+// ===== LIVE API POLLING =====
+async function fetchLive(){
+  const p = getPatient(); if (!p) return;
+  try {
+    const url = p.deviceId ? `/api/get_latest?device_id=${encodeURIComponent(p.deviceId)}` : '/api/get_latest';
+    const r = await fetch(url);
+    const j = await r.json();
+    if (j.status === 'success' && j.data) {
+      lastApiData = j.data;
+      const el = document.getElementById('syncTime');
+      if (el) el.textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      applyLive(j.data);
+    }
+  } catch(e) { console.error('fetchLive error:', e); }
+}
+
+function applyLive(d){
+  const p = getPatient(); if (!p) return;
+  const prev = { ...p.vitals };
+  p.vitals.heart_rate = d.heart_rate   ?? p.vitals.heart_rate;
+  p.vitals.sp02       = d.sp02         ?? p.vitals.sp02;
+  p.vitals.temp       = d.temperature  ?? p.vitals.temp;
+  p.vitals.stress     = d.stress_level ?? p.vitals.stress;
+  const prevFall = p.vitals.fall;
+  p.vitals.fall = d.fall_detected ?? p.vitals.fall;
+  if (p.vitals.fall && !prevFall) {
+    logActivity('⚠ Fall detected!', 'danger');
+    toast('⚠ Fall detected — check patient immediately!', 'error');
+  }
+  pushHistory(p);
+  updateVitalDisplay(prev);
+  renderSidebar();
+  checkAlerts();
+  refreshCharts();
+  dbSave();
+}
+
+// Periodically refresh full patient profile from DB
+let profileRefreshInterval = null;
+async function refreshPatientProfiles() {
+  if (!patients.length) return;
+  for (const p of patients) {
+    try {
+      const r = await fetch(`/api/caregiver/patient-data?patient_id=${encodeURIComponent(p.id)}`);
+      if (!r.ok) { console.warn(`Profile fetch failed for ${p.id}: HTTP ${r.status}`); continue; }
+      const d = await r.json();
+      if (d.error) continue;
+      refreshPatientFromApiData(p, d);   // handles unwrapping + vitals + caregiver label
+    } catch(e) { console.warn(`Profile refresh failed for ${p.id}:`, e); }
+  }
+  renderSidebar();
+  if (getPatient()) { updateVitalDisplay(); checkAlerts(); renderPatientDetails(); }
+  dbSave();
+}
+
+// ===== DEMO SIMULATION =====
+function runSim(){
+  const p=getPatient(); if(!p||lastApiData) return;
+  const fl=(v,r,d=0)=>+(v+(Math.random()-.5)*r).toFixed(d);
+  const prev = { ...p.vitals };
+  p.vitals.heart_rate=Math.min(130,Math.max(45,fl(p.vitals.heart_rate,3)));
+  p.vitals.sp02=Math.min(100,Math.max(88,fl(p.vitals.sp02,.5,0)));
+  p.vitals.temp=Math.min(39,Math.max(35,fl(p.vitals.temp,.05,1)));
+  pushHistory(p); updateVitalDisplay(prev); renderSidebar(); checkAlerts(); refreshCharts();
+  const el=document.getElementById('syncTime');
+  if(el) el.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ===== PATIENT CREATION =====
+function newVitals(){ return{heart_rate:70+Math.round(Math.random()*20),sp02:95+Math.round(Math.random()*4),temp:+(36+Math.random()*1).toFixed(1),stress:'Normal',fall:false}; }
+function newPatient(data){
+  const pid=data.pid||genPID(), did=data.did||'';
+  return{
+    id:pid, deviceId:did,
+    name:data.name, age:data.age||'', gender:data.gender||'',
+    doctor:data.doctor||'', condition:data.condition||'',
+    bloodGroup:data.bloodGroup||'',
+    address:data.address||'', contactNumber:data.contactNumber||'',
+    hospital:data.hospital||'', emergencyNumber:data.emergencyNumber||'',
+    medicalHistory:data.medicalHistory||'', dob:data.dob||'', email:data.email||'',
+    mrdNumber:data.mrdNumber||'',
+    createdAt:nowDT(),
+    vitals:newVitals(), thresholds:JSON.parse(JSON.stringify(defaultThresholds)),
+    history:{heart_rate:[],sp02:[],temp:[]},
+    meds:[
+      {id:uid(),name:'Aspirin 81mg',time:'08:00',dose:'81mg',freq:'Once daily',done:false},
+      {id:uid(),name:'Metoprolol',time:'12:00',dose:'50mg',freq:'Twice daily',done:false}
+    ],
+    notes:[],
+    activity:[{type:'info',icon:'fa-user-plus',text:'Patient added to dashboard',time:nowT(),date:nowDT()}]
+  };
+}
+
+// ===== PROFILE =====
+async function loadProfile(){
+  try{
+    const r=await fetch('/api/profile-data'); if(!r.ok) return;
+    const d=await r.json();
+    document.getElementById('caregiver-name').textContent=d.full_name||'Caregiver';
+    let rel='Caregiver';
+    if(d.relation) rel=`${d.relation}`;
+    if(d.is_primary==='yes') rel='Primary '+rel;
+    document.getElementById('caregiver-relation').textContent=rel;
+  }catch(e){ document.getElementById('caregiver-name').textContent='Caregiver'; }
+}
+
+// ===== REFRESH PATIENT FROM API DATA =====
+// Accepts the { profile:{}, vitals:{}, caregiver:{} } shape from /api/caregiver/patient-data
+function refreshPatientFromApiData(p, raw){
+  const d   = raw.profile  || raw;
+  const vit = raw.vitals   || null;
+  const cg  = raw.caregiver || null;
+
+  // Always assign — don't gate on truthiness so we don't skip real values
+  const s = (v) => (v != null && v !== '' && v !== 'N/A') ? v : null;
+
+  // Update patient_id live from users table — if it changed in DB, sync here + activePatientId
+  if (s(d.patient_id) && d.patient_id !== p.id) {
+    if (activePatientId === p.id) activePatientId = d.patient_id;
+    p.id = d.patient_id;
+  }
+
+  const fullName = d.full_name || (d.first_name ? (d.first_name + ' ' + (d.last_name||'')).trim() : '');
+  if (fullName)         p.name          = fullName;
+  // device_id from users table — blank if device not yet registered
+  p.deviceId = s(d.device_id) || '';
+  if (s(d.mrd_number))  p.mrdNumber     = d.mrd_number;
+  if (s(d.age))         p.age           = d.age;
+  if (s(d.gender))      p.gender        = d.gender;
+  if (s(d.dob))       { p.dob           = d.dob; if (!p.age) p.age = calcAge(d.dob); }
+  if (s(d.email))       p.email         = d.email;
+  if (s(d.address))     p.address       = d.address;
+  if (s(d.contact_number)) p.contactNumber = d.contact_number;
+  if (s(d.blood_group)) p.bloodGroup    = d.blood_group;
+  if (s(d.hospital))    p.hospital      = d.hospital;
+  if (s(d.doctor))      p.doctor        = d.doctor;
+  if (s(d.medical_history)) p.medicalHistory = d.medical_history;
+  // condition comes as "condition" from /api/caregiver/patient-data profile
+  if (s(d.condition))      p.condition  = d.condition;
+  if (s(d.current_status)) p.condition  = d.current_status;
+
+  console.log('[Profile loaded]', p.id, {
+    name: p.name, gender: p.gender, dob: p.dob,
+    hospital: p.hospital, doctor: p.doctor,
+    bloodGroup: p.bloodGroup, condition: p.condition,
+    email: p.email, address: p.address
+  });
+
+  if (vit && vit.heart_rate && vit.heart_rate !== '--') {
+    p.vitals.heart_rate = vit.heart_rate    ?? p.vitals.heart_rate;
+    p.vitals.sp02       = vit.sp02          ?? p.vitals.sp02;
+    p.vitals.temp       = vit.temperature   ?? p.vitals.temp;
+    p.vitals.stress     = vit.stress_level  ?? p.vitals.stress;
+    p.vitals.fall       = vit.fall_detected ?? p.vitals.fall;
+  }
+
+  if (cg) {
+    const nameEl = document.getElementById('caregiver-name');
+    const relEl  = document.getElementById('caregiver-relation');
+    if (nameEl && cg.name) nameEl.textContent = cg.name;
+    if (relEl) {
+      let rel = cg.relation || 'Caregiver';
+      if (cg.is_primary) rel = 'Primary ' + rel;
+      relEl.textContent = rel;
+    }
+  }
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadProfile();
+
+  // 1. Fetch patients linked to this caregiver
+  let apiPatients = [];
+  try {
+    const resp = await fetch('/api/caregiver/patients');
+    if (resp.ok) apiPatients = await resp.json();
+  } catch(e) { console.error('Failed to load caregiver patients:', e); }
+
+  // 2. Load localStorage, reconcile with DB
+  dbLoad();
+
+  if (apiPatients.length > 0) {
+    const validPids = new Set(apiPatients.map(ap => ap.patient_id));
+    patients = patients.filter(p => validPids.has(p.id));
+
+    apiPatients.forEach(ap => {
+      const existing = patients.find(p => p.id === ap.patient_id);
+      if (!existing) {
+        const built = newPatient({
+          name:   ap.full_name || 'Unknown Patient',
+          pid:    ap.patient_id || '',
+          did:    ap.device_id  || '',
+          dob:    ap.dob        || '',
+          gender: ap.gender     || '',
+          doctor: '',
+          condition: ''
+        });
+        built.meds     = [];
+        built.notes    = [];
+        built.activity = [{type:'info',icon:'fa-user-plus',text:'Patient data loaded from MediTwin database',time:nowT(),date:nowDT()}];
+        patients.push(built);
+      } else {
+        if (ap.full_name)   existing.name     = ap.full_name;
+        // Update deviceId from device_id (users table column)
+        existing.deviceId = ap.device_id || '';
+        if (ap.gender)      existing.gender   = ap.gender;
+        if (ap.dob)         existing.dob      = ap.dob;
+      }
+    });
+
+    // Enrich each patient with full details from DB
+    for (const ap of apiPatients) {
+      try {
+        const r = await fetch(`/api/caregiver/patient-data?patient_id=${encodeURIComponent(ap.patient_id)}`);
+        if (r.ok) {
+          const d = await r.json();
+          const local = patients.find(p => p.id === ap.patient_id);
+          if (local && d && !d.error) {
+            refreshPatientFromApiData(local, d);
+            console.log(`Enriched ${ap.patient_id}:`, local.name, local.hospital, local.doctor);
+          }
+        }
+      } catch(e) { console.warn(`Could not load full data for ${ap.patient_id}:`, e); }
+    }
+
+    if (!activePatientId || !patients.find(p => p.id === activePatientId)) {
+      activePatientId = patients[0]?.id || null;
+    }
+    dbSave();
+
+  // ↑ enrichment done — data is now in patient objects before renderDashboard runs
+  } else {
+    if (!patients.length) {
+      document.getElementById('content').innerHTML =
+        `<div class="no-pt">
+           <i class="fas fa-exclamation-triangle" style="color:var(--warn);font-size:36px;margin-bottom:12px;opacity:.5;"></i>
+           <h3>Patient Data Unavailable</h3>
+           <p>Could not load patient details from the server.<br>Please check your session or contact support.</p>
+         </div>`;
+      renderSidebar();
+      // Hide loading screen
+      const ls = document.getElementById('loadScreen');
+      ls.classList.add('fade');
+      setTimeout(()=>ls.remove(),500);
+      liveInterval = setInterval(fetchLive, 3000);
+      return;
+    }
+    activePatientId = activePatientId || patients[0]?.id;
+  }
+
+  renderSidebar();
+  renderDashboard();
+  fetchLive();
+  refreshPatientProfiles();   // immediate full profile fetch — don't wait 60s
+  liveInterval = setInterval(fetchLive, 3000);
+  simInterval = setInterval(runSim, 2000);
+  profileRefreshInterval = setInterval(refreshPatientProfiles, 60000);
+
+  // Hide loading screen
+  const ls = document.getElementById('loadScreen');
+  ls.classList.add('fade');
+  setTimeout(()=>ls.remove(),500);
+});
+
+// ===== SIDEBAR =====
+function renderSidebar(){
+  const list=document.getElementById('patientList'), empty=document.getElementById('emptyPatients');
+  document.getElementById('patientCountBadge').textContent=patients.length;
+  if(patients.length===0){list.innerHTML='';list.appendChild(empty);empty.style.display='';return;}
+  empty.style.display='none';
+  list.innerHTML=patients.map(p=>{
+    const a=p.id===activePatientId;
+    const t=p.thresholds||defaultThresholds;
+    const wH=p.vitals.heart_rate<t.heart_rate[0]||p.vitals.heart_rate>t.heart_rate[1];
+    const wO=p.vitals.sp02<t.sp02[0];
+    const wF=p.vitals.fall;
+    return`<div class="pc-card${a?' active':''}" onclick="selectPatient('${p.id}')">
+      <button class="btn-remove-pc" onclick="removePatient(event,'${p.id}')"><i class="fas fa-times"></i></button>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-ids">
+        <div class="pc-id-tag"><i class="fas fa-id-card"></i>${p.id}</div>
+        ${p.deviceId?`<div class="pc-id-tag"><i class="fas fa-microchip"></i>${p.deviceId}</div>`:''}
+        ${p.hospital?`<div class="pc-id-tag"><i class="fas fa-hospital"></i>${p.hospital}</div>`:''}
+      </div>
+      <div class="pc-status"><div class="pc-dot"></div><span class="pc-status-text">${p.doctor||'No doctor assigned'}</span></div>
+      <div class="pc-chips">
+        <span class="pc-chip${wH?' warn':''}">${p.vitals.heart_rate} bpm</span>
+        <span class="pc-chip${wO?' warn':''}">${p.vitals.sp02}%</span>
+        ${wF?'<span class="pc-chip warn">⚠ Fall</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function selectPatient(id){ activePatientId=id; renderSidebar(); renderDashboard(); dbSave(); }
+function removePatient(e,id){
+  e.stopPropagation();
+  const name=patients.find(p=>p.id===id)?.name||'Patient';
+  patients=patients.filter(p=>p.id!==id);
+  if(activePatientId===id){
+    activePatientId=patients.length?patients[0].id:null;
+    if(activePatientId) renderDashboard();
+    else document.getElementById('content').innerHTML='<div class="no-pt"><i class="fas fa-hospital-user"></i><h3>No Patient Selected</h3><p>Add a patient to begin.</p></div>';
+  }
+  renderSidebar(); dbSave(); toast(`${name} removed`,'info');
+}
+
+// ===== ADD PATIENT =====
+let _genPid='',_genDid='';
+function openAddPatient(){
+  _genPid=genPID(); _genDid=genDID();
+  document.getElementById('inp-pid').value=''; document.getElementById('inp-did').value='';
+  document.getElementById('previewPid').textContent=_genPid; document.getElementById('previewDid').textContent=_genDid;
+  document.getElementById('pidAutoBadge').style.display=''; document.getElementById('didAutoBadge').style.display='';
+  openModal('addPatientModal');
+}
+function updateIdPreview(){
+  const pid=document.getElementById('inp-pid').value.trim()||_genPid;
+  const did=document.getElementById('inp-did').value.trim()||_genDid;
+  document.getElementById('previewPid').textContent=pid;
+  document.getElementById('previewDid').textContent=did;
+  document.getElementById('pidAutoBadge').style.display=document.getElementById('inp-pid').value.trim()?'none':'';
+  document.getElementById('didAutoBadge').style.display=document.getElementById('inp-did').value.trim()?'none':'';
+}
+function addPatient(){
+  const name=document.getElementById('inp-name').value.trim();
+  const pid=document.getElementById('inp-pid').value.trim()||_genPid;
+  const did=document.getElementById('inp-did').value.trim()||_genDid;
+  if(!name){toast('Please enter a patient name','error');return;}
+  if(patients.find(p=>p.id===pid)){toast('Patient ID already exists','error');return;}
+  const btn=document.getElementById('addPatientBtn');
+  btn.innerHTML='<span class="spinner"></span>Adding…'; btn.disabled=true;
+  setTimeout(()=>{
+    const p=newPatient({
+      name,pid,did,
+      age:document.getElementById('inp-age').value,
+      gender:document.getElementById('inp-gender').value,
+      doctor:document.getElementById('inp-doctor').value.trim(),
+      condition:document.getElementById('inp-condition').value.trim()
+    });
+    patients.push(p); dbSave();
+    closeModal('addPatientModal'); clearAddForm(); selectPatient(p.id);
+    toast(`${name} added successfully`,'success');
+    btn.innerHTML='<i class="fas fa-plus" style="margin-right:6px;"></i>Add Patient'; btn.disabled=false;
+  },600);
+}
+function clearAddForm(){
+  ['inp-name','inp-pid','inp-did','inp-age','inp-doctor','inp-condition'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('inp-gender').value='Male';
+}
+
+// ===== DASHBOARD =====
+function getPatient(){ return patients.find(p=>p.id===activePatientId); }
+function renderDashboard(){
+  const p=getPatient(); if(!p) return;
+  if(simInterval){clearInterval(simInterval);simInterval=null;}
+  if(ecgAnimId){cancelAnimationFrame(ecgAnimId);ecgAnimId=null;}
+  if(historyChartInst){historyChartInst.destroy();historyChartInst=null;}
+  if(historyChart2Inst){historyChart2Inst.destroy();historyChart2Inst=null;}
+  miniCharts={};
+  const medDone=p.meds.filter(m=>m.done).length;
+
+  document.getElementById('content').innerHTML=`
+    <!-- ALERT BANNER -->
+    <div class="alert-banner hidden" id="alertBanner">
+      <i class="fas fa-exclamation-triangle" style="color:var(--danger);font-size:17px;flex-shrink:0;"></i>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--danger);" id="alertText">⚠ Vital Alert</div>
+        <div style="font-size:11px;color:rgba(244,63,94,.7);" id="alertSub"></div>
+      </div>
+      <button class="btn-dismiss" onclick="dismissAlert()">Dismiss</button>
+    </div>
+
+    <!-- PATIENT HEADER -->
+    <div class="g-card" style="flex-shrink:0;">
+      <div class="g-card-body" style="padding:16px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:15px;">
+            <div style="width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,#e0f2fe,#f0f9ff);border:2px solid #bae6fd;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent3);flex-shrink:0;">
+              <i class="fas fa-user"></i>
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:900;color:var(--text-primary);letter-spacing:-.6px;line-height:1.1;">${p.name}</div>
+              <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
+                ${p.age?`<span style="font-size:11px;color:var(--text-muted);background:#f1f5f9;border:1px solid var(--card-border);padding:2px 8px;border-radius:20px;">${p.age}${typeof p.age==='number'?' yrs':''} · ${p.gender||''}</span>`:''}
+                ${p.doctor?`<span style="font-size:11px;color:var(--accent3);background:#f0f9ff;border:1px solid #bae6fd;padding:2px 8px;border-radius:20px;"><i class="fas fa-user-md" style="margin-right:3px;"></i>${p.doctor}</span>`:''}
+                ${p.condition?`<span style="font-size:11px;color:#7c3aed;background:#faf5ff;border:1px solid #ddd6fe;padding:2px 8px;border-radius:20px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.condition}</span>`:''}
+                ${p.bloodGroup?`<span style="font-size:11px;color:var(--danger);background:#fff1f2;border:1px solid #fecdd3;padding:2px 8px;border-radius:20px;font-family:var(--mono);font-weight:700;">${p.bloodGroup}</span>`:''}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button onclick="openThresholds()" class="tbtn" style="background:#f8fafc;border:1px solid var(--card-border);color:var(--text-muted);font-size:12px;"
+              onmouseover="this.style.borderColor='#bae6fd';this.style.color='var(--accent3)';" onmouseout="this.style.borderColor='var(--card-border)';this.style.color='var(--text-muted)';">
+              <i class="fas fa-sliders-h"></i> Thresholds
+            </button>
+            <div style="position:relative;">
+              <button onclick="toggleExportMenu()" class="tbtn" style="background:linear-gradient(135deg,var(--accent3),var(--accent));color:white;font-size:12px;box-shadow:0 4px 14px rgba(14,165,233,.28);"
+                onmouseover="this.style.opacity='.85';" onmouseout="this.style.opacity='1';">
+                <i class="fas fa-file-export"></i> Export
+              </button>
+              <div class="export-menu" id="exportMenu">
+                <div class="export-item" onclick="downloadPDF();closeExport();"><i class="fas fa-file-pdf" style="color:#f43f5e;"></i>Full Report (PDF)</div>
+                <div class="export-item" onclick="downloadVitalsCSV();closeExport();"><i class="fas fa-file-csv" style="color:var(--success);"></i>Vitals CSV</div>
+                <div class="export-item" onclick="downloadJSON();closeExport();"><i class="fas fa-file-code" style="color:var(--accent3);"></i>Patient JSON</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- STATS BAR -->
+        <div class="stats-bar" id="statsBar">
+          <div class="stat-item"><div class="stat-val" id="statPatientId" style="color:var(--accent3);font-family:var(--mono);font-size:14px;">${p.id}</div><div class="stat-lbl">Patient ID</div></div>
+          <div class="stat-item" id="statDeviceWrap" style="${p.deviceId?'':'display:none;'}"><div class="stat-val" id="statDeviceId" style="color:var(--success);font-family:var(--mono);font-size:14px;">${p.deviceId||''}</div><div class="stat-lbl">Device ID</div></div>
+          <div class="stat-item"><div class="stat-val" id="medsGivenStat">${medDone}<span style="font-size:13px;font-weight:600;color:var(--text-muted);">/${p.meds.length}</span></div><div class="stat-lbl">Meds Given</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="g-card" style="flex-shrink:0;">
+      <div class="dash-tabs">
+        <button class="dash-tab active" id="tab-overview"    onclick="switchTab('overview')">   <i class="fas fa-th-large"></i>   Overview</button>
+        <button class="dash-tab"        id="tab-vitals"      onclick="switchTab('vitals')">     <i class="fas fa-chart-line"></i> Vitals History</button>
+        <button class="dash-tab"        id="tab-medications" onclick="switchTab('medications')"><i class="fas fa-pills"></i>       Medications</button>
+        <button class="dash-tab"        id="tab-reports"     onclick="switchTab('reports')">    <i class="fas fa-file-medical"></i>Reports</button>
+      </div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-panel active" id="panel-overview">
+      <div class="vitals-grid" id="vitalsGrid"></div>
+      <div class="main-grid">
+        <div class="left-col">
+          <!-- ECG -->
+          <div class="g-card">
+            <div class="g-card-header">
+              <div class="g-card-title"><i class="fas fa-heartbeat" style="color:var(--danger);"></i>ECG Monitor</div>
+              <span class="badge badge-live">● Live</span>
+            </div>
+            <div class="g-card-body" style="padding-bottom:0;">
+              <div class="ecg-screen">
+                <canvas id="ecgCanvas" class="ecg-canvas"></canvas>
+                <div class="ecg-overlay">
+                  <div class="ecg-lbl">HEART RATE</div>
+                  <div class="ecg-bpm" id="ecgBpm">${p.vitals.heart_rate}</div>
+                  <div class="ecg-lbl">BPM</div>
+                </div>
+              </div>
+            </div>
+            <div class="status-strip">
+              <div class="sdot-item"><span class="sdot green"></span>ECG Connected</div>
+              ${p.deviceId?`<div class="sdot-item"><span class="sdot cyan"></span>Device: <span style="font-family:var(--mono);margin-left:3px;">${p.deviceId}</span></div>`:''}
+              <div class="sdot-item"><span class="sdot amber"></span>Signal: 97%</div>
+            </div>
+          </div>
+          <!-- VITALS TREND -->
+          <div class="g-card">
+            <div class="g-card-header">
+              <div class="g-card-title"><i class="fas fa-chart-area" style="color:var(--accent3);"></i>Vitals Trend</div>
+              <div class="chart-tabs">
+                <button class="chart-tab active" onclick="switchChart('heart_rate',this)">Heart Rate</button>
+                <button class="chart-tab" onclick="switchChart('sp02',this)">SpO₂</button>
+                <button class="chart-tab" onclick="switchChart('temp',this)">Temp</button>
+              </div>
+            </div>
+            <div class="g-card-body" style="padding-top:12px;"><canvas id="historyChart" height="100"></canvas></div>
+          </div>
+          <!-- ACTIVITY LOG -->
+          <div class="g-card">
+            <div class="g-card-header">
+              <div class="g-card-title"><i class="fas fa-list-ul" style="color:#a78bfa;"></i>Activity Log</div>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <span class="badge badge-info" id="activityCount">0 events</span>
+                <button onclick="clearActivity()" style="padding:3px 10px;border-radius:7px;background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.18);color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:'Figtree',sans-serif;transition:all .2s;"
+                  onmouseover="this.style.background='rgba(244,63,94,.16)';" onmouseout="this.style.background='rgba(244,63,94,.07)';">
+                  <i class="fas fa-trash-alt" style="margin-right:4px;font-size:10px;"></i>Clear
+                </button>
+              </div>
+            </div>
+            <div class="g-card-body"><div class="act-list" id="activityList"></div></div>
+          </div>
+        </div>
+        <div class="right-col">
+          <!-- PATIENT DETAILS — dynamically rendered -->
+          <div id="patientDetailsCard"></div>
+          <!-- MEDICATIONS -->
+          <div class="g-card">
+            <div class="g-card-header">
+              <div class="g-card-title"><i class="fas fa-pills" style="color:var(--warn);"></i>Medications</div>
+              <span class="badge badge-info" id="medProgress">0/0</span>
+            </div>
+            <div class="g-card-body">
+              <div class="med-list" id="medList"></div>
+              <button class="btn-add-dashed" onclick="openModal('addMedModal')"><i class="fas fa-plus" style="margin-right:6px;"></i>Add Medication</button>
+            </div>
+          </div>
+          <!-- CLINICAL NOTES -->
+          <div class="g-card">
+            <div class="g-card-header">
+              <div class="g-card-title"><i class="fas fa-sticky-note" style="color:var(--accent3);"></i>Clinical Notes</div>
+            </div>
+            <div class="g-card-body">
+              <div class="notes-list" id="notesList"></div>
+              <div class="note-input-row">
+                <input class="note-input" id="noteInput" placeholder="Add a clinical note…" onkeydown="if(event.key==='Enter')addNote()">
+                <button class="btn-note" onclick="addNote()"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VITALS HISTORY TAB -->
+    <div class="tab-panel" id="panel-vitals">
+      <div class="vitals-full-grid" id="vitalsGrid2"></div>
+      <div class="g-card">
+        <div class="g-card-header">
+          <div class="g-card-title"><i class="fas fa-chart-line" style="color:var(--accent3);"></i>Detailed History</div>
+          <div class="chart-tabs" id="chartTabs2">
+            <button class="chart-tab active" onclick="switchChart2('heart_rate',this)">Heart Rate</button>
+            <button class="chart-tab" onclick="switchChart2('sp02',this)">SpO₂</button>
+            <button class="chart-tab" onclick="switchChart2('temp',this)">Temperature</button>
+          </div>
+        </div>
+        <div class="g-card-body"><canvas id="historyChart2" height="140"></canvas></div>
+      </div>
+      <div class="g-card">
+        <div class="g-card-header">
+          <div class="g-card-title"><i class="fas fa-sliders-h" style="color:var(--accent3);"></i>Alert Thresholds</div>
+          <button onclick="openThresholds()" class="tbtn" style="background:#f0f9ff;border:1px solid #bae6fd;color:var(--accent3);font-size:12px;">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+        </div>
+        <div class="g-card-body">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            ${['heart_rate','sp02','temp'].map(k=>{
+              const t=(p.thresholds||defaultThresholds)[k];
+              const labels={heart_rate:'Heart Rate',sp02:'SpO₂',temp:'Temperature'};
+              const units={heart_rate:'bpm',sp02:'%',temp:'°C'};
+              return`<div style="flex:1;min-width:120px;background:#f8fafc;border:1px solid var(--card-border);border-radius:10px;padding:12px;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;">${labels[k]}</div>
+                <div style="font-size:16px;font-weight:800;color:var(--text-primary);font-family:var(--mono);">${t[0]} – ${t[1]} <span style="font-size:11px;font-weight:400;color:var(--text-muted);">${units[k]}</span></div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDICATIONS TAB -->
+    <div class="tab-panel" id="panel-medications">
+      <div class="g-card">
+        <div class="g-card-header">
+          <div class="g-card-title"><i class="fas fa-pills" style="color:var(--warn);"></i>Medication Schedule</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="badge badge-info" id="medProgress2">0/0</span>
+            <button onclick="openModal('addMedModal')" class="tbtn" style="background:linear-gradient(135deg,var(--warn),#fbbf24);color:white;font-size:12px;box-shadow:0 4px 12px rgba(245,158,11,.25);">
+              <i class="fas fa-plus"></i> Add Med
+            </button>
+          </div>
+        </div>
+        <div class="g-card-body">
+          <div class="med-list" id="medList2"></div>
+          ${p.meds.length===0?'<div class="empty-state"><i class="fas fa-pills"></i><p>No medications added yet.</p></div>':''}
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS TAB -->
+    <div class="tab-panel" id="panel-reports">
+      <div class="g-card">
+        <div class="g-card-header">
+          <div class="g-card-title"><i class="fas fa-file-medical" style="color:var(--accent3);"></i>Reports & Exports</div>
+        </div>
+        <div class="g-card-body">
+          <div class="report-grid">
+            <div class="report-card blue" onclick="downloadPDF()">
+              <div class="report-icon blue"><i class="fas fa-file-pdf"></i></div>
+              <div class="report-name">Full Patient Report</div>
+              <div class="report-desc">Comprehensive PDF with vitals, medications, notes, and activity log</div>
+              <div class="report-date">Generated on demand</div>
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:6px;background:#fff1f2;color:var(--danger);border:1px solid #fecdd3;">PDF</span>
+            </div>
+            <div class="report-card green" onclick="downloadVitalsCSV()">
+              <div class="report-icon green"><i class="fas fa-table"></i></div>
+              <div class="report-name">Vitals History CSV</div>
+              <div class="report-desc">Raw vitals data export for analysis or external systems</div>
+              <div class="report-date">Heart Rate · SpO₂ · Temperature</div>
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:6px;background:#f0fdf4;color:var(--success);border:1px solid #bbf7d0;">CSV</span>
+            </div>
+            <div class="report-card amber" onclick="downloadJSON()">
+              <div class="report-icon amber"><i class="fas fa-file-code"></i></div>
+              <div class="report-name">Patient JSON Snapshot</div>
+              <div class="report-desc">Complete patient data snapshot in structured JSON format</div>
+              <div class="report-date">Full profile · Meds · Notes</div>
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:6px;background:#fffbeb;color:var(--warn);border:1px solid #fde68a;">JSON</span>
+            </div>
+            <div class="report-card purple" onclick="printSummary()">
+              <div class="report-icon purple"><i class="fas fa-print"></i></div>
+              <div class="report-name">Print Summary</div>
+              <div class="report-desc">Quick-print view of current patient status for handoff or records</div>
+              <div class="report-date">Print-optimized layout</div>
+              <span style="display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:6px;background:#faf5ff;color:#a78bfa;border:1px solid #ddd6fe;">PRINT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Initialize components
+  renderVitals();
+  renderVitals2();
+  renderMeds();
+  renderMeds2();
+  renderNotes();
+  renderActivity();
+  renderPatientDetails();
+  setTimeout(()=>{ initECG(); initHistoryChart(); }, 60);
+  simInterval = setInterval(runSim, 2000);
+}
+
+// ===== PATIENT DETAILS CARD (live-updating) =====
+function renderPatientDetails(){
+  const p = getPatient();
+  const el = document.getElementById('patientDetailsCard');
+  if (!p || !el) return;
+
+  // Sync stats bar dynamically
+  const statPid = document.getElementById('statPatientId');
+  const statDid = document.getElementById('statDeviceId');
+  const statDeviceWrap = document.getElementById('statDeviceWrap');
+  if (statPid) statPid.textContent = p.id;
+  if (statDid) statDid.textContent = p.deviceId || '';
+  if (statDeviceWrap) statDeviceWrap.style.display = p.deviceId ? '' : 'none';
+
+  const field = (icon, iconColor, label, value, fullWidth=true, extraStyle='') => value ? `
+    <div style="background:#f8fafc;border:1px solid var(--card-border);border-radius:9px;padding:8px 10px;${fullWidth?'grid-column:1/-1;':''}${extraStyle}">
+      <div style="font-size:9px;color:var(--text-muted);font-weight:600;margin-bottom:3px;">
+        <i class="${icon}" style="color:${iconColor};margin-right:3px;font-size:8px;"></i>${label}
+      </div>
+      <div style="font-size:11.5px;font-weight:700;color:var(--text-primary);line-height:1.5;">${value}</div>
+    </div>` : '';
+
+  el.innerHTML = `<div class="g-card">
+
+    <!-- Dark header banner -->
+    <div style="background:linear-gradient(135deg,#080e1d,#0f1f3d);border-radius:16px 16px 0 0;padding:14px 16px 13px;display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:17px;color:white;flex-shrink:0;box-shadow:0 0 16px rgba(20,184,166,.4);">
+        <i class="fas fa-user"></i>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13.5px;font-weight:800;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;">
+          ${(p.age || p.dob) ? `<span style="font-size:10px;color:rgba(255,255,255,.5);">${typeof p.age === 'number' ? p.age+' yrs' : (p.dob ? p.dob : p.age)}</span>` : ''}
+          ${(p.age || p.dob) && p.gender ? `<span style="color:rgba(255,255,255,.2);">·</span>` : ''}
+          ${p.gender ? `<span style="font-size:10px;color:rgba(255,255,255,.5);">${p.gender}</span>` : ''}
+          ${p.bloodGroup ? `<span style="font-size:10px;font-weight:800;color:#fca5a5;background:rgba(244,63,94,.18);border:1px solid rgba(244,63,94,.3);padding:1px 7px;border-radius:20px;font-family:var(--mono);">${p.bloodGroup}</span>` : ''}
+        </div>
+      </div>
+      <span style="background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25);font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:var(--mono);flex-shrink:0;">● Online</span>
+    </div>
+
+    <!-- IDs strip -->
+    <div style="display:grid;grid-template-columns:${p.deviceId ? '1fr 1fr' : '1fr'};border-bottom:1px solid var(--card-border);">
+      <div style="padding:9px 14px;${p.deviceId ? 'border-right:1px solid var(--card-border);' : ''}">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:3px;display:flex;align-items:center;gap:3px;"><i class="fas fa-id-badge" style="color:var(--accent3);font-size:8px;"></i> Patient ID</div>
+        <div style="font-size:12px;font-weight:800;color:var(--accent3);font-family:var(--mono);">${p.id||'—'}</div>
+      </div>
+      ${p.deviceId ? `<div style="padding:9px 14px;">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:3px;display:flex;align-items:center;gap:3px;"><i class="fas fa-microchip" style="color:var(--success);font-size:8px;"></i> Device ID</div>
+        <div style="font-size:12px;font-weight:800;color:var(--success);font-family:var(--mono);">${p.deviceId}</div>
+      </div>` : ''}
+    </div>
+    ${p.mrdNumber ? `<div style="padding:8px 14px;border-bottom:1px solid var(--card-border);background:#fafbff;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:2px;display:flex;align-items:center;gap:3px;"><i class="fas fa-hospital-user" style="color:#7c3aed;font-size:8px;"></i> MRD / Ward No.</div>
+      <div style="font-size:12px;font-weight:800;color:#7c3aed;font-family:var(--mono);">${p.mrdNumber}</div>
+    </div>` : ''}
+
+    <!-- Personal section -->
+    <div style="padding:10px 14px 6px;">
+      <div style="font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:16px;height:2px;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:2px;"></span>Personal
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        ${p.dob ? `<div style="background:#f8fafc;border:1px solid var(--card-border);border-radius:9px;padding:8px 10px;">
+          <div style="font-size:9px;color:var(--text-muted);font-weight:600;margin-bottom:2px;"><i class="fas fa-birthday-cake" style="color:#f59e0b;margin-right:3px;font-size:8px;"></i>D.O.B</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-primary);font-family:var(--mono);">${p.dob}</div>
+        </div>` : ''}
+        ${p.contactNumber ? `<div style="background:#f8fafc;border:1px solid var(--card-border);border-radius:9px;padding:8px 10px;">
+          <div style="font-size:9px;color:var(--text-muted);font-weight:600;margin-bottom:2px;"><i class="fas fa-phone" style="color:#f59e0b;margin-right:3px;font-size:8px;"></i>Phone</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text-primary);font-family:var(--mono);">${p.contactNumber}</div>
+        </div>` : ''}
+        ${field('fas fa-envelope','#f59e0b','Email', p.email)}
+        ${field('fas fa-map-marker-alt','#f59e0b','Address', p.address)}
+      </div>
+    </div>
+
+    <!-- Medical section -->
+    <div style="padding:10px 14px 14px;">
+      <div style="font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:16px;height:2px;background:linear-gradient(90deg,var(--danger),#fb7185);border-radius:2px;"></span>Medical
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        ${field('fas fa-hospital','var(--accent3)','Hospital', p.hospital)}
+        ${field('fas fa-user-md','var(--accent3)','Assigned Doctor', p.doctor)}
+        ${p.condition ? `<div style="background:#faf5ff;border:1px solid #ddd6fe;border-radius:9px;padding:8px 10px;grid-column:1/-1;">
+          <div style="font-size:9px;color:#6d28d9;font-weight:600;margin-bottom:2px;"><i class="fas fa-stethoscope" style="margin-right:3px;font-size:8px;"></i>Current Status</div>
+          <div style="font-size:11.5px;font-weight:700;color:#7c3aed;">${p.condition}</div>
+        </div>` : ''}
+        ${p.emergencyNumber ? `<div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:9px;padding:8px 10px;grid-column:1/-1;">
+          <div style="font-size:9px;color:var(--danger);font-weight:600;margin-bottom:2px;"><i class="fas fa-phone-volume" style="margin-right:3px;font-size:8px;"></i>Emergency Contact</div>
+          <div style="font-size:12px;font-weight:800;color:var(--danger);font-family:var(--mono);">${p.emergencyNumber}</div>
+        </div>` : ''}
+        ${p.medicalHistory ? `<div style="background:#f8fafc;border:1px solid var(--card-border);border-radius:9px;padding:8px 10px;grid-column:1/-1;">
+          <div style="font-size:9px;color:var(--text-muted);font-weight:600;margin-bottom:3px;"><i class="fas fa-file-medical-alt" style="color:var(--danger);margin-right:3px;font-size:8px;"></i>Medical History</div>
+          <div style="font-size:11px;color:var(--text-secondary);line-height:1.6;">${p.medicalHistory}</div>
+        </div>` : ''}
+        ${!p.hospital && !p.doctor && !p.condition && !p.emergencyNumber && !p.medicalHistory ? `
+          <div style="grid-column:1/-1;text-align:center;padding:14px 0;color:var(--text-muted);font-size:11px;">
+            <i class="fas fa-file-medical" style="margin-bottom:6px;display:block;font-size:16px;opacity:.3;"></i>
+            No medical information on file yet.<br>
+            <span style="font-size:10px;opacity:.7;">Patient can complete this via the MediTwin mobile app.</span>
+          </div>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ===== TABS =====
+function switchTab(name){
+  ['overview','vitals','medications','reports'].forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('active',t===name);
+    document.getElementById('panel-'+t)?.classList.toggle('active',t===name);
+  });
+  if(name==='vitals'){ setTimeout(()=>{renderVitals2();initHistoryChart2();},60); }
+  if(name==='medications'){ renderMeds(); renderMeds2(); }
+}
+
+// ===== HISTORY =====
+function pushHistory(p){
+  const ts=nowT();
+  ['heart_rate','sp02','temp'].forEach(k=>{
+    if(!p.history[k]) p.history[k]=[];
+    p.history[k].push({x:ts,y:p.vitals[k]});
+    if(p.history[k].length>60) p.history[k].shift();
+  });
+}
+function refreshCharts(){ if(historyChartInst) initHistoryChart(); if(historyChart2Inst) initHistoryChart2(); }
+
+// ===== VITALS =====
+function getVitalStatus(key,p){
+  const v=p.vitals, t=p.thresholds||defaultThresholds;
+  if(key==='heart_rate') return(v.heart_rate<t.heart_rate[0]||v.heart_rate>t.heart_rate[1])?'warning':'normal';
+  if(key==='sp02') return v.sp02<t.sp02[0]?'critical':'normal';
+  if(key==='temp') return(v.temp<t.temp[0]||v.temp>t.temp[1])?'warning':'normal';
+  if(key==='stress'){const s=(v.stress||'').toLowerCase();return s==='high'||s==='critical'?'critical':s==='moderate'||s==='medium'?'warning':'normal';}
+  if(key==='fall') return v.fall?'critical':'normal';
+  return'normal';
+}
+function formatVal(key,p){
+  if(key==='stress') return p.vitals.stress||'Normal';
+  if(key==='fall') return p.vitals.fall?'⚠ Detected':'Safe';
+  return p.vitals[key];
+}
+function formatTrend(key,p){
+  const s=getVitalStatus(key,p);
+  if(key==='fall') return p.vitals.fall?`<span class="trend-pill alert">⚠ Fall Alert</span>`:`<span class="trend-pill safe">✓ No Fall</span>`;
+  const l={normal:'● Normal',warning:'⚠ Warning',critical:'⚠ Critical'};
+  return`<span class="trend-pill ${s}">${l[s]}</span>`;
+}
+function renderVitals(){
+  const p=getPatient(); if(!p) return;
+  const g=document.getElementById('vitalsGrid'); if(!g) return;
+  g.innerHTML=vitalDefs.map(v=>{
+    const val=formatVal(v.key,p), trend=formatTrend(v.key,p), isText=v.type!=='numeric';
+    return`<div class="vital-card ${v.cls}" onclick="${v.mini?`switchChart('${v.key}',null)`:'void(0)'}">
+      <div class="vc-accent"></div>
+      <div class="vc-icon"><i class="fas ${v.icon}"></i></div>
+      <div class="vital-label">${v.label}</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span class="vital-value" id="vv-${v.key}" style="${isText?'font-size:18px;':''}">${val}</span>
+        ${v.unit?`<span class="vital-unit">${v.unit}</span>`:''}
+      </div>
+      ${trend}
+      ${v.mini?`<div class="vital-mini"><canvas id="mini-${v.key}"></canvas></div>`:''}
+    </div>`;
+  }).join('');
+  setTimeout(()=>vitalDefs.filter(v=>v.mini).forEach(v=>initMiniChart(v)),30);
+}
+function renderVitals2(){
+  const p=getPatient(); if(!p) return;
+  const g=document.getElementById('vitalsGrid2'); if(!g) return;
+  g.innerHTML=vitalDefs.map(v=>{
+    const val=formatVal(v.key,p), trend=formatTrend(v.key,p), isText=v.type!=='numeric';
+    return`<div class="vital-card ${v.cls}">
+      <div class="vc-accent"></div>
+      <div class="vc-icon"><i class="fas ${v.icon}"></i></div>
+      <div class="vital-label">${v.label}</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span class="vital-value" style="${isText?'font-size:18px;':''}">${val}</span>
+        ${v.unit?`<span class="vital-unit">${v.unit}</span>`:''}
+      </div>
+      ${trend}
+    </div>`;
+  }).join('');
+}
+function updateVitalDisplay(prev){
+  const p=getPatient(); if(!p) return;
+  vitalDefs.forEach(v=>{
+    const el=document.getElementById('vv-'+v.key);
+    if(el){
+      const newVal=formatVal(v.key,p);
+      if(prev && String(prev[v.key])!==String(p.vitals[v.key])){
+        el.classList.remove('updating');
+        void el.offsetWidth;
+        el.classList.add('updating');
+        setTimeout(()=>el.classList.remove('updating'),300);
+      }
+      el.textContent=newVal;
+    }
+  });
+  // Update trend pills
+  document.querySelectorAll('.vital-card').forEach(card=>{
+    const key=vitalDefs.find(v=>card.classList.contains(v.cls))?.key;
+    if(key){ const tEl=card.querySelector('.trend-pill'); if(tEl) tEl.outerHTML=formatTrend(key,p); }
+  });
+  const bpm=document.getElementById('ecgBpm'); if(bpm) bpm.textContent=p.vitals.heart_rate;
+}
+
+// ===== MINI CHARTS =====
+function initMiniChart(vDef){
+  const canvas=document.getElementById('mini-'+vDef.key); if(!canvas) return;
+  if(miniCharts[vDef.key]) miniCharts[vDef.key].destroy();
+  const p=getPatient();
+  const data=(p.history[vDef.key]||[]).length?p.history[vDef.key]:Array(8).fill({y:p.vitals[vDef.key]});
+  miniCharts[vDef.key]=new Chart(canvas,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data:data.map(d=>d.y||d),borderColor:vDef.color,borderWidth:1.5,fill:true,backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,40);g.addColorStop(0,vDef.color+'40');g.addColorStop(1,vDef.color+'00');return g;},tension:.4,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:false}});
+}
+
+// ===== HISTORY CHARTS =====
+const chartColors={heart_rate:'#f43f5e',sp02:'#3b82f6',temp:'#f59e0b'};
+function initHistoryChart(){
+  const canvas=document.getElementById('historyChart'); if(!canvas) return;
+  const p=getPatient(); if(!p) return;
+  if(historyChartInst){historyChartInst.destroy();historyChartInst=null;}
+  const d=p.history[activeChart]||[], col=chartColors[activeChart]||'#0ea5e9';
+  historyChartInst=new Chart(canvas,{type:'line',data:{labels:d.map(x=>x.x),datasets:[{data:d.map(x=>x.y),borderColor:col,borderWidth:2,fill:true,backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,180);g.addColorStop(0,col+'22');g.addColorStop(1,col+'00');return g;},tension:.4,pointRadius:0,pointHoverRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(255,255,255,.97)',borderColor:'#e2e8f0',borderWidth:1,titleColor:'#0b1120',bodyColor:'#64748b'}},scales:{x:{grid:{color:'rgba(0,0,0,.03)'},ticks:{color:'#94a3b8',font:{size:10}}},y:{grid:{color:'rgba(0,0,0,.03)'},ticks:{color:'#94a3b8',font:{size:10}}}},animation:false}});
+}
+function initHistoryChart2(){
+  const canvas=document.getElementById('historyChart2'); if(!canvas) return;
+  const p=getPatient(); if(!p) return;
+  if(historyChart2Inst){historyChart2Inst.destroy();historyChart2Inst=null;}
+  const d=p.history[activeChart]||[], col=chartColors[activeChart]||'#0ea5e9';
+  historyChart2Inst=new Chart(canvas,{type:'line',data:{labels:d.map(x=>x.x),datasets:[{data:d.map(x=>x.y),borderColor:col,borderWidth:2,fill:true,backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,220);g.addColorStop(0,col+'22');g.addColorStop(1,col+'00');return g;},tension:.4,pointRadius:2,pointHoverRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(255,255,255,.97)',borderColor:'#e2e8f0',borderWidth:1,titleColor:'#0b1120',bodyColor:'#64748b'}},scales:{x:{grid:{color:'rgba(0,0,0,.03)'},ticks:{color:'#94a3b8',font:{size:10}}},y:{grid:{color:'rgba(0,0,0,.03)'},ticks:{color:'#94a3b8',font:{size:10}}}},animation:false}});
+}
+function switchChart(key,btn){
+  if(btn){document.querySelectorAll('#panel-overview .chart-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
+  if(['heart_rate','sp02','temp'].includes(key)){activeChart=key;initHistoryChart();}
+}
+function switchChart2(key,btn){
+  document.querySelectorAll('#chartTabs2 .chart-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  activeChart=key; initHistoryChart2();
+}
+
+// ===== ECG =====
+function initECG(){
+  const canvas=document.getElementById('ecgCanvas'); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
+  const w=canvas.width, h=canvas.height, pts=[];
+  if(ecgAnimId) cancelAnimationFrame(ecgAnimId);
+  function ecgWave(x){
+    const t=x%1;
+    if(t<.1) return t*2;
+    if(t<.15) return .2-(t-.1)*6;
+    if(t<.2) return -(t-.15)*4;
+    if(t<.25) return -.2+(t-.2)*16;
+    if(t<.3) return .8-(t-.25)*20;
+    if(t<.35) return -.2+(t-.3)*10;
+    if(t<.4) return .3-(t-.35)*2;
+    return Math.sin((t-.4)*Math.PI*3)*.05*(1-(t-.4)*4);
+  }
+  function draw(){
+    if(!document.getElementById('ecgCanvas')){cancelAnimationFrame(ecgAnimId);return;}
+    ctx.clearRect(0,0,w,h); ecgPhase+=.012; if(ecgPhase>1) ecgPhase=0;
+    for(let i=0;i<w;i++) pts[i]=ecgWave((i/w+ecgPhase));
+    ctx.beginPath(); ctx.strokeStyle='#10b981'; ctx.lineWidth=1.5;
+    ctx.shadowColor='#10b981'; ctx.shadowBlur=10;
+    for(let i=0;i<w;i++){const y=h/2-pts[i]*(h/2.5);if(i===0)ctx.moveTo(i,y);else ctx.lineTo(i,y);}
+    ctx.stroke(); ecgAnimId=requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ===== MEDS =====
+function renderMeds(){
+  const p=getPatient(); if(!p) return;
+  const el=document.getElementById('medList'); if(!el) return;
+  const done=p.meds.filter(m=>m.done).length;
+  const prog=document.getElementById('medProgress');
+  if(prog) prog.textContent=`${done}/${p.meds.length}`;
+  const statEl=document.getElementById('medsGivenStat');
+  if(statEl) statEl.innerHTML=`${done}<span style="font-size:13px;font-weight:600;color:var(--text-muted);">/${p.meds.length}</span>`;
+  el.innerHTML=p.meds.length?p.meds.map(m=>`
+    <div class="med-item${m.done?' done':''}" onclick="toggleMed('${m.id}')">
+      <div class="med-check">${m.done?'<i class="fas fa-check" style="font-size:9px;"></i>':''}</div>
+      <div class="med-info">
+        <div class="med-name">${m.name}</div>
+        <div class="med-time">${m.time||'—'} · ${m.freq||'—'}</div>
+      </div>
+      <span class="med-dose">${m.dose||'—'}</span>
+      <button onclick="removeMed(event,'${m.id}')" style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.15);border-radius:6px;color:var(--danger);width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;" title="Remove">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>`).join(''):'<div class="empty-state"><i class="fas fa-pills"></i><p>No medications added.</p></div>';
+}
+function renderMeds2(){
+  const p=getPatient(); if(!p) return;
+  const el=document.getElementById('medList2'); if(!el) return;
+  const done=p.meds.filter(m=>m.done).length;
+  const prog=document.getElementById('medProgress2'); if(prog) prog.textContent=`${done}/${p.meds.length}`;
+  el.innerHTML=p.meds.map(m=>`
+    <div class="med-item${m.done?' done':''}" onclick="toggleMed('${m.id}')">
+      <div class="med-check">${m.done?'<i class="fas fa-check" style="font-size:9px;"></i>':''}</div>
+      <div class="med-info"><div class="med-name">${m.name}</div><div class="med-time">${m.time||'—'} · ${m.freq||'—'}</div></div>
+      <span class="med-dose">${m.dose||'—'}</span>
+    </div>`).join('');
+}
+function toggleMed(id){
+  const p=getPatient(); if(!p) return;
+  const m=p.meds.find(m=>m.id===id); if(!m) return;
+  m.done=!m.done;
+  logActivity(m.done?`✓ ${m.name} administered`:`↩ ${m.name} marked pending`, m.done?'success':'info');
+  renderMeds(); renderMeds2(); dbSave();
+}
+function removeMed(e,id){
+  e.stopPropagation();
+  const p=getPatient(); if(!p) return;
+  const m=p.meds.find(m=>m.id===id);
+  p.meds=p.meds.filter(m=>m.id!==id);
+  if(m) logActivity(`Removed medication: ${m.name}`,'warn');
+  renderMeds(); renderMeds2(); dbSave();
+}
+function addMedication(){
+  const name=document.getElementById('med-name').value.trim();
+  if(!name){toast('Please enter a medication name','error');return;}
+  const p=getPatient(); if(!p) return;
+  const m={id:uid(),name,dose:document.getElementById('med-dose').value.trim(),time:document.getElementById('med-time').value,freq:document.getElementById('med-freq').value,done:false};
+  p.meds.push(m);
+  logActivity(`Added medication: ${name}`,'info');
+  renderMeds(); renderMeds2(); dbSave();
+  closeModal('addMedModal');
+  ['med-name','med-dose','med-time'].forEach(id=>document.getElementById(id).value='');
+  toast(`${name} added`,'success');
+}
+
+// ===== NOTES =====
+function renderNotes(){
+  const p=getPatient(); if(!p) return;
+  const el=document.getElementById('notesList'); if(!el) return;
+  el.innerHTML=p.notes.length?[...p.notes].reverse().map(n=>`
+    <div class="note-item">
+      <div><span class="note-author">Caregiver</span><span class="note-time">${n.time}</span></div>
+      <div class="note-text">${n.text}</div>
+      <button class="note-del" onclick="removeNote('${n.id}')"><i class="fas fa-times"></i></button>
+    </div>`).join(''):'<div class="empty-state" style="padding:14px 0;"><i class="fas fa-sticky-note"></i><p>No notes yet.</p></div>';
+}
+function addNote(){
+  const inp=document.getElementById('noteInput'); if(!inp||!inp.value.trim()) return;
+  const p=getPatient(); if(!p) return;
+  const n={id:uid(),text:inp.value.trim(),time:nowT(),date:nowDT()};
+  p.notes.push(n); inp.value='';
+  renderNotes(); dbSave(); logActivity('Clinical note added','info');
+}
+function removeNote(id){
+  const p=getPatient(); if(!p) return;
+  p.notes=p.notes.filter(n=>n.id!==id);
+  renderNotes(); dbSave();
+}
+
+// ===== ACTIVITY =====
+function renderActivity(){
+  const p=getPatient(); if(!p) return;
+  const el=document.getElementById('activityList'); if(!el) return;
+  const cnt=document.getElementById('activityCount'); if(cnt) cnt.textContent=`${p.activity.length} events`;
+  const iconMap={info:'fa-info',success:'fa-check',warn:'fa-exclamation',danger:'fa-exclamation-triangle'};
+  el.innerHTML=[...p.activity].reverse().slice(0,12).map(a=>`
+    <div class="act-item">
+      <div class="act-dot ${a.type||'info'}"><i class="fas ${iconMap[a.type]||'fa-info'}"></i></div>
+      <div class="act-content">
+        <div class="act-text">${a.text}</div>
+        <div class="act-time">${a.date||a.time}</div>
+      </div>
+    </div>`).join('');
+}
+function clearActivity(){
+  const p=getPatient(); if(!p) return;
+  customConfirm('This will permanently remove all activity log entries.', ()=>{
+    p.activity=[];
+    renderActivity(); dbSave();
+    toast('Activity log cleared','info');
+  }, 'Clear Activity Log');
+}
+function logActivity(text, type='info'){
+  const p=getPatient(); if(!p) return;
+  p.activity.push({type,text,time:nowT(),date:nowDT()});
+  if(p.activity.length>50) p.activity.shift();
+  renderActivity(); dbSave();
+}
+
+// ===== ALERTS =====
+function checkAlerts(){
+  const p=getPatient(); if(!p) return;
+  const banner=document.getElementById('alertBanner'); if(!banner) return;
+  const t=p.thresholds||defaultThresholds;
+  const alerts=[];
+  if(p.vitals.heart_rate<t.heart_rate[0]||p.vitals.heart_rate>t.heart_rate[1])
+    alerts.push(`Heart rate ${p.vitals.heart_rate} bpm (range: ${t.heart_rate[0]}–${t.heart_rate[1]})`);
+  if(p.vitals.sp02<t.sp02[0])
+    alerts.push(`SpO₂ ${p.vitals.sp02}% (min: ${t.sp02[0]}%)`);
+  if(p.vitals.temp<t.temp[0]||p.vitals.temp>t.temp[1])
+    alerts.push(`Temperature ${p.vitals.temp}°C (range: ${t.temp[0]}–${t.temp[1]}°C)`);
+  if(p.vitals.fall) alerts.push('Fall detected!');
+  if(alerts.length){
+    banner.classList.remove('hidden');
+    document.getElementById('alertText').textContent='⚠ Vital Alert — Action Required';
+    document.getElementById('alertSub').textContent=alerts.join(' · ');
+  } else {
+    banner.classList.add('hidden');
+  }
+}
+function dismissAlert(){
+  const b=document.getElementById('alertBanner'); if(b) b.classList.add('hidden');
+}
+
+// ===== THRESHOLDS =====
+function openThresholds(){
+  const p=getPatient(); if(!p) return;
+  const t=p.thresholds||defaultThresholds;
+  const defs=[
+    {key:'heart_rate',label:'Heart Rate',unit:'bpm'},
+    {key:'sp02',label:'SpO₂',unit:'%'},
+    {key:'temp',label:'Temperature',unit:'°C'}
+  ];
+  document.getElementById('thresholdGrid').innerHTML=defs.map(d=>`
+    <div>
+      <div class="thresh-label">${d.label} (${d.unit})</div>
+      <div class="thresh-row">
+        <input class="thresh-input" id="th-${d.key}-min" value="${t[d.key][0]}" placeholder="Min">
+        <span class="thresh-div">–</span>
+        <input class="thresh-input" id="th-${d.key}-max" value="${t[d.key][1]}" placeholder="Max">
+      </div>
+    </div>`).join('');
+  openModal('thresholdModal');
+}
+function saveThresholds(){
+  const p=getPatient(); if(!p) return;
+  const keys=['heart_rate','sp02','temp'];
+  keys.forEach(k=>{
+    const mn=parseFloat(document.getElementById(`th-${k}-min`)?.value);
+    const mx=parseFloat(document.getElementById(`th-${k}-max`)?.value);
+    if(!isNaN(mn)&&!isNaN(mx)) p.thresholds[k]=[mn,mx];
+  });
+  dbSave(); checkAlerts(); closeModal('thresholdModal');
+  toast('Alert thresholds saved','success');
+}
+
+// ===== EMERGENCY =====
+function openEmergency(){ openModal('emergencyModal'); }
+function sendEmergency(){
+  const note=document.getElementById('emergencyNote').value.trim();
+  logActivity(`🚨 EMERGENCY ALERT sent${note?': '+note:''}`, 'danger');
+  toast('🚨 Emergency alert dispatched to medical team!','error');
+  closeModal('emergencyModal');
+  document.getElementById('emergencyNote').value='';
+}
+
+// ===== EXPORT =====
+function toggleExportMenu(){
+  const m=document.getElementById('exportMenu'); if(!m) return;
+  m.classList.toggle('open');
+  if(m.classList.contains('open')){
+    setTimeout(()=>document.addEventListener('click',closeExport,{once:true}),10);
+  }
+}
+function closeExport(){ document.getElementById('exportMenu')?.classList.remove('open'); }
+function openExportMenu(){ toggleExportMenu(); }
+
+function downloadVitalsCSV(){
+  const p=getPatient(); if(!p){toast('No patient selected','error');return;}
+  const rows=[['Time','Heart Rate (bpm)','SpO2 (%)','Temperature (°C)']];
+  const len=Math.max(p.history.heart_rate?.length||0,p.history.sp02?.length||0,p.history.temp?.length||0);
+  for(let i=0;i<len;i++){
+    rows.push([
+      p.history.heart_rate?.[i]?.x||'',
+      p.history.heart_rate?.[i]?.y||'',
+      p.history.sp02?.[i]?.y||'',
+      p.history.temp?.[i]?.y||''
+    ]);
+  }
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${p.id}_vitals.csv`;a.click();
+  toast('Vitals CSV downloaded','success');
+}
+function downloadJSON(){
+  const p=getPatient(); if(!p){toast('No patient selected','error');return;}
+  const blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${p.id}_snapshot.json`;a.click();
+  toast('Patient JSON downloaded','success');
+}
+function printSummary(){
+  const p=getPatient(); if(!p) return;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>${p.name} - Patient Summary</title>
+  <style>body{font-family:Georgia,serif;padding:30px;color:#111;}h1{font-size:22px;border-bottom:2px solid #000;padding-bottom:8px;}table{width:100%;border-collapse:collapse;margin-top:12px;}td,th{border:1px solid #ccc;padding:6px 10px;text-align:left;}th{background:#f0f4f8;font-size:12px;}</style>
+  </head><body>
+  <h1>Patient Summary — ${p.name}</h1>
+  <p><strong>Patient ID:</strong> ${p.id} | <strong>Device:</strong> ${p.deviceId} | <strong>Date:</strong> ${nowDT()}</p>
+  <h3 style="margin-top:16px;">Current Vitals</h3>
+  <table><tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Heart Rate</td><td>${p.vitals.heart_rate} bpm</td></tr>
+  <tr><td>SpO₂</td><td>${p.vitals.sp02}%</td></tr>
+  <tr><td>Temperature</td><td>${p.vitals.temp}°C</td></tr>
+  <tr><td>Stress Level</td><td>${p.vitals.stress||'Normal'}</td></tr>
+  <tr><td>Fall Detection</td><td>${p.vitals.fall?'DETECTED':'None'}</td></tr>
+  </table>
+  <h3 style="margin-top:16px;">Medications</h3>
+  <table><tr><th>Name</th><th>Dose</th><th>Time</th><th>Status</th></tr>
+  ${p.meds.map(m=>`<tr><td>${m.name}</td><td>${m.dose}</td><td>${m.time}</td><td>${m.done?'Given':'Pending'}</td></tr>`).join('')}
+  </table>
+  </body></html>`);
+  w.document.close(); w.print();
+}
+function downloadPDF(){
+  const p=getPatient(); if(!p){toast('No patient selected','error');return;}
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const M=15,W=210,primary=[14,165,233],dark=[11,17,32],gray=[100,116,139],lightGray=[248,250,252];
+
+    // Header
+    doc.setFillColor(...primary);doc.rect(0,0,W,28,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18);doc.setFont('helvetica','bold');doc.text('MediTwin',M,17);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Caregiver Dashboard Report — Confidential',M,23);
+    doc.setFontSize(8);doc.text(nowDT(),W-M,23,{align:'right'});
+
+    // Patient info block
+    let y=36;
+    doc.setFillColor(...lightGray);doc.roundedRect(M,y,W-2*M,26,3,3,'F');
+    doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(...dark);
+    doc.text(p.name,M+5,y+9);
+    doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(...gray);
+    const infoLine=[p.id,p.deviceId,p.age?`Age: ${p.age}`:'',p.gender,p.doctor?`Dr: ${p.doctor}`:''].filter(Boolean).join('   |   ');
+    doc.text(infoLine,M+5,y+16);
+    if(p.condition){doc.setTextColor(...dark);doc.setFont('helvetica','italic');doc.text(`Condition: ${p.condition}`,M+5,y+22);}
+    y+=34;
+
+    // Vitals
+    doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(...dark);doc.text('Current Vitals',M,y);
+    doc.setDrawColor(...primary);doc.setLineWidth(.4);doc.line(M,y+2,W-M,y+2);y+=7;
+    const vitalsData=[
+      ['Heart Rate',`${p.vitals.heart_rate} bpm`,getVitalStatus('heart_rate',p)],
+      ['SpO₂',`${p.vitals.sp02}%`,getVitalStatus('sp02',p)],
+      ['Temperature',`${p.vitals.temp}°C`,getVitalStatus('temp',p)],
+      ['Stress Level',p.vitals.stress||'Normal',getVitalStatus('stress',p)],
+      ['Fall Detection',p.vitals.fall?'⚠ Detected':'No Fall Detected',p.vitals.fall?'critical':'normal'],
+    ];
+    const sc={normal:[16,185,129],warning:[245,158,11],critical:[244,63,94]};
+    const colW=(W-2*M)/3;
+    vitalsData.forEach((vd,i)=>{
+      const col=i%3,row=Math.floor(i/3),x=M+col*colW,vy=y+row*22;
+      doc.setFillColor(...lightGray);doc.roundedRect(x,vy,colW-3,18,2,2,'F');
+      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...gray);doc.text(vd[0],x+4,vy+5);
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(...dark);doc.text(vd[1],x+4,vy+13);
+      doc.setFillColor(...(sc[vd[2]]||sc.normal));doc.circle(x+colW-10,vy+9,2,'F');
+    });
+    y+=Math.ceil(vitalsData.length/3)*22+8;
+
+    // Medications
+    doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(...dark);doc.text('Medications',M,y);
+    doc.setDrawColor(...primary);doc.setLineWidth(.4);doc.line(M,y+2,W-M,y+2);y+=7;
+    const mHdrs=['Medication','Dose','Time','Frequency','Status'];
+    const mCols=[52,28,24,38,30];
+    doc.setFillColor(...primary);doc.rect(M,y,W-2*M,7,'F');
+    doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    let cx=M+2;mHdrs.forEach((h,i)=>{doc.text(h,cx,y+5);cx+=mCols[i];});y+=7;
+    p.meds.forEach((m,idx)=>{
+      if(y>260){doc.addPage();y=M;}
+      doc.setFillColor(idx%2===0?255:248,idx%2===0?255:250,idx%2===0?255:252);
+      doc.rect(M,y,W-2*M,7,'F');
+      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...dark);
+      cx=M+2;
+      [m.name,m.dose||'—',m.time||'—',m.freq||'—',m.done?'✓ Given':'Pending'].forEach((val,i)=>{
+        if(i===4)doc.setTextColor(...(m.done?[16,185,129]:[245,158,11]));else doc.setTextColor(...dark);
+        doc.text(String(val).substring(0,22),cx,y+5);cx+=mCols[i];
+      });
+      y+=7;
+    });
+    y+=8;
+
+    // Notes
+    if(p.notes.length>0){
+      if(y>240){doc.addPage();y=M;}
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(...dark);doc.text('Clinical Notes',M,y);
+      doc.setDrawColor(...primary);doc.setLineWidth(.4);doc.line(M,y+2,W-M,y+2);y+=7;
+      p.notes.slice(0,5).forEach(n=>{
+        if(y>265){doc.addPage();y=M;}
+        doc.setFillColor(...lightGray);doc.roundedRect(M,y,W-2*M,14,2,2,'F');
+        doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...primary);doc.text(`Caregiver — ${n.time}`,M+4,y+5);
+        doc.setFont('helvetica','normal');doc.setTextColor(...dark);
+        doc.text((doc.splitTextToSize(n.text,W-2*M-8)[0]||'').substring(0,90),M+4,y+11);
+        y+=16;
+      });
+    }
+
+    // Footer
+    const pages=doc.internal.getNumberOfPages();
+    for(let i=1;i<=pages;i++){
+      doc.setPage(i);
+      doc.setFillColor(...lightGray);doc.rect(0,285,W,12,'F');
+      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...gray);
+      doc.text('MediTwin — Caregiver Dashboard Report  |  Confidential',M,291);
+      doc.text(`Page ${i} of ${pages}`,W-M,291,{align:'right'});
+    }
+    doc.save(`${p.id}_report_${new Date().toISOString().slice(0,10)}.pdf`);
+    toast('PDF report downloaded!','success');
+  }catch(err){
+    console.error(err);toast('PDF generation failed. Trying CSV…','error');
+    downloadVitalsCSV();
+  }
+}
+
+// ===== CUSTOM CONFIRM =====
+function customConfirm(message, onOk, title='Are you sure?'){
+  document.getElementById('confirmTitle').innerHTML=`<i class="fas fa-exclamation-circle" style="color:var(--danger);"></i>${title}`;
+  document.getElementById('confirmMessage').textContent=message;
+  const btn=document.getElementById('confirmOkBtn');
+  btn.onclick=()=>{ closeModal('confirmModal'); onOk(); };
+  openModal('confirmModal');
+}
+
+// ===== MODALS =====
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+
+// ===== TOAST =====
+function toast(msg,type='info'){
+  const icons={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
+  const el=document.createElement('div'); el.className=`toast ${type}`;
+  el.innerHTML=`<i class="fas ${icons[type]||'fa-info-circle'} toast-icon" style="font-size:15px;"></i><span>${msg}</span>`;
+  const container=document.getElementById('toastContainer');
+  container.appendChild(el);
+  setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); },3200);
+}
+
+// ===== CLOCK =====
+setInterval(()=>{ const el=document.getElementById('current-time'); if(el) el.textContent=new Date().toLocaleTimeString(); },1000);
+document.getElementById('current-time').textContent=new Date().toLocaleTimeString();
+
+function logout(){ customConfirm('You will be logged out of the Caregiver Portal.', ()=>{ window.location.href='/logout'; }, 'Logout'); }
+
+function deleteAccount(){
+  openModal('deleteAccountModal');
+}
+function closeDeleteModal(){
+  closeModal('deleteAccountModal');
+  document.getElementById('delete-confirm-input').value = '';
+  document.getElementById('delete-confirm-error').style.display = 'none';
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-trash-alt" style="margin-right:8px;"></i>Permanently Delete Account';
+}
+async function confirmDeleteAccount(){
+  const input = document.getElementById('delete-confirm-input').value.trim();
+  const errEl = document.getElementById('delete-confirm-error');
+  errEl.style.display = 'none';
+
+  if (input !== 'DELETE') {
+    errEl.textContent = '❌ Please type DELETE exactly (in capitals) to confirm.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Deleting…';
+
+  try {
+    const res = await fetch('/api/caregiver/delete-account', { method: 'DELETE' });
+    if (res.ok) {
+      window.location.href = '/';
+    } else {
+      const err = await res.json().catch(()=>({}));
+      errEl.textContent = '❌ ' + (err.detail || 'Failed to delete account. Please try again.');
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-trash-alt" style="margin-right:8px;"></i>Permanently Delete Account';
+    }
+  } catch(e) {
+    errEl.textContent = '❌ Network error. Please try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-trash-alt" style="margin-right:8px;"></i>Permanently Delete Account';
+  }
+}
+</script>
+
+<!-- ── DELETE ACCOUNT MODAL ── -->
+<div class="modal-overlay" id="deleteAccountModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:12px;">
+        <div style="width:42px;height:42px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:18px;flex-shrink:0;">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+          <div>Delete Account</div>
+          <div style="font-size:10px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:1px;margin-top:2px;">This action is irreversible</div>
+        </div>
+      </div>
+      <button class="btn-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:16px;margin-bottom:18px;">
+      <p style="font-size:12px;font-weight:700;color:#9f1239;margin-bottom:10px;">⚠️ Deleting your account will:</p>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px;">
+        <li style="font-size:11px;font-weight:600;color:#be123c;display:flex;align-items:center;gap:8px;"><i class="fas fa-times-circle" style="color:#fca5a5;flex-shrink:0;"></i>Permanently remove your caregiver profile from the database</li>
+        <li style="font-size:11px;font-weight:600;color:#be123c;display:flex;align-items:center;gap:8px;"><i class="fas fa-times-circle" style="color:#fca5a5;flex-shrink:0;"></i>Remove you from the patient's care team</li>
+        <li style="font-size:11px;font-weight:600;color:#be123c;display:flex;align-items:center;gap:8px;"><i class="fas fa-times-circle" style="color:#fca5a5;flex-shrink:0;"></i>Revoke your access to all patient dashboards</li>
+        <li style="font-size:11px;font-weight:600;color:#be123c;display:flex;align-items:center;gap:8px;"><i class="fas fa-times-circle" style="color:#fca5a5;flex-shrink:0;"></i>Require a full new signup to regain access</li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">
+        Type <span style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-family:monospace;color:#1e293b;letter-spacing:0;">DELETE</span> to confirm
+      </label>
+      <input type="text" id="delete-confirm-input" placeholder="Type DELETE here"
+             class="form-input" style="font-family:monospace;font-weight:700;font-size:14px;border:2px solid #e2e8f0;border-radius:12px;padding:12px 16px;transition:border-color .2s;"
+             oninput="this.value=this.value.toUpperCase()">
+      <p id="delete-confirm-error" style="display:none;color:#ef4444;font-size:11px;font-weight:700;margin-top:8px;"></p>
+    </div>
+
+    <div class="modal-actions" style="gap:10px;">
+      <button id="confirm-delete-btn" onclick="confirmDeleteAccount()"
+              style="flex:1;padding:12px;border-radius:12px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:white;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .2s;font-family:'Figtree',sans-serif;box-shadow:0 4px 14px rgba(239,68,68,.35);">
+        <i class="fas fa-trash-alt" style="margin-right:8px;"></i>Permanently Delete Account
+      </button>
+      <button onclick="closeDeleteModal()" class="btn-cancel" style="flex:0 0 auto;padding:12px 20px;">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | NEXORA Technologies - HIPAA Compliant Healthcare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
+        .nav-link { transition: all 0.3s ease; position: relative; }
+        .nav-link:hover { color: #0ea5e9; }
+        .nav-link.active { color: #0ea5e9; font-weight: 600; }
+        .nav-link.active::before {
+            content: ''; position: absolute; left: -1rem; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 100%; background: #0ea5e9; border-radius: 2px;
+        }
+        .policy-section { scroll-margin-top: 120px; }
+        .highlight-box { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #0ea5e9; }
+        .warning-box { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 4px solid #ef4444; }
+        .success-box { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/95 backdrop-blur-lg border-b border-slate-200 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto">
+                    <div>
+                        <div class="text-xl font-bold text-slate-900">NEXORA</div>
+                        <div class="text-xs text-slate-500 -mt-1">Privacy & Compliance</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="window.print()" class="text-sm font-medium text-slate-600 hover:text-sky-600 transition flex items-center gap-2">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <a href="/" class="px-4 py-2 bg-sky-600 text-white text-sm font-semibold rounded-lg hover:bg-sky-700 transition">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero-gradient pt-32 pb-20 px-4 no-print">
+        <div class="max-w-4xl mx-auto text-center" data-aos="fade-up">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
+                <i class="fas fa-shield-check text-sky-400"></i>
+                <span class="text-sm font-semibold text-white">HIPAA & GDPR Compliant</span>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-black text-white mb-6">Privacy Policy</h1>
+            <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">Your health data deserves the highest level of protection. Learn how we safeguard your information with medical-grade security.</p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <div class="px-4 py-2 bg-white/10 rounded-lg border border-white/20 text-white"><strong>Effective:</strong> January 1, 2025</div>
+                <div class="px-4 py-2 bg-white/10 rounded-lg border border-white/20 text-white"><strong>Updated:</strong> January 19, 2026</div>
+                <div class="px-4 py-2 bg-white/10 rounded-lg border border-white/20 text-white"><strong>Version:</strong> 2.4.0</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-12 -mt-8 relative z-10">
+        <div class="grid lg:grid-cols-4 gap-8">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="lg:col-span-1 no-print">
+                <div class="sticky top-24 bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Quick Navigation</h3>
+                    <nav class="space-y-2">
+                        <a href="#intro" class="nav-link block text-sm text-slate-600 py-2 pl-4">Introduction</a>
+                        <a href="#collection" class="nav-link block text-sm text-slate-600 py-2 pl-4">Data Collection</a>
+                        <a href="#usage" class="nav-link block text-sm text-slate-600 py-2 pl-4">How We Use Data</a>
+                        <a href="#protection" class="nav-link block text-sm text-slate-600 py-2 pl-4">Security Measures</a>
+                        <a href="#sharing" class="nav-link block text-sm text-slate-600 py-2 pl-4">Data Sharing</a>
+                        <a href="#rights" class="nav-link block text-sm text-slate-600 py-2 pl-4">Your Rights</a>
+                        <a href="#retention" class="nav-link block text-sm text-slate-600 py-2 pl-4">Data Retention</a>
+                        <a href="#hipaa" class="nav-link block text-sm text-slate-600 py-2 pl-4">HIPAA Compliance</a>
+                        <a href="#gdpr" class="nav-link block text-sm text-slate-600 py-2 pl-4">GDPR Compliance</a>
+                        <a href="#children" class="nav-link block text-sm text-slate-600 py-2 pl-4">Children's Privacy</a>
+                        <a href="#changes" class="nav-link block text-sm text-slate-600 py-2 pl-4">Policy Changes</a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Content -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                    <div class="p-8 md:p-12 space-y-12">
+
+                        <!-- Introduction -->
+                        <section id="intro" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-sky-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-info-circle text-sky-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Introduction</h2>
+                            </div>
+                            <p class="text-slate-600 leading-relaxed mb-4">
+                                At NEXORA Technologies, Inc. ("NEXORA," "we," "us," or "our"), we are committed to protecting your privacy and ensuring the security of your personal health information (PHI). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our MediTwin Bio-Patch device and cloud-based Digital Twin platform (collectively, the "Services").
+                            </p>
+                            <p class="text-slate-600 leading-relaxed">
+                                This policy applies to all users of our Services, including patients, healthcare providers, and enterprise partners. By using our Services, you agree to the collection and use of information in accordance with this policy.
+                            </p>
+                            <div class="highlight-box rounded-xl p-6 mt-6">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-lightbulb text-sky-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-2">Key Principle</h4>
+                                        <p class="text-sm text-slate-700">Your health data belongs to you. We act as stewards of your information, implementing industry-leading security measures and never selling your personal health information to third parties.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Data Collection -->
+                        <section id="collection" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-database text-purple-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Information We Collect</h2>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-slate-900 mt-8 mb-4">1. Health Data from Bio-Patch Device</h3>
+                            <p class="text-slate-600 leading-relaxed mb-4">Our wearable IoT Bio-Patch continuously monitors and collects the following physiological data:</p>
+                            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                                        <i class="fas fa-heart text-red-500"></i> Cardiovascular Metrics
+                                    </h4>
+                                    <ul class="text-sm text-slate-600 space-y-1">
+                                        <li>• Heart rate (BPM) - continuous monitoring</li>
+                                        <li>• Blood oxygen saturation (SpO2)</li>
+                                        <li>• Heart rate variability (HRV)</li>
+                                        <li>• Single-lead ECG waveforms (500Hz sampling)</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                                        <i class="fas fa-thermometer-half text-orange-500"></i> Other Vital Signs
+                                    </h4>
+                                    <ul class="text-sm text-slate-600 space-y-1">
+                                        <li>• Core body temperature</li>
+                                        <li>• Galvanic skin response (stress levels)</li>
+                                        <li>• Motion and activity data (fall detection)</li>
+                                        <li>• Sleep patterns and quality metrics</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-semibold text-slate-900 mt-8 mb-4">2. Account and Profile Information</h3>
+                            <ul class="space-y-2 text-slate-600">
+                                <li class="flex items-start gap-3"><i class="fas fa-check text-green-500 mt-1"></i><span><strong>Personal identifiers:</strong> Full name, date of birth, gender, contact information</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-check text-green-500 mt-1"></i><span><strong>Account credentials:</strong> Email address, encrypted password</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-check text-green-500 mt-1"></i><span><strong>Medical history:</strong> Pre-existing conditions, medications, allergies (if provided)</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-check text-green-500 mt-1"></i><span><strong>Emergency contacts:</strong> Names and contact details of designated persons</span></li>
+                            </ul>
+
+                            <h3 class="text-xl font-semibold text-slate-900 mt-8 mb-4">3. Device and Technical Information</h3>
+                            <ul class="space-y-2 text-slate-600">
+                                <li class="flex items-start gap-3"><i class="fas fa-microchip text-sky-500 mt-1"></i><span>Device serial number and model (ESP32 hardware ID)</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-microchip text-sky-500 mt-1"></i><span>Firmware version and software updates</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-microchip text-sky-500 mt-1"></i><span>Connection logs and data transmission timestamps</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-microchip text-sky-500 mt-1"></i><span>IP address and network information</span></li>
+                            </ul>
+
+                            <h3 class="text-xl font-semibold text-slate-900 mt-8 mb-4">4. Usage and Analytics Data</h3>
+                            <ul class="space-y-2 text-slate-600">
+                                <li class="flex items-start gap-3"><i class="fas fa-chart-line text-purple-500 mt-1"></i><span>Dashboard interactions and feature usage</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-chart-line text-purple-500 mt-1"></i><span>Notification preferences and settings</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-chart-line text-purple-500 mt-1"></i><span>Customer support interactions and feedback</span></li>
+                            </ul>
+                        </section>
+
+                        <!-- How We Use Data -->
+                        <section id="usage" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-cogs text-teal-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">How We Use Your Data</h2>
+                            </div>
+                            
+                            <p class="text-slate-600 leading-relaxed mb-6">We use your information for the following purposes:</p>
+                            
+                            <div class="space-y-6">
+                                <div class="border-l-4 border-sky-500 pl-6">
+                                    <h4 class="font-bold text-slate-900 mb-2">1. Health Monitoring and Predictive Analytics</h4>
+                                    <ul class="space-y-2 text-slate-600 text-sm">
+                                        <li>• Creating your personalized Digital Twin health model</li>
+                                        <li>• Real-time vital sign monitoring and anomaly detection</li>
+                                        <li>• 48-72 hour health trajectory forecasting using LSTM neural networks</li>
+                                        <li>• Arrhythmia detection through CNN analysis of ECG data</li>
+                                        <li>• Fall detection and emergency alert systems</li>
+                                    </ul>
+                                </div>
+
+                                <div class="border-l-4 border-purple-500 pl-6">
+                                    <h4 class="font-bold text-slate-900 mb-2">2. Service Delivery and Improvement</h4>
+                                    <ul class="space-y-2 text-slate-600 text-sm">
+                                        <li>• Maintaining and improving platform functionality</li>
+                                        <li>• Providing customer support and technical assistance</li>
+                                        <li>• Conducting research to enhance AI model accuracy</li>
+                                        <li>• Developing new features and health insights</li>
+                                    </ul>
+                                </div>
+
+                                <div class="border-l-4 border-green-500 pl-6">
+                                    <h4 class="font-bold text-slate-900 mb-2">3. Clinical Integration and Care Coordination</h4>
+                                    <ul class="space-y-2 text-slate-600 text-sm">
+                                        <li>• Sharing data with authorized healthcare providers (with your explicit consent)</li>
+                                        <li>• Facilitating telemedicine consultations</li>
+                                        <li>• Supporting clinical decision-making</li>
+                                        <li>• Emergency medical response coordination</li>
+                                    </ul>
+                                </div>
+
+                                <div class="border-l-4 border-amber-500 pl-6">
+                                    <h4 class="font-bold text-slate-900 mb-2">4. Legal and Compliance</h4>
+                                    <ul class="space-y-2 text-slate-600 text-sm">
+                                        <li>• Complying with applicable healthcare regulations (HIPAA, GDPR)</li>
+                                        <li>• Responding to legal requests and preventing fraud</li>
+                                        <li>• Enforcing our Terms of Service</li>
+                                        <li>• Protecting rights, property, and safety</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Security Measures -->
+                        <section id="protection" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-red-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Security Measures</h2>
+                            </div>
+                            
+                            <p class="text-slate-600 leading-relaxed mb-6">We implement comprehensive security controls across all layers of our platform:</p>
+
+                            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+                                    <i class="fas fa-lock text-3xl text-sky-600 mb-4"></i>
+                                    <h4 class="font-bold text-slate-900 mb-2">Hardware Security</h4>
+                                    <p class="text-sm text-slate-600">On-chip AES-256 encryption, secure I2C protocols, tamper-resistant casing</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+                                    <i class="fas fa-network-wired text-3xl text-purple-600 mb-4"></i>
+                                    <h4 class="font-bold text-slate-900 mb-2">Transport Security</h4>
+                                    <p class="text-sm text-slate-600">TLS 1.3 encryption, secure WebSocket connections, certificate pinning</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+                                    <i class="fas fa-cloud text-3xl text-teal-600 mb-4"></i>
+                                    <h4 class="font-bold text-slate-900 mb-2">Cloud Security</h4>
+                                    <p class="text-sm text-slate-600">Encrypted storage, role-based access control, SOC 2 Type II certified infrastructure</p>
+                                </div>
+                            </div>
+
+                            <div class="success-box rounded-xl p-6">
+                                <h4 class="font-bold text-green-900 mb-3 flex items-center gap-2">
+                                    <i class="fas fa-check-circle"></i> Additional Security Practices
+                                </h4>
+                                <ul class="space-y-2 text-sm text-green-800">
+                                    <li>✓ Regular security audits and penetration testing</li>
+                                    <li>✓ Employee security training and background checks</li>
+                                    <li>✓ Multi-factor authentication for all accounts</li>
+                                    <li>✓ Automatic session timeout and device management</li>
+                                    <li>✓ Comprehensive audit logging and monitoring</li>
+                                    <li>✓ Incident response and breach notification protocols</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Data Sharing -->
+                        <section id="sharing" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-share-nodes text-orange-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Data Sharing and Disclosure</h2>
+                            </div>
+
+                            <div class="warning-box rounded-xl p-6 mb-6">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-red-900 mb-2">We Never Sell Your Health Data</h4>
+                                        <p class="text-sm text-red-800">NEXORA will never sell, rent, or lease your personal health information to third parties for marketing purposes.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-slate-600 mb-4">We may share your information only in the following limited circumstances:</p>
+
+                            <div class="space-y-4">
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2">With Your Healthcare Providers</h4>
+                                    <p class="text-sm text-slate-600">When you explicitly authorize us to share data with your doctors, clinics, or hospitals for treatment purposes.</p>
+                                </div>
+
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2">Service Providers and Partners</h4>
+                                    <p class="text-sm text-slate-600">With vetted third-party vendors who assist with cloud hosting, data analytics, and platform maintenance under strict confidentiality agreements.</p>
+                                </div>
+
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2">Research and Development (Anonymized)</h4>
+                                    <p class="text-sm text-slate-600">Aggregated, de-identified data may be used for AI model training and medical research. All personal identifiers are removed using industry-standard anonymization techniques.</p>
+                                </div>
+
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2">Emergency Situations</h4>
+                                    <p class="text-sm text-slate-600">Critical health alerts may be shared with emergency services and designated emergency contacts to protect your health and safety.</p>
+                                </div>
+
+                                <div class="bg-slate-50 rounded-lg p-5 border border-slate-200">
+                                    <h4 class="font-semibold text-slate-900 mb-2">Legal Requirements</h4>
+                                    <p class="text-sm text-slate-600">When required by law, court order, or governmental regulation, or to protect our legal rights.</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Your Rights -->
+                        <section id="rights" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-user-shield text-indigo-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Your Privacy Rights</h2>
+                            </div>
+
+                            <p class="text-slate-600 mb-6">Under HIPAA, GDPR, and other applicable laws, you have the following rights:</p>
+
+                            <div class="grid gap-4">
+                                <div class="flex items-start gap-4 p-4 bg-sky-50 rounded-lg border-l-4 border-sky-500">
+                                    <i class="fas fa-eye text-sky-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Access</h4>
+                                        <p class="text-sm text-slate-600">Request a copy of all personal health information we hold about you in a portable format.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                                    <i class="fas fa-edit text-purple-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Rectification</h4>
+                                        <p class="text-sm text-slate-600">Correct any inaccurate or incomplete personal information in your profile.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 bg-red-50 rounded-lg border-l-4 border-red-500">
+                                    <i class="fas fa-trash text-red-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Erasure ("Right to be Forgotten")</h4>
+                                        <p class="text-sm text-slate-600">Request deletion of your account and associated health data, subject to legal retention requirements.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 bg-amber-50 rounded-lg border-l-4 border-amber-500">
+                                    <i class="fas fa-ban text-amber-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Restrict Processing</h4>
+                                        <p class="text-sm text-slate-600">Limit how we use your data while maintaining your account.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 bg-teal-50 rounded-lg border-l-4 border-teal-500">
+                                    <i class="fas fa-download text-teal-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Data Portability</h4>
+                                        <p class="text-sm text-slate-600">Export your health data in a structured, machine-readable format (JSON/CSV).</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                                    <i class="fas fa-hand-paper text-green-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Object</h4>
+                                        <p class="text-sm text-slate-600">Opt-out of certain data processing activities, including marketing communications and non-essential analytics.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-4 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
+                                    <i class="fas fa-clipboard-check text-indigo-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Right to Withdraw Consent</h4>
+                                        <p class="text-sm text-slate-600">Revoke previously granted permissions for data sharing at any time.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="highlight-box rounded-xl p-6 mt-6">
+                                <h4 class="font-bold text-slate-900 mb-3">How to Exercise Your Rights</h4>
+                                <p class="text-sm text-slate-700 mb-4">To exercise any of these rights, please contact our Data Protection Officer at <a href="mailto:privacy@nexora.tech" class="text-sky-600 font-semibold hover:underline">privacy@nexora.tech</a> or submit a request through your account dashboard. We will respond within 30 days.</p>
+                            </div>
+                        </section>
+
+                        <!-- Data Retention -->
+                        <section id="retention" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-clock text-slate-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Data Retention</h2>
+                            </div>
+                            <p class="text-slate-600 mb-6">We retain your information for as long as necessary to provide our Services and comply with legal obligations:</p>
+                            <ul class="space-y-3 text-slate-600">
+                                <li class="flex items-start gap-3"><i class="fas fa-calendar text-sky-500 mt-1"></i><span><strong>Active Account Data:</strong> Retained while your account is active and for 90 days after account closure.</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-calendar text-sky-500 mt-1"></i><span><strong>Health Records:</strong> Maintained for 7 years post-closure in compliance with medical record retention laws.</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-calendar text-sky-500 mt-1"></i><span><strong>De-identified Data:</strong> May be retained indefinitely for research and AI model improvement.</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-calendar text-sky-500 mt-1"></i><span><strong>Backup Systems:</strong> Data in backups is automatically purged within 60 days.</span></li>
+                            </ul>
+                        </section>
+
+                        <!-- HIPAA Compliance -->
+                        <section id="hipaa" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-file-medical text-green-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">HIPAA Compliance</h2>
+                            </div>
+                            <p class="text-slate-600 mb-6">As a healthcare technology provider handling Protected Health Information (PHI), NEXORA complies with the Health Insurance Portability and Accountability Act (HIPAA):</p>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="bg-green-50 rounded-lg p-6 border border-green-200">
+                                    <h4 class="font-bold text-green-900 mb-3">Administrative Safeguards</h4>
+                                    <ul class="text-sm text-green-800 space-y-2">
+                                        <li>• Security risk assessments</li>
+                                        <li>• Workforce training programs</li>
+                                        <li>• Business Associate Agreements (BAAs)</li>
+                                        <li>• Incident response procedures</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-6 border border-green-200">
+                                    <h4 class="font-bold text-green-900 mb-3">Physical Safeguards</h4>
+                                    <ul class="text-sm text-green-800 space-y-2">
+                                        <li>• Facility access controls</li>
+                                        <li>• Workstation security</li>
+                                        <li>• Device and media controls</li>
+                                        <li>• Secure data center operations</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-6 border border-green-200">
+                                    <h4 class="font-bold text-green-900 mb-3">Technical Safeguards</h4>
+                                    <ul class="text-sm text-green-800 space-y-2">
+                                        <li>• Access control mechanisms</li>
+                                        <li>• Audit controls and logging</li>
+                                        <li>• Integrity controls</li>
+                                        <li>• Transmission security (TLS 1.3)</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-6 border border-green-200">
+                                    <h4 class="font-bold text-green-900 mb-3">Breach Notification</h4>
+                                    <ul class="text-sm text-green-800 space-y-2">
+                                        <li>• 60-day notification to affected individuals</li>
+                                        <li>• HHS reporting for breaches >500 persons</li>
+                                        <li>• Media notification when required</li>
+                                        <li>• Detailed breach documentation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- GDPR Compliance -->
+                        <section id="gdpr" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-globe-europe text-blue-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">GDPR Compliance (European Users)</h2>
+                            </div>
+                            <p class="text-slate-600 mb-6">For users in the European Economic Area (EEA), United Kingdom, and Switzerland, we comply with the General Data Protection Regulation (GDPR):</p>
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4 p-5 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                    <i class="fas fa-balance-scale text-blue-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-2">Legal Basis for Processing</h4>
+                                        <p class="text-sm text-slate-600">We process your data based on: (1) Your consent, (2) Contract performance, (3) Legal obligations, and (4) Legitimate interests in providing and improving our Services.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 p-5 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                    <i class="fas fa-map-marker-alt text-blue-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-2">Data Localization</h4>
+                                        <p class="text-sm text-slate-600">European user data is processed and stored within the EEA. International transfers are protected by Standard Contractual Clauses (SCCs) approved by the European Commission.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 p-5 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                    <i class="fas fa-user-shield text-blue-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-2">Data Protection Officer</h4>
+                                        <p class="text-sm text-slate-600">Contact our EU Data Protection Officer at <a href="mailto:dpo@nexora.eu" class="text-blue-600 font-semibold hover:underline">dpo@nexora.eu</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 p-5 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                    <i class="fas fa-gavel text-blue-600 text-xl mt-1"></i>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-2">Supervisory Authority</h4>
+                                        <p class="text-sm text-slate-600">You have the right to lodge a complaint with your local data protection authority if you believe we have not complied with GDPR requirements.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Children's Privacy -->
+                        <section id="children" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-child text-pink-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Children's Privacy</h2>
+                            </div>
+                            <div class="warning-box rounded-xl p-6">
+                                <p class="text-red-900 leading-relaxed mb-3">
+                                    Our Services are not intended for children under the age of 13. We do not knowingly collect personal information from children under 13 without verified parental consent.
+                                </p>
+                                <p class="text-sm text-red-800">
+                                    For users aged 13-17, we require parental or legal guardian consent before creating an account. If you believe we have inadvertently collected information from a child under 13, please contact us immediately at <a href="mailto:privacy@nexora.tech" class="font-semibold underline">privacy@nexora.tech</a>.
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Policy Changes -->
+                        <section id="changes" class="policy-section" data-aos="fade-up">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-sync-alt text-yellow-600 text-xl"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-slate-900">Changes to This Policy</h2>
+                            </div>
+                            <p class="text-slate-600 mb-4">We may update this Privacy Policy periodically to reflect:</p>
+                            <ul class="space-y-2 text-slate-600 mb-6">
+                                <li class="flex items-start gap-3"><i class="fas fa-arrow-right text-sky-500 mt-1"></i><span>Changes in our Services or business practices</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-arrow-right text-sky-500 mt-1"></i><span>New regulatory requirements</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-arrow-right text-sky-500 mt-1"></i><span>Technological advancements</span></li>
+                                <li class="flex items-start gap-3"><i class="fas fa-arrow-right text-sky-500 mt-1"></i><span>User feedback and best practices</span></li>
+                            </ul>
+                            <div class="highlight-box rounded-xl p-6">
+                                <p class="text-slate-700 text-sm">
+                                    <strong>We will notify you of material changes via:</strong> Email to your registered address, in-app notification, and/or prominent notice on our dashboard. Continued use of our Services after changes indicates acceptance of the updated policy. For significant changes affecting your rights, we will seek your explicit consent.
+                                </p>
+                            </div>
+                        </section>
+
+                        
+
+                            <div class="mt-8 p-6 bg-slate-900 text-white rounded-xl">
+                                <p class="text-center text-sm">
+                                    <strong>Mailing Address:</strong> NEXORA Technologies, Inc., 100 Healthcare Innovation Blvd, Suite 500, San Francisco, CA 94103, USA
+                                </p>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+
+                <!-- Version History -->
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mt-8" data-aos="fade-up">
+                    <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <i class="fas fa-history text-slate-500"></i> Version History
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4 pb-4 border-b border-slate-200">
+                            <div class="w-24 text-sm font-bold text-slate-500 flex-shrink-0">v2.4.0</div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-slate-900">January 19, 2026</p>
+                                <p class="text-sm text-slate-600 mt-1">Added GDPR data localization details, enhanced HIPAA compliance section, clarified AI model training data usage</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 pb-4 border-b border-slate-200">
+                            <div class="w-24 text-sm font-bold text-slate-500 flex-shrink-0">v2.3.0</div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-slate-900">October 15, 2025</p>
+                                <p class="text-sm text-slate-600 mt-1">Updated security measures section with TLS 1.3, added emergency data sharing protocols</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-24 text-sm font-bold text-slate-500 flex-shrink-0">v2.0.0</div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-slate-900">January 1, 2025</p>
+                                <p class="text-sm text-slate-600 mt-1">Initial public release with HIPAA and GDPR compliance frameworks</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-6">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                        <span class="text-2xl font-bold text-white tracking-tighter">NEXORA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        Empowering the future of proactive healthcare through AI-driven Digital Twin technology and medical-grade IoT sensing.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/#features" class="hover:text-sky-400 transition">Vital Monitoring</a></li>
+                        <li><a href="/#how-it-works" class="hover:text-sky-400 transition">Cloud Digital Twin</a></li>
+                        <li><a href="/#tech" class="hover:text-sky-400 transition">Edge AI Engine</a></li>
+                        <li><a href="/#live-demo" class="hover:text-sky-400 transition">Live Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Resources</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/static/NEXORA MediTwin Documentation.pdf" download class="hover:text-sky-400 transition">Technical Whitepaper</a></li>
+                        <li><a href="/about" class="hover:text-sky-400 transition">Architecture Guide</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-sky-400 transition">Clinical Partners</a></li>
+                        <li><a href="/privacy" class="hover:text-sky-400 transition">Privacy Protocols</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/about" class="hover:text-sky-400 transition">About Us</a></li>
+                        <li><a href="/help" class="hover:text-sky-400 transition">Help Center & FAQ</a></li>
+                        <li><a href="/contact" class="hover:text-sky-400 transition">Contact Sales</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-sky-400 transition">Regional Support</a></li>
+                        <li><a href="/security" class="hover:text-sky-400 transition">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    © 2025 NEXORA Technologies Inc. All rights reserved.
+                </p>
+                <div class="flex gap-8 text-xs text-slate-500 uppercase tracking-widest">
+                    <a href="/terms" class="hover:text-white transition">Terms of Use</a>
+                    <a href="/privacy" class="hover:text-white transition text-sky-400">Privacy Policy</a>
+                    <a href="/regulatory" class="hover:text-white transition">Regulatory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth' });
+                
+                // Update active state
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Intersection observer for active nav link
+        const sections = document.querySelectorAll('.policy-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+
+        sections.forEach(section => observer.observe(section));
+    </script>
+</body>
+</html>

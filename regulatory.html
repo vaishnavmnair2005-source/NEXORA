@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regulatory Compliance & Certifications | NEXORA Technologies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        .reg-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .reg-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+        .compliance-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .compliance-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        .compliance-card:hover {
+            border-color: #0d9488;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(13, 148, 136, 0.15);
+        }
+        .compliance-card:hover::before { transform: scaleX(1); }
+        .status-badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 800;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 2rem;
+            bottom: -1rem;
+            width: 2px;
+            background: linear-gradient(to bottom, #0ea5e9, transparent);
+        }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: white;
+            border: 3px solid #0ea5e9;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .feature-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 9999px;
+            transition: width 1s ease;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .accordion-item.active .accordion-content { max-height: 1000px; }
+        .accordion-item.active .accordion-icon { transform: rotate(180deg); }
+        .accordion-icon { transition: transform 0.3s ease; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+            <a href="/" class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                   <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                </div>
+                <div>
+                    <div class="text-xl font-bold text-slate-900">NEXORA</div>
+                    <div class="text-xs text-slate-500 -mt-1">Regulatory Affairs</div>
+                </div>
+            </a>
+            <a href="/" class="text-sm font-bold text-slate-500 hover:text-teal-600 transition flex items-center gap-2">
+                <i class="fas fa-arrow-left text-xs"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <header class="reg-header pt-40 pb-32 px-4 text-center text-white relative">
+        <div class="max-w-5xl mx-auto relative z-10">
+            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-8">
+                <i class="fas fa-shield-check text-teal-400"></i>
+                <span class="text-sm font-bold tracking-widest uppercase">Global Compliance Framework</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black mb-8 tracking-tight">
+                Regulatory <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400">Excellence.</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-12">
+                NEXORA MediTwin operates at the intersection of medical device safety, AI governance, and international regulatory standards. We are committed to transparency, clinical validation, and continuous compliance.
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
+                    <div class="text-4xl font-black text-teal-400 mb-2">4</div>
+                    <div class="text-sm text-slate-300">Certifications</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
+                    <div class="text-4xl font-black text-teal-400 mb-2">12</div>
+                    <div class="text-sm text-slate-300">Audits Passed</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
+                    <div class="text-4xl font-black text-teal-400 mb-2">3</div>
+                    <div class="text-sm text-slate-300">Regulatory Bodies</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6">
+                    <div class="text-4xl font-black text-teal-400 mb-2">100%</div>
+                    <div class="text-sm text-slate-300">Compliance Rate</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow px-4 -mt-16 relative z-10 pb-20">
+        <div class="max-w-7xl mx-auto">
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-24">
+                <div class="compliance-card p-8 rounded-3xl">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="feature-icon bg-blue-100 text-blue-600">
+                            <i class="fas fa-file-medical-alt"></i>
+                        </div>
+                        <span class="status-badge bg-green-100 text-green-700">Certified</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">HIPAA Compliance</h3>
+                    <p class="text-slate-600 leading-relaxed mb-6">
+                        Full adherence to the Health Insurance Portability and Accountability Act. All PHI encrypted at rest and in transit via TLS 1.3.
+                    </p>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-600 font-semibold">Compliance Score</span>
+                            <span class="text-green-600 font-bold">100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-500">
+                        <i class="fas fa-calendar-check text-green-500"></i>
+                        <span>Last Audit: December 2025</span>
+                    </div>
+                </div>
+
+                <div class="compliance-card p-8 rounded-3xl">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="feature-icon bg-teal-100 text-teal-600">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <span class="status-badge bg-green-100 text-green-700">Certified</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">GDPR Compliance</h3>
+                    <p class="text-slate-600 leading-relaxed mb-6">
+                        Full compliance with European data protection regulations. EU data processed within EU-based clusters with strict sovereignty controls.
+                    </p>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-600 font-semibold">Compliance Score</span>
+                            <span class="text-green-600 font-bold">100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-500">
+                        <i class="fas fa-calendar-check text-green-500"></i>
+                        <span>Last Audit: November 2025</span>
+                    </div>
+                </div>
+
+                <div class="compliance-card p-8 rounded-3xl border-amber-200">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="feature-icon bg-purple-100 text-purple-600">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <span class="status-badge bg-amber-100 text-amber-700">In Progress</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">ISO 13485:2016</h3>
+                    <p class="text-slate-600 leading-relaxed mb-6">
+                        Medical Device Quality Management System certification. Currently in final audit stage for Bio-Patch hardware assembly.
+                    </p>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-600 font-semibold">Progress</span>
+                            <span class="text-amber-600 font-bold">85%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill bg-gradient-to-r from-amber-500 to-orange-500" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-slate-500">
+                        <i class="fas fa-hourglass-half text-amber-500"></i>
+                        <span>Expected: Q2 2026</span>
+                    </div>
+                </div>
+            </div>
+
+            <section class="mb-32">
+                <div class="bg-white rounded-3xl p-12 shadow-xl border border-slate-200">
+                    <div class="grid md:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <div class="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-4 py-2 rounded-full mb-6 text-sm font-bold">
+                                <i class="fas fa-microchip"></i>
+                                Class IIa Medical Device
+                            </div>
+                            <h2 class="text-4xl font-bold text-slate-900 mb-6">Device Classification & Safety Standards</h2>
+                            <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                                The NEXORA Bio-Patch is designed and manufactured in accordance with <strong>Class IIa Medical Device</strong> standards (Software as a Medical Device - SaMD) under EU MDR and FDA guidelines.
+                            </p>
+                            <div class="space-y-4">
+                                <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Biocompatibility Testing</h4>
+                                        <p class="text-sm text-slate-600">ISO 10993 compliant materials for prolonged skin contact</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Signal Fidelity Validation</h4>
+                                        <p class="text-sm text-slate-600">500Hz ECG sampling validated against 12-lead clinical standards</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">Electrical Safety</h4>
+                                        <p class="text-sm text-slate-600">IEC 60601-1 compliance for medical electrical equipment</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-xl">
+                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-check text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 mb-1">EMC Testing</h4>
+                                        <p class="text-sm text-slate-600">IEC 60601-1-2 electromagnetic compatibility certification</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gradient-to-br from-slate-50 to-slate-100 p-10 rounded-3xl border-2 border-slate-200">
+                            <h4 class="font-bold text-slate-900 mb-6 text-xl border-b-2 border-slate-300 pb-4">Technical File Summary</h4>
+                            <div class="space-y-5">
+                                <div class="flex justify-between items-center py-3 border-b border-slate-200">
+                                    <span class="text-slate-600 font-semibold">Product Code</span>
+                                    <span class="font-mono text-slate-900 font-bold">NEX-IOT-GEN2</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-slate-200">
+                                    <span class="text-slate-600 font-semibold">Classification</span>
+                                    <span class="font-mono text-slate-900 font-bold">Class IIa SaMD</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-slate-200">
+                                    <span class="text-slate-600 font-semibold">Firmware Version</span>
+                                    <span class="font-mono text-slate-900 font-bold">ESP32-S v4.1</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-slate-200">
+                                    <span class="text-slate-600 font-semibold">Encryption</span>
+                                    <span class="font-mono text-slate-900 font-bold">AES-256 Hardware</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-slate-200">
+                                    <span class="text-slate-600 font-semibold">Power Safety</span>
+                                    <span class="font-mono text-slate-900 font-bold">IEC 60601-1</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3">
+                                    <span class="text-slate-600 font-semibold">Risk Class</span>
+                                    <span class="font-mono text-slate-900 font-bold">Medium Risk</span>
+                                </div>
+                            </div>
+                            <div class="mt-8 p-4 bg-teal-50 rounded-xl border border-teal-200">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-file-contract text-teal-600 text-xl"></i>
+                                    <div>
+                                        <p class="text-sm font-bold text-teal-900">Technical Documentation</p>
+                                        <p class="text-xs text-teal-700">Full technical file available upon request</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-slate-900 text-white rounded-[3rem] p-12 md:p-20 mb-24 overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full blur-[150px] opacity-20"></div>
+                <div class="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500 rounded-full blur-[150px] opacity-20"></div>
+                <div class="relative z-10 max-w-5xl mx-auto">
+                    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-8">
+                        <i class="fas fa-brain text-teal-400"></i>
+                        <span class="text-sm font-bold">Ethical AI Framework</span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">AI Ethics & Governance</h2>
+                    <p class="text-xl text-slate-300 mb-12 leading-relaxed">
+                        NEXORA anticipates the <strong>EU AI Act (2025)</strong> requirements. Our Digital Twin models utilize Explainable AI (XAI) techniques to provide transparency in every prediction.
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-8 mb-12">
+                        <div class="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+                            <div class="w-14 h-14 bg-teal-500/20 rounded-xl flex items-center justify-center text-2xl mb-6 text-teal-400">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <h4 class="text-xl font-bold mb-3">Bias Mitigation</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                Training datasets audited quarterly to ensure diverse representation across age, gender, ethnicity, and geographic populations.
+                            </p>
+                        </div>
+                        <div class="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+                            <div class="w-14 h-14 bg-cyan-500/20 rounded-xl flex items-center justify-center text-2xl mb-6 text-cyan-400">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <h4 class="text-xl font-bold mb-3">Human-in-the-Loop</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                High-risk alerts (arrhythmia detection) flagged for human clinical review before diagnostic confirmation.
+                            </p>
+                        </div>
+                        <div class="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+                            <div class="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center text-2xl mb-6 text-blue-400">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <h4 class="text-xl font-bold mb-3">Explainability</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                XAI techniques provide clear reasoning for all predictions, eliminating "black box" decision-making.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-sm p-8 rounded-2xl border border-white/10">
+                        <h4 class="font-bold text-xl mb-4">Algorithm Transparency Report</h4>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div>
+                                <p class="text-3xl font-bold text-teal-400 mb-2">94.2%</p>
+                                <p class="text-sm text-slate-400">Overall Accuracy</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-bold text-cyan-400 mb-2">2.5%</p>
+                                <p class="text-sm text-slate-400">False Positive Rate</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-bold text-blue-400 mb-2">100%</p>
+                                <p class="text-sm text-slate-400">Auditability Score</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-24">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-bold text-slate-900 mb-4">Certification Journey</h2>
+                    <p class="text-lg text-slate-600">Our path to comprehensive regulatory compliance</p>
+                </div>
+                <div class="bg-white rounded-3xl p-10 shadow-xl border border-slate-200">
+                    <div class="space-y-8">
+                        <div class="timeline-item">
+                            <div class="timeline-dot bg-green-500 border-green-500"></div>
+                            <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full">Completed</span>
+                                    <span class="text-sm text-slate-500 font-semibold">January 2025</span>
+                                </div>
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">HIPAA Certification</h4>
+                                <p class="text-slate-600">Achieved full compliance with all HIPAA Privacy and Security Rules. Implemented comprehensive safeguards across administrative, physical, and technical domains.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot bg-green-500 border-green-500"></div>
+                            <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full">Completed</span>
+                                    <span class="text-sm text-slate-500 font-semibold">March 2025</span>
+                                </div>
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">GDPR Compliance</h4>
+                                <p class="text-slate-600">Established EU data processing infrastructure with full GDPR compliance. Implemented data subject rights management and appointed Data Protection Officer.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot bg-amber-500 border-amber-500"></div>
+                            <div class="bg-amber-50 p-6 rounded-xl border-l-4 border-amber-500">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">In Progress</span>
+                                    <span class="text-sm text-slate-500 font-semibold">Expected Q2 2026</span>
+                                </div>
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">ISO 13485:2016 Certification</h4>
+                                <p class="text-slate-600 mb-4">Final audit stage for Medical Device Quality Management System. All documentation and processes under review by notified body.</p>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-1 bg-slate-200 rounded-full h-2">
+                                        <div class="bg-amber-500 h-2 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                    <span class="text-sm font-bold text-amber-700">85%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot bg-blue-200 border-blue-500"></div>
+                            <div class="bg-blue-50 p-6 rounded-xl border-l-4 border-blue-500">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Planned</span>
+                                    <span class="text-sm text-slate-500 font-semibold">Q4 2026</span>
+                                </div>
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">FDA 510(k) Clearance</h4>
+                                <p class="text-slate-600">Preparing submission for FDA Class II medical device clearance. Clinical validation studies in progress with partner healthcare institutions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-24">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl font-bold text-slate-900 mb-4">Compliance Documentation</h2>
+                    <p class="text-lg text-slate-600">Access our comprehensive regulatory resources</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="accordion-item bg-white rounded-2xl border-2 border-slate-200 overflow-hidden">
+                        <button class="w-full p-6 flex justify-between items-center hover:bg-slate-50 transition" onclick="toggleAccordion(this)">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-pdf text-teal-600 text-xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-900">Data Privacy Policy</h4>
+                                    <p class="text-sm text-slate-500">GDPR & HIPAA compliance documentation</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-slate-400 accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content px-6 pb-6">
+                            <div class="pt-4 border-t border-slate-200">
+                                <p class="text-slate-600 mb-4">Comprehensive documentation of our data handling procedures, patient rights, and privacy safeguards.</p>
+                                <a href="/api/compliance/download/data-privacy" class="inline-block px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition">
+                                    <i class="fas fa-download mr-2"></i>Download PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-white rounded-2xl border-2 border-slate-200 overflow-hidden">
+                        <button class="w-full p-6 flex justify-between items-center hover:bg-slate-50 transition" onclick="toggleAccordion(this)">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-certificate text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-900">ISO Certificates</h4>
+                                    <p class="text-sm text-slate-500">Quality management certifications</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-slate-400 accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content px-6 pb-6">
+                            <div class="pt-4 border-t border-slate-200">
+                                <p class="text-slate-600 mb-4">Official ISO certification documents and audit reports from accredited notified bodies.</p>
+                                <a href="/api/compliance/download/iso-certificates" class="inline-block px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition">
+                                    <i class="fas fa-download mr-2"></i>View Certificates
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-white rounded-2xl border-2 border-slate-200 overflow-hidden">
+                        <button class="w-full p-6 flex justify-between items-center hover:bg-slate-50 transition" onclick="toggleAccordion(this)">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-shield-virus text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-900">Cybersecurity Report</h4>
+                                    <p class="text-sm text-slate-500">Security measures & penetration testing</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-slate-400 accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content px-6 pb-6">
+                            <div class="pt-4 border-t border-slate-200">
+                                <p class="text-slate-600 mb-4">Independent security audit results and our comprehensive cybersecurity framework implementation.</p>
+                                <a href="/api/compliance/download/cybersecurity-report" class="inline-block px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition">
+                                    <i class="fas fa-download mr-2"></i>Access Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-white rounded-2xl border-2 border-slate-200 overflow-hidden">
+                        <button class="w-full p-6 flex justify-between items-center hover:bg-slate-50 transition" onclick="toggleAccordion(this)">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-microscope text-amber-600 text-xl"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-900">Clinical Validation Studies</h4>
+                                    <p class="text-sm text-slate-500">Clinical trial results & efficacy data</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-down text-slate-400 accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content px-6 pb-6">
+                            <div class="pt-4 border-t border-slate-200">
+                                <p class="text-slate-600 mb-4">Published clinical studies demonstrating device efficacy, accuracy, and safety profiles.</p>
+                                <a href="/api/compliance/download/clinical-validation" class="inline-block px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-semibold hover:bg-teal-700 transition">
+                                    <i class="fas fa-download mr-2"></i>View Studies
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-gradient-to-br from-teal-600 to-cyan-600 rounded-3xl p-12 text-center text-white mb-24">
+                <div class="max-w-3xl mx-auto">
+                    <i class="fas fa-headset text-5xl mb-6 opacity-90"></i>
+                    <h2 class="text-4xl font-bold mb-6">Need Regulatory Information?</h2>
+                    <p class="text-xl text-teal-50 mb-8 leading-relaxed">
+                        Our compliance team is available to answer questions about certifications, data handling, or regulatory documentation.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="/api/regulatory/contact" class="px-8 py-4 bg-white text-teal-600 rounded-xl font-bold hover:bg-teal-50 transition shadow-lg flex items-center">
+                            <i class="fas fa-envelope mr-2"></i>Contact Compliance Team
+                        </a>
+                        <a href="/api/regulatory/download" class="px-8 py-4 bg-teal-700 text-white rounded-xl font-bold hover:bg-teal-800 transition border-2 border-white/20 flex items-center">
+                            <i class="fas fa-download mr-2"></i>Download Documentation
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-6">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                        <span class="text-2xl font-bold text-white tracking-tighter">NEXORA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        Empowering the future of proactive healthcare through AI-driven Digital Twin technology and medical-grade IoT sensing.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/#features" class="hover:text-sky-400 transition">Vital Monitoring</a></li>
+                        <li><a href="/#how-it-works" class="hover:text-sky-400 transition">Cloud Digital Twin</a></li>
+                        <li><a href="/#tech" class="hover:text-sky-400 transition">Edge AI Engine</a></li>
+                        <li><a href="/#live-demo" class="hover:text-sky-400 transition">Live Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Resources</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/static/NEXORA MediTwin Documentation.pdf" download class="hover:text-sky-400 transition">Technical Whitepaper</a></li>
+                        <li><a href="/about" class="hover:text-sky-400 transition">Architecture Guide</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-sky-400 transition">Clinical Partners</a></li>
+                        <li><a href="/privacy" class="hover:text-sky-400 transition">Privacy Protocols</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/about" class="hover:text-sky-400 transition">About Us</a></li>
+                        <li><a href="/help" class="hover:text-sky-400 transition">Help Center & FAQ</a></li>
+                        <li><a href="/contact" class="hover:text-sky-400 transition">Contact Sales</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-sky-400 transition">Regional Support</a></li>
+                        <li><a href="/security" class="hover:text-sky-400 transition">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    © 2025 NEXORA Technologies Inc. All rights reserved.
+                </p>
+                <div class="flex gap-8 text-xs text-slate-500 uppercase tracking-widest">
+                    <a href="/terms" class="hover:text-white transition">Terms of Use</a>
+                    <a href="/privacy" class="hover:text-white transition text-sky-400">Privacy Policy</a>
+                    <a href="/regulatory" class="hover:text-white transition">Regulatory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleAccordion(button) {
+            const item = button.parentElement;
+            const wasActive = item.classList.contains('active');
+            document.querySelectorAll('.accordion-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            if (!wasActive) {
+                item.classList.add('active');
+            }
+        }
+    </script>
+
+</body>
+</html>

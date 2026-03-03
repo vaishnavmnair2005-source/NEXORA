@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard | MediTwin Clinical Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-light: #14b8a6;
+            --accent: #6366f1;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --surface: #ffffff;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+        
+        /* Applied new font globally */
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body { background: linear-gradient(135deg, #f1f5f9 0%, #e8edf4 100%); }
+        .sidebar { background: linear-gradient(175deg, #0f172a 0%, #1e293b 100%); border-right: 1px solid rgba(255,255,255,0.06); }
+        .glass { background: white; border: 1px solid var(--border); box-shadow: 0 4px 24px -4px rgba(0,0,0,0.06); border-radius: 20px; }
+        .glass-hover { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .glass-hover:hover { transform: translateY(-4px); box-shadow: 0 16px 40px -8px rgba(0,0,0,0.12); }
+
+        /* Vital pulse animation */
+        .live-pulse { position: relative; }
+        .live-pulse::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%) scale(0.95);
+            width: 100%; height: 100%; background: currentColor;
+            border-radius: 50%; opacity: 0.6;
+            animation: ring 2s cubic-bezier(0.4,0,0.6,1) infinite;
+        }
+        @keyframes ring { 0%{transform:translate(-50%,-50%) scale(0.95);opacity:.6} 100%{transform:translate(-50%,-50%) scale(1.6);opacity:0} }
+
+        .blink-red { animation: blinkRed 1.5s ease-in-out infinite; }
+        @keyframes blinkRed { 50%{opacity:.2} }
+
+        .patient-card { transition: all 0.35s cubic-bezier(0.4,0,0.2,1); cursor: pointer; overflow: hidden; position: relative; }
+        .patient-card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px -8px rgba(0,0,0,0.14); }
+        .critical-card { animation: critPulse 2s ease-in-out infinite; }
+        @keyframes critPulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)} 50%{box-shadow:0 0 0 12px rgba(239,68,68,0)} }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(7,15,30,0.7); z-index: 1000; backdrop-filter: blur(6px); }
+        .modal.active { display: flex; align-items: center; justify-content: center; animation: fadeIn .25s; }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .modal-content { animation: slideUp .3s cubic-bezier(0.4,0,0.2,1); max-height: 92vh; overflow-y: auto; }
+        @keyframes slideUp { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+        .nav-link { transition: all 0.25s; border-radius: 14px; }
+        .nav-link.active { background: linear-gradient(135deg, rgba(13,148,136,0.25), rgba(99,102,241,0.15)); border: 1px solid rgba(13,148,136,0.35); color: white; }
+        .nav-link:not(.active):hover { background: rgba(255,255,255,0.07); color: white; }
+
+        .vital-card { border-radius: 16px; background: linear-gradient(135deg, #fff, #f8fafc); border-left: 4px solid; transition: all 0.2s; }
+        .vital-card:hover { transform: scale(1.02); }
+
+        .tab-btn { padding: 10px 22px; font-weight: 600; font-size: .85rem; border-bottom: 3px solid transparent; transition: all .25s; color: #64748b; cursor: pointer; }
+        .tab-btn.active { color: #0d9488; border-bottom-color: #0d9488; background: #f0fdf4; border-radius: 8px 8px 0 0; }
+
+        .device-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+        .badge-online { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-offline { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .badge-warning { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+
+        .notif-dot { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: white; }
+
+        .chat-box { height: 380px; overflow-y: auto; scroll-behavior: smooth; }
+        .chat-box::-webkit-scrollbar { width: 4px; }
+        .chat-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .msg { max-width: 72%; padding: 10px 14px; border-radius: 18px; margin-bottom: 10px; font-size: .88rem; }
+        .msg-sent { background: linear-gradient(135deg, #0ea5e9, #0d9488); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
+        .msg-recv { background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
+
+        /* ECG Canvas */
+        .ecg-canvas { width: 100%; height: 80px; display: block; }
+        .ecg-wrapper { background: #0a1628; border-radius: 12px; padding: 8px 12px; overflow: hidden; }
+
+        /* Stress gauge */
+        .stress-bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
+        .stress-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+
+        /* Fall detected badge */
+        .fall-alert { background: #fef2f2; border: 2px solid #fca5a5; color: #dc2626; border-radius: 10px; padding: 4px 10px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+        .fall-safe { background: #f0fdf4; border: 2px solid #86efac; color: #16a34a; border-radius: 10px; padding: 4px 10px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+        .logo-glow { box-shadow: 0 0 24px rgba(13,148,136,0.5); }
+        .brand-text { background: linear-gradient(135deg, #2dd4bf, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .device-icon-bg { background: linear-gradient(135deg, #0d9488, #6366f1); }
+        .section-fade { animation: sectionFade 0.3s ease; }
+        @keyframes sectionFade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .ecg-mini { width: 100%; height: 48px; }
+
+        /* ── TOAST ── */
+        #toast-container { position:fixed; bottom:28px; right:28px; z-index:99999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+        .toast { display:flex; align-items:center; gap:12px; padding:14px 20px; border-radius:16px; background:white; box-shadow:0 8px 32px -4px rgba(0,0,0,0.18); font-size:13px; font-weight:600; color:#1e293b; pointer-events:auto; animation:toastIn .35s cubic-bezier(.4,0,.2,1); max-width:360px; border:1px solid var(--border); }
+        .toast.removing { animation:toastOut .3s ease forwards; }
+        .toast-icon { width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; }
+        .toast.success .toast-icon { background:#dcfce7; color:#16a34a; }
+        .toast.error   .toast-icon { background:#fee2e2; color:#dc2626; }
+        .toast.info    .toast-icon { background:#eff6ff; color:#2563eb; }
+        .toast.warning .toast-icon { background:#fef3c7; color:#d97706; }
+        @keyframes toastIn  { from{opacity:0;transform:translateX(60px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes toastOut { from{opacity:1;transform:translateX(0)}    to{opacity:0;transform:translateX(60px)} }
+
+        /* ── MINI CONFIRM/INFO MODAL ── */
+        #miniModal { display:none; position:fixed; inset:0; background:rgba(7,15,30,0.65); z-index:9998; backdrop-filter:blur(4px); }
+        #miniModal.active { display:flex; align-items:center; justify-content:center; animation:fadeIn .2s; }
+        #miniModal .mm-box { background:white; border-radius:24px; padding:32px; width:100%; max-width:400px; margin:16px; box-shadow:0 24px 64px -8px rgba(0,0,0,0.22); animation:slideUp .25s cubic-bezier(.4,0,.2,1); }
+        #miniModal .mm-icon { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 16px; }
+        #miniModal h3 { font-size:1.15rem; font-weight:800; color:#0f172a; text-align:center; margin-bottom:8px; }
+        #miniModal p  { font-size:.875rem; color:#64748b; font-weight:500; text-align:center; line-height:1.6; margin-bottom:24px; white-space:pre-wrap; }
+        #miniModal .mm-btns { display:flex; gap:10px; }
+        #miniModal .mm-btns button { flex:1; padding:12px; border-radius:12px; font-weight:700; font-size:.875rem; cursor:pointer; border:none; transition:all .2s; }
+        #miniModal .mm-btn-cancel { background:#f1f5f9; color:#64748b; }
+        #miniModal .mm-btn-cancel:hover { background:#e2e8f0; }
+        #miniModal .mm-btn-ok { background:linear-gradient(135deg,#0d9488,#6366f1); color:white; }
+        #miniModal .mm-btn-ok:hover { opacity:.9; }
+        #miniModal .mm-btn-ok.danger { background:linear-gradient(135deg,#ef4444,#dc2626); }
+
+        /* ── LOADING SCREEN ── */
+        #loadScreen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(175deg, #0f172a 0%, #1e293b 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+            transition: opacity .5s ease;
+        }
+        #loadScreen.fade { opacity: 0; pointer-events: none; }
+        .load-logo {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #0d9488, #6366f1);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 40px rgba(13,148,136,.6);
+            animation: logoPulse 2s ease infinite;
+            overflow: hidden;
+        }
+        @keyframes logoPulse { 0%,100%{box-shadow:0 0 40px rgba(13,148,136,.5);} 50%{box-shadow:0 0 70px rgba(13,148,136,.9);} }
+        .load-label { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #2dd4bf, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -.5px; }
+        .load-sub { font-size: 11px; color: rgba(255,255,255,.35); letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+        .load-bar-wrap { width: 220px; height: 3px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
+        .load-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #0d9488, #6366f1); border-radius: 3px; transition: width 0.4s ease; }
+        .load-steps { font-size: 11px; color: rgba(255,255,255,.3); letter-spacing: 1px; animation: stepCycle 3s ease infinite; }
+        @keyframes stepCycle {
+            0%  { opacity:1; content: 'Authenticating…'; }
+            33% { opacity:.5; }
+            66% { opacity:1; }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+<!-- ── LOADING SCREEN ── -->
+<div id="loadScreen">
+    <div class="load-logo">
+        <img src="/static/images/company_logo.png" alt="NEXORA" style="height:48px;width:auto;filter:brightness(1.4);">
+    </div>
+    <div style="text-align:center;">
+        <div class="load-label">MediTwin</div>
+        <div class="load-sub">Clinical Portal</div>
+    </div>
+    <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+    <div id="load-step" style="font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1px;">Authenticating…</div>
+</div>
+
+<!-- ── TOAST CONTAINER ── -->
+<div id="toast-container"></div>
+
+<!-- ── MINI CONFIRM / INFO MODAL ── -->
+<div id="miniModal">
+    <div class="mm-box">
+        <div class="mm-icon" id="mm-icon"></div>
+        <h3 id="mm-title"></h3>
+        <p id="mm-body"></p>
+        <div class="mm-btns" id="mm-btns"></div>
+    </div>
+</div>
+
+<aside class="w-72 sidebar text-slate-300 flex flex-col justify-between py-6 px-5 shadow-2xl z-50 flex-shrink-0">
+    <div>
+        <div class="flex items-center gap-3 mb-10 px-4 py-4 bg-white/5 rounded-2xl border border-white/10">
+            <div class="w-12 h-12 device-icon-bg rounded-xl flex items-center justify-center text-white text-xl shadow-lg logo-glow flex-shrink-0 overflow-hidden">
+                <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-150">
+            </div>
+            <div>
+                <span class="text-xl font-extrabold text-white block leading-tight brand-text tracking-tight">MediTwin</span>
+                <span class="text-[10px] text-teal-400 font-bold tracking-widest uppercase opacity-80">Clinical Portal</span>
+            </div>
+        </div>
+
+        <nav class="space-y-1">
+            <a href="#" class="nav-link active flex items-center gap-3 p-4 font-semibold text-slate-200" data-section="patients">
+                <i class="fas fa-user-injured w-5 text-teal-400 text-sm"></i>
+                <span class="tracking-tight">Active Patients</span>
+                <span class="ml-auto bg-teal-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" id="patient-count">0</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 p-4 font-semibold text-slate-400" data-section="devices">
+                <i class="fas fa-microchip w-5 text-sm"></i>
+                <span class="tracking-tight">MediTwin Devices</span>
+                <span class="ml-auto bg-indigo-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" id="device-count">0</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 p-4 font-semibold text-slate-400" data-section="alerts">
+                <i class="fas fa-bell w-5 text-sm"></i>
+                <span class="tracking-tight">Critical Alerts</span>
+                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full blink-red" id="alert-count">0</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 p-4 font-semibold text-slate-400" data-section="messages">
+                <i class="fas fa-comments w-5 text-sm"></i>
+                <span class="tracking-tight">Messages</span>
+                <span class="ml-auto bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full" id="message-count">0</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 p-4 font-semibold text-slate-400" data-section="analytics">
+                <i class="fas fa-chart-line w-5 text-sm"></i>
+                <span class="tracking-tight">Analytics</span>
+            </a>
+        </nav>
+    </div>
+
+    <div>
+        <div class="mb-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+            <div class="flex items-center gap-3 mb-3">
+                <img id="doctor-avatar" src="https://ui-avatars.com/api/?name=Doctor&background=0d9488&color=fff&bold=true" class="w-12 h-12 rounded-full border-2 border-teal-400 shadow-lg flex-shrink-0">
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold text-white text-sm truncate tracking-tight" id="doctor-name">Loading...</p>
+                    <p class="text-xs text-teal-400 truncate" id="doctor-specialty">...</p>
+                </div>
+            </div>
+            <div class="text-xs text-slate-400 space-y-1 font-medium">
+                <p><i class="fas fa-id-card text-teal-400 w-4 mr-1"></i><span id="doctor-id">—</span></p>
+                <p><i class="fas fa-hospital text-teal-400 w-4 mr-1"></i><span id="doctor-hospital">—</span></p>
+            </div>
+        </div>
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500 p-4 rounded-xl transition font-bold text-sm tracking-wide">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+        <button onclick="deleteAccount()" class="mt-2 w-full flex items-center justify-center gap-2 text-slate-500 hover:text-red-400 bg-white/3 hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 p-3 rounded-xl transition font-semibold text-xs tracking-wide">
+            <i class="fas fa-trash-alt text-xs"></i> Delete Account
+        </button>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-screen overflow-y-auto min-w-0">
+
+    <header class="bg-white/85 backdrop-blur-xl border-b border-slate-200 h-22 flex items-center justify-between px-8 py-5 sticky top-0 z-40 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 mb-0.5 tracking-tight">Doctor Dashboard</h1>
+            <div class="flex items-center gap-4 text-sm">
+                <p class="text-slate-500 font-medium"><i class="fas fa-hospital text-teal-500 mr-1.5"></i><span id="header-ward">Cardiac Monitoring Unit</span></p>
+                <span class="text-slate-300">|</span>
+                <p class="text-slate-500 font-medium"><i class="fas fa-clock text-indigo-500 mr-1.5"></i><span id="current-time">—</span></p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-5">
+            <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-2.5 rounded-2xl">
+                <div class="relative w-3 h-3">
+                    <div class="w-3 h-3 bg-green-500 rounded-full live-pulse"></div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase leading-none tracking-wider opacity-80">System</p>
+                    <p class="text-xs font-bold text-green-600 leading-tight">Live Active</p>
+                </div>
+            </div>
+
+            <button onclick="openNotifications()" class="relative p-3 bg-slate-100 hover:bg-slate-200 rounded-xl transition text-slate-600 hover:text-slate-900">
+                <i class="fas fa-bell"></i>
+                <span class="notif-dot" id="header-notification-count">0</span>
+            </button>
+
+            <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl">
+                <img id="header-avatar" src="https://ui-avatars.com/api/?name=Doctor&background=0d9488&color=fff&bold=true" class="w-9 h-9 rounded-full border-2 border-teal-400">
+                <div>
+                    <p class="text-sm font-bold text-slate-900 leading-none tracking-tight" id="header-name">Dr. —</p>
+                    <p class="text-xs text-slate-500 mt-0.5 font-medium" id="header-doc-id">ID: —</p>
+                </div>
+            </div>
+
+            <a href="/" class="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-indigo-500 hover:from-teal-600 hover:to-indigo-600 text-white px-5 py-2.5 rounded-xl transition shadow-lg font-bold text-sm tracking-wide">
+                <i class="fas fa-home"></i> Home
+            </a>
+        </div>
+    </header>
+
+    <div class="p-7">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+            <div class="glass glass-hover p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2 tracking-wider">Total Patients</p>
+                    <p class="text-4xl font-extrabold text-slate-900 tracking-tight" id="stat-patients">0</p>
+                    <p class="text-xs text-teal-600 font-semibold mt-1 flex items-center gap-1"><i class="fas fa-arrow-up"></i><span id="stat-patients-change">0 monitored</span></p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 text-xl">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="glass glass-hover p-6 flex items-center justify-between border-l-4 border-red-500">
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2 tracking-wider">Critical</p>
+                    <p class="text-4xl font-extrabold text-red-600 tracking-tight" id="stat-critical">0</p>
+                    <p class="text-xs text-red-500 font-semibold mt-1 flex items-center gap-1 animate-pulse"><i class="fas fa-exclamation-triangle"></i>Needs attention</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-rose-600 text-white rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 text-xl">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+            </div>
+            <div class="glass glass-hover p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2 tracking-wider">Devices Online</p>
+                    <p class="text-4xl font-extrabold text-indigo-600 tracking-tight" id="stat-devices">0</p>
+                    <p class="text-xs text-slate-500 font-semibold mt-1">MediTwin active</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 text-xl">
+                    <i class="fas fa-satellite-dish"></i>
+                </div>
+            </div>
+            <div class="glass glass-hover p-6 flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-xs font-bold uppercase mb-2 tracking-wider">Messages</p>
+                    <p class="text-4xl font-extrabold text-purple-600 tracking-tight" id="stat-messages">0</p>
+                    <p class="text-xs text-slate-500 font-semibold mt-1">Unread</p>
+                </div>
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 text-xl">
+                    <i class="fas fa-envelope"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="patients-section" class="section-content section-fade">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Active Patients</h2>
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="filterPatients('all', this)" class="filter-btn px-4 py-2 bg-teal-500 text-white rounded-xl font-bold text-sm transition shadow-sm">All</button>
+                    <button onclick="filterPatients('online', this)" class="filter-btn px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl font-bold text-sm transition">Online</button>
+                    <button onclick="filterPatients('critical', this)" class="filter-btn px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl font-bold text-sm transition">Critical</button>
+                    <button onclick="filterPatients('fall', this)" class="filter-btn px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl font-bold text-sm transition">Fall Detected</button>
+                    <button onclick="refreshPatients()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-sm transition shadow-md">
+                        <i class="fas fa-sync-alt mr-1.5"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            <div id="patients-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div id="devices-section" class="section-content hidden section-fade">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">MediTwin Device Manager</h2>
+                <button onclick="openAddDevice()" class="px-6 py-3 bg-gradient-to-r from-teal-500 to-indigo-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition text-sm tracking-wide">
+                    <i class="fas fa-plus-circle mr-2"></i>Register Device
+                </button>
+            </div>
+            <div class="flex gap-4 mb-6">
+                <div class="glass px-5 py-4 flex items-center gap-3">
+                    <div class="w-10 h-10 device-icon-bg rounded-xl flex items-center justify-center text-white text-sm shadow-md"><i class="fas fa-heartbeat"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-900 text-sm">MediTwin Type 1</p>
+                        <p class="text-xs text-slate-500 font-medium">Standard vital monitoring</p>
+                    </div>
+                </div>
+                <div class="glass px-5 py-4 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-sm shadow-md"><i class="fas fa-microchip"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-900 text-sm">MediTwin Type 2</p>
+                        <p class="text-xs text-slate-500 font-medium">Advanced AI monitoring</p>
+                    </div>
+                </div>
+            </div>
+            <div id="devices-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div id="alerts-section" class="section-content hidden section-fade">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Critical Alerts</h2>
+                <button onclick="clearAllAlerts()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-sm transition shadow-md">
+                    <i class="fas fa-check-double mr-2"></i>Clear All
+                </button>
+            </div>
+            <div id="alerts-list" class="space-y-4"></div>
+        </div>
+
+        <div id="messages-section" class="section-content hidden section-fade">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Patient Messages</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 glass p-4 max-h-[600px] overflow-y-auto">
+                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-widest pl-2">Conversations</h3>
+                    <div id="conversations-list" class="space-y-2"></div>
+                </div>
+                <div class="md:col-span-2 glass p-6">
+                    <div id="chat-container">
+                        <div class="text-center py-16">
+                            <i class="fas fa-comments text-5xl text-slate-200 mb-4"></i>
+                            <p class="text-slate-400 font-bold">Select a conversation to start chatting</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics-section" class="section-content hidden section-fade">
+            <h2 class="text-2xl font-black text-slate-900 mb-6 tracking-tight">Analytics Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="glass p-6">
+                    <h3 class="font-bold text-slate-900 mb-5 flex items-center gap-2 text-xs uppercase tracking-widest">
+                        <i class="fas fa-chart-line text-teal-500"></i> Patient Activity (Last 7 Days)
+                    </h3>
+                    <div class="space-y-3" id="analytics-activity"></div>
+                </div>
+                <div class="glass p-6">
+                    <h3 class="font-bold text-slate-900 mb-5 flex items-center gap-2 text-xs uppercase tracking-widest">
+                        <i class="fas fa-chart-pie text-indigo-500"></i> Device Status Overview
+                    </h3>
+                    <div class="space-y-4" id="analytics-device-status"></div>
+                    <div class="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-slate-100" id="analytics-device-counts"></div>
+                </div>
+            </div>
+            <div class="glass p-6">
+                <h3 class="font-bold text-slate-900 mb-5 flex items-center gap-2 text-xs uppercase tracking-widest">
+                    <i class="fas fa-history text-teal-500"></i> Recent Critical Events
+                </h3>
+                <div id="events-timeline" class="space-y-3"></div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<div id="addDeviceModal" class="modal">
+    <div class="modal-content bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 tracking-tight">Register MediTwin Device</h3>
+                <p class="text-xs text-slate-500 mt-1 font-medium">Link a device to a patient for real-time monitoring</p>
+            </div>
+            <button onclick="closeAddDevice()" class="text-slate-400 hover:text-slate-600 text-xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="addDeviceForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-widest">Patient Name</label>
+                <input type="text" id="device-patient-name" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none text-sm transition font-medium" placeholder="Enter patient full name" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-widest">Patient ID</label>
+                <input type="text" id="device-patient-id" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none text-sm transition font-medium" placeholder="e.g., NEX-0001" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-widest">Device ID</label>
+                <input type="text" id="device-id-input" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none text-sm transition font-medium" placeholder="e.g., MT-2024-001" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-widest">Device Type</label>
+                <select id="device-type" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none text-sm transition bg-white font-medium" required>
+                    <option value="">Select MediTwin type</option>
+                    <option value="MediTwin Type 1">MediTwin Type 1</option>
+                    <option value="MediTwin Type 2">MediTwin Type 2</option>
+                </select>
+            </div>
+
+            <div class="bg-teal-50 border border-teal-200 rounded-xl p-4">
+                <p class="text-xs font-bold text-teal-700 mb-2 uppercase tracking-wide"><i class="fas fa-info-circle mr-1.5"></i>Monitored Vitals</p>
+                <div class="grid grid-cols-2 gap-1.5 text-xs text-teal-700 font-medium">
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>Heart Rate</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>SpO2</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>ECG Waveform</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>Stress Level</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>HRV</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>Fall Detection</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-teal-500 to-indigo-500 text-white font-bold rounded-xl hover:shadow-lg transition text-sm tracking-wide">
+                    <i class="fas fa-link mr-2"></i>Connect Device
+                </button>
+                <button type="button" onclick="closeAddDevice()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-sm tracking-wide">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="patientModal" class="modal">
+    <div class="modal-content bg-white rounded-2xl p-8 w-full max-w-5xl mx-4 shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 tracking-tight" id="modal-patient-name">Patient Details</h3>
+                <p class="text-xs text-slate-500 mt-1 font-medium" id="modal-patient-meta">—</p>
+            </div>
+            <button onclick="closePatientModal()" class="text-slate-400 hover:text-slate-600 text-xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="flex gap-0 mb-6 border-b border-slate-200">
+            <button class="tab-btn active" id="tab-vitals" onclick="switchTab('vitals', this)">
+                <i class="fas fa-heartbeat mr-1.5"></i>Live Vitals
+            </button>
+            <button class="tab-btn" id="tab-ecg" onclick="switchTab('ecg', this)">
+                <i class="fas fa-wave-square mr-1.5"></i>ECG
+            </button>
+            <button class="tab-btn" id="tab-history" onclick="switchTab('history', this)">
+                <i class="fas fa-history mr-1.5"></i>History
+            </button>
+            <button class="tab-btn" id="tab-notes" onclick="switchTab('notes', this)">
+                <i class="fas fa-clipboard-list mr-1.5"></i>Clinical Notes
+            </button>
+        </div>
+
+        <div id="vitals-tab" class="tab-content">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5" id="modal-vitals"></div>
+            <div id="modal-fall-status" class="mt-2"></div>
+        </div>
+
+        <div id="ecg-tab" class="tab-content hidden">
+            <div class="ecg-wrapper mb-4">
+                <div class="flex items-center justify-between mb-2 px-1">
+                    <span class="text-xs text-teal-400 font-bold uppercase tracking-widest">ECG — Lead II</span>
+                    <span class="text-xs text-teal-400 font-mono font-bold" id="modal-ecg-hr">— bpm</span>
+                </div>
+                <canvas id="modal-ecg-canvas" class="ecg-canvas" height="100"></canvas>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">HRV (SDNN)</p>
+                    <p class="text-2xl font-black text-slate-900" id="modal-hrv">—</p>
+                    <p class="text-xs text-slate-400 mt-1 font-semibold">ms</p>
+                </div>
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">HR Avg</p>
+                    <p class="text-2xl font-black text-slate-900" id="modal-ecg-avg">—</p>
+                    <p class="text-xs text-slate-400 mt-1 font-semibold">bpm</p>
+                </div>
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">Rhythm</p>
+                    <p class="text-lg font-black text-green-600" id="modal-rhythm">—</p>
+                    <p class="text-xs text-slate-400 mt-1 font-semibold">classification</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-tab" class="tab-content hidden">
+            <div class="space-y-3" id="modal-history"></div>
+        </div>
+
+        <div id="notes-tab" class="tab-content hidden">
+            <div class="space-y-4">
+                <textarea id="clinical-notes" class="w-full h-36 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none text-sm resize-none font-medium text-slate-700" placeholder="Add clinical notes here…"></textarea>
+                <button onclick="saveClinicalNotes()" class="px-6 py-2.5 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl transition text-sm tracking-wide">
+                    <i class="fas fa-save mr-2"></i>Save Notes
+                </button>
+                <div id="saved-notes" class="mt-4 space-y-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="chatModal" class="modal">
+    <div class="modal-content bg-white rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl">
+        <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full device-icon-bg flex items-center justify-center text-white font-bold text-sm shadow-md" id="chat-avatar">??</div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm" id="chat-patient-name">Patient</h3>
+                    <p class="text-xs text-slate-500 font-medium" id="chat-patient-status">—</p>
+                </div>
+            </div>
+            <button onclick="closeChatModal()" class="text-slate-400 hover:text-slate-600 text-xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="chat-box mb-4 px-1" id="chat-messages"></div>
+
+        <form id="chatForm" class="flex gap-2">
+            <input type="text" id="chat-input" class="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-400 outline-none text-sm transition font-medium" placeholder="Type a message…" required>
+            <button type="submit" class="px-5 py-3 bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl transition shadow-md">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+/* ─── DOCTOR PROFILE ─── */
+let doctorProfile = {
+    name: "Dr. Loading…",
+    specialty: "—",
+    id: "—",
+    hospital: "—",
+    email: "—",
+    phone: "—",
+    avatar: "https://ui-avatars.com/api/?name=Doctor&background=0d9488&color=fff&bold=true"
+};
+
+async function loadDoctorProfile() {
+    try {
+        const res = await fetch('/api/profile-data');
+        const data = await res.json();
+        if (data.role === 'doctor') {
+            doctorProfile = {
+                name: data.full_name,
+                specialty: data.specialization || "General Physician",
+                id: data.doctor_id,
+                hospital: data.hospital || "Medical Center",
+                email: data.email,
+                phone: data.phone,
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.full_name)}&background=0d9488&color=fff&bold=true`
+            };
+        }
+    } catch(e) {
+        console.warn('Using default profile (no backend):', e.message);
+        doctorProfile = {
+            name: "Dr. Sarah Mitchell",
+            specialty: "Cardiologist",
+            id: "DOC-2024-001",
+            hospital: "Central Medical Center",
+            email: "s.mitchell@hospital.com",
+            phone: "+1 (555) 012-3456",
+            avatar: "https://ui-avatars.com/api/?name=Sarah+Mitchell&background=0d9488&color=fff&bold=true"
+        };
+    }
+    updateDoctorUI();
+}
+
+function updateDoctorUI() {
+    const d = doctorProfile;
+    ['doctor-name','header-name'].forEach(id => setEl(id, d.name));
+    setEl('doctor-specialty', d.specialty);
+    setEl('doctor-id', d.id);
+    setEl('doctor-hospital', d.hospital);
+    setEl('header-doc-id', `ID: ${d.id}`);
+    setEl('header-ward', d.hospital);
+    ['doctor-avatar','header-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.src = d.avatar;
+    });
+}
+
+/* ─── HELPERS ─── */
+function setEl(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+function getTimeAgo(date) {
+    const s = Math.floor((Date.now() - date) / 1000);
+    if (s < 60) return 'Just now';
+    if (s < 3600) return `${Math.floor(s/60)} min ago`;
+    if (s < 86400) return `${Math.floor(s/3600)} hours ago`;
+    return `${Math.floor(s/86400)} days ago`;
+}
+function getStressColor(level) {
+    if (level < 30) return '#22c55e';
+    if (level < 60) return '#f59e0b';
+    return '#ef4444';
+}
+function getStressLabel(level) {
+    if (level < 30) return 'Low';
+    if (level < 60) return 'Moderate';
+    return 'High';
+}
+function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+}
+
+/* ─── DATA ─── */
+let patients = [
+    {
+        id: "NEX-8821",
+        name: "John Doe",
+        initials: "JD",
+        age: 58,
+        status: "online",
+        deviceId: "MT-001",
+        vitals: {
+            heartRate: 78,
+            spO2: 98,
+            temperature: 37.2,
+            stressLevel: 35,
+            heartRateVariability: 52,
+            fallDetected: false
+        },
+        ecgData: generateECGData(),
+        lastUpdate: new Date(),
+        alerts: [],
+        unreadMessages: 2
+    },
+    {
+        id: "NEX-9901",
+        name: "Emma Wilson",
+        initials: "EW",
+        age: 44,
+        status: "online",
+        deviceId: "MT-002",
+        vitals: {
+            heartRate: 106,
+            spO2: 94,
+            temperature: 38.4,
+            stressLevel: 72,
+            heartRateVariability: 28,
+            fallDetected: false
+        },
+        ecgData: generateECGData(),
+        lastUpdate: new Date(),
+        alerts: ["Tachycardia detected", "High stress level"],
+        unreadMessages: 0
+    },
+    {
+        id: "NEX-7734",
+        name: "Robert Chen",
+        initials: "RC",
+        age: 67,
+        status: "offline",
+        deviceId: "MT-003",
+        vitals: {
+            heartRate: 0,
+            spO2: 0,
+            temperature: 0,
+            stressLevel: 0,
+            heartRateVariability: 0,
+            fallDetected: false
+        },
+        ecgData: [],
+        lastUpdate: new Date(Date.now() - 7200000),
+        alerts: [],
+        unreadMessages: 1
+    },
+    {
+        id: "NEX-5512",
+        name: "Alice Parker",
+        initials: "AP",
+        age: 72,
+        status: "online",
+        deviceId: "MT-004",
+        vitals: {
+            heartRate: 68,
+            spO2: 97,
+            temperature: 36.9,
+            stressLevel: 22,
+            heartRateVariability: 61,
+            fallDetected: true
+        },
+        ecgData: generateECGData(),
+        lastUpdate: new Date(),
+        alerts: ["Fall detected!"],
+        unreadMessages: 3
+    }
+];
+
+let devices = [
+    { id: "MT-001", type: "MediTwin Type 1", status: "online",  patientId: "NEX-8821", patientName: "John Doe",    batteryLevel: 87, lastSync: new Date() },
+    { id: "MT-002", type: "MediTwin Type 2", status: "online",  patientId: "NEX-9901", patientName: "Emma Wilson", batteryLevel: 45, lastSync: new Date() },
+    { id: "MT-003", type: "MediTwin Type 1", status: "offline", patientId: "NEX-7734", patientName: "Robert Chen", batteryLevel: 9,  lastSync: new Date(Date.now()-7200000) },
+    { id: "MT-004", type: "MediTwin Type 2", status: "warning", patientId: "NEX-5512", patientName: "Alice Parker", batteryLevel: 21, lastSync: new Date() }
+];
+
+let alerts = [
+    { id: 1, patientId: "NEX-9901", patientName: "Emma Wilson", message: "Tachycardia: HR 106 bpm — above normal threshold", severity: "critical", timestamp: new Date(), acknowledged: false },
+    { id: 2, patientId: "NEX-9901", patientName: "Emma Wilson", message: "High stress level detected: 72%", severity: "warning", timestamp: new Date(Date.now()-600000), acknowledged: false },
+    { id: 3, patientId: "NEX-5512", patientName: "Alice Parker", message: "Fall event detected — immediate attention required", severity: "critical", timestamp: new Date(), acknowledged: false },
+    { id: 4, patientId: "NEX-7734", patientName: "Robert Chen", message: "MediTwin device offline — signal lost", severity: "warning", timestamp: new Date(Date.now()-7200000), acknowledged: false }
+];
+
+let conversations = {};
+patients.forEach(p => {
+    conversations[p.id] = [
+        { sender: 'patient', message: `Hello Doctor, I wanted to check in about my condition.`, timestamp: new Date(Date.now()-3600000) }
+    ];
+});
+
+let currentChatPatient = null;
+let currentPatientForModal = null;
+let activeFilter = 'all';
+let ecgAnimFrames = {};
+
+/* ─── ECG GENERATION ─── */
+function generateECGData() {
+    const pts = [];
+    for (let i = 0; i < 200; i++) {
+        const x = i / 200;
+        const base = Math.sin(x * Math.PI * 2 * 1.2) * 2;
+        let y = base;
+        const phase = (x % (1/1.2)) * 1.2;
+        if (phase > 0.3 && phase < 0.35) y += 5;
+        if (phase > 0.35 && phase < 0.45) y -= 20;
+        if (phase > 0.45 && phase < 0.55) y += 30;
+        if (phase > 0.55 && phase < 0.62) y -= 8;
+        if (phase > 0.62 && phase < 0.7) y += 4;
+        pts.push(y);
+    }
+    return pts;
+}
+
+function drawECGOnCanvas(canvas, ecgPoints, color = '#00ff88') {
+    if (!canvas || !ecgPoints.length) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.offsetWidth || 600;
+    const H = canvas.height;
+    canvas.width = W;
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,255,136,0.08)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 5; i++) {
+        ctx.beginPath(); ctx.moveTo(0, i*(H/5)); ctx.lineTo(W, i*(H/5)); ctx.stroke();
+    }
+    for (let i = 0; i <= 10; i++) {
+        ctx.beginPath(); ctx.moveTo(i*(W/10), 0); ctx.lineTo(i*(W/10), H); ctx.stroke();
+    }
+
+    // ECG line
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    const mid = H / 2;
+    const scale = H / 80;
+    ecgPoints.forEach((v, i) => {
+        const x = (i / ecgPoints.length) * W;
+        const y = mid - v * scale;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+}
+
+function animateECG(canvasId, patient) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || patient.status !== 'online') return;
+    if (ecgAnimFrames[canvasId]) cancelAnimationFrame(ecgAnimFrames[canvasId]);
+    let offset = 0;
+    function frame() {
+        const shifted = [...patient.ecgData.slice(offset), ...patient.ecgData.slice(0, offset)];
+        drawECGOnCanvas(canvas, shifted, '#00ff88');
+        offset = (offset + 1) % patient.ecgData.length;
+        ecgAnimFrames[canvasId] = requestAnimationFrame(frame);
+    }
+    frame();
+}
+
+/* ─── RENDER PATIENTS ─── */
+let filteredPatients = [...patients];
+
+function filterPatients(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-teal-500','text-white');
+        b.classList.add('bg-slate-200','text-slate-700');
+    });
+    if (btn) { btn.classList.add('bg-teal-500','text-white'); btn.classList.remove('bg-slate-200','text-slate-700'); }
+
+    if (filter === 'all') filteredPatients = [...patients];
+    else if (filter === 'online') filteredPatients = patients.filter(p => p.status === 'online');
+    else if (filter === 'critical') filteredPatients = patients.filter(p => p.alerts.length > 0);
+    else if (filter === 'fall') filteredPatients = patients.filter(p => p.vitals.fallDetected);
+    renderPatients();
+}
+
+function renderPatients() {
+    const grid = document.getElementById('patients-grid');
+    grid.innerHTML = '';
+    // Stop previous ECG anims
+    Object.keys(ecgAnimFrames).forEach(k => { if (k.startsWith('ecg-mini-')) { cancelAnimationFrame(ecgAnimFrames[k]); delete ecgAnimFrames[k]; } });
+
+    const list = activeFilter === 'all' ? patients
+        : activeFilter === 'online' ? patients.filter(p=>p.status==='online')
+        : activeFilter === 'critical' ? patients.filter(p=>p.alerts.length>0)
+        : patients.filter(p=>p.vitals.fallDetected);
+
+    if (list.length === 0) {
+        grid.innerHTML = `<div class="glass p-10 col-span-3 text-center"><i class="fas fa-search text-4xl text-slate-200 mb-3"></i><p class="text-slate-400 font-semibold">No patients match this filter</p></div>`;
+        return;
+    }
+
+    list.forEach(patient => {
+        const card = createPatientCard(patient);
+        grid.appendChild(card);
+    });
+
+    // Start ECG animations after cards are added to DOM
+    requestAnimationFrame(() => {
+        list.forEach(p => {
+            if (p.status === 'online') {
+                animateECG(`ecg-mini-${p.id}`, p);
+            }
+        });
+    });
+}
+
+function createPatientCard(patient) {
+    const wrap = document.createElement('div');
+    const isCritical = patient.alerts.length > 0;
+    const isFall = patient.vitals.fallDetected;
+    const borderColor = isFall ? 'border-red-600' : isCritical ? 'border-amber-500' : patient.status === 'online' ? 'border-teal-400' : 'border-slate-300';
+
+    wrap.className = `patient-card bg-white rounded-2xl shadow-md border-l-4 ${borderColor} p-6 ${isCritical ? 'critical-card' : ''}`;
+    wrap.onclick = () => openPatientDetails(patient);
+
+    const statusBadge = patient.status === 'online'
+        ? `<div class="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200">
+               <div class="relative w-2 h-2"><div class="w-2 h-2 bg-green-500 rounded-full live-pulse"></div></div>
+               <span class="text-xs font-black">LIVE</span>
+           </div>`
+        : `<div class="flex items-center gap-1.5 bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full">
+               <div class="w-2 h-2 bg-slate-400 rounded-full"></div>
+               <span class="text-xs font-black">OFFLINE</span>
+           </div>`;
+
+    let vitalsHTML = '';
+    if (patient.status === 'online') {
+        const stressColor = getStressColor(patient.vitals.stressLevel);
+        const stressLabel = getStressLabel(patient.vitals.stressLevel);
+        const stressPct = patient.vitals.stressLevel;
+        vitalsHTML = `
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <div class="vital-card border-red-400 p-3 rounded-xl text-center">
+                    <p class="text-xs text-red-500 font-bold uppercase leading-none mb-1 tracking-wider">HR</p>
+                    <p class="text-2xl font-black text-slate-900 leading-none">${patient.vitals.heartRate}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-bold">bpm</p>
+                </div>
+                <div class="vital-card border-blue-400 p-3 rounded-xl text-center">
+                    <p class="text-xs text-blue-500 font-bold uppercase leading-none mb-1 tracking-wider">SpO2</p>
+                    <p class="text-2xl font-black text-slate-900 leading-none">${patient.vitals.spO2}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-bold">%</p>
+                </div>
+                <div class="vital-card border-indigo-400 p-3 rounded-xl text-center">
+                    <p class="text-xs text-indigo-500 font-bold uppercase leading-none mb-1 tracking-wider">HRV</p>
+                    <p class="text-2xl font-black text-slate-900 leading-none">${patient.vitals.heartRateVariability}</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-bold">ms</p>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Stress</span>
+                    <span class="text-xs font-black" style="color:${stressColor}">${stressLabel} (${stressPct}%)</span>
+                </div>
+                <div class="stress-bar"><div class="stress-fill" style="width:${stressPct}%;background:${stressColor}"></div></div>
+            </div>
+            <div class="ecg-wrapper mb-3">
+                <div class="flex justify-between items-center mb-1 px-1">
+                    <span class="text-xs text-teal-400 font-bold tracking-widest">ECG</span>
+                    <span class="text-xs text-teal-300 font-mono font-bold">${patient.vitals.heartRate} bpm</span>
+                </div>
+                <canvas id="ecg-mini-${patient.id}" class="ecg-mini" height="48"></canvas>
+            </div>
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Fall Detection</span>
+                ${patient.vitals.fallDetected
+                    ? `<span class="fall-alert"><i class="fas fa-exclamation-triangle"></i>FALL DETECTED</span>`
+                    : `<span class="fall-safe"><i class="fas fa-shield-alt"></i>No Fall</span>`}
+            </div>
+            <div class="flex gap-2">
+                <button onclick="event.stopPropagation();openPatientDetails(patients.find(p=>p.id==='${patient.id}'))"
+                    class="flex-1 py-3 bg-gradient-to-r from-teal-500 to-indigo-500 text-white text-xs font-bold rounded-xl hover:shadow-lg transition tracking-wide">
+                    <i class="fas fa-chart-line mr-1"></i> View Details
+                </button>
+                <button onclick="event.stopPropagation();openChat('${patient.id}')"
+                    class="px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition relative shadow-md">
+                    <i class="fas fa-comment text-sm"></i>
+                    ${patient.unreadMessages > 0 ? `<span class="notif-dot" style="width:14px;height:14px;font-size:8px">${patient.unreadMessages}</span>` : ''}
+                </button>
+            </div>
+        `;
+    } else {
+        vitalsHTML = `
+            <div class="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                <i class="fas fa-power-off text-4xl text-slate-300 mb-3 block"></i>
+                <p class="font-bold text-slate-700 text-sm mb-1">MediTwin Disconnected</p>
+                <p class="text-xs text-slate-400 font-medium">Last seen: ${getTimeAgo(patient.lastUpdate)}</p>
+            </div>
+        `;
+    }
+
+    wrap.innerHTML = `
+        <div class="absolute top-5 right-5">${statusBadge}</div>
+        <div class="flex items-center gap-3 mb-5 mt-1">
+            <div class="w-14 h-14 rounded-2xl device-icon-bg flex items-center justify-center text-white font-black text-xl shadow-lg flex-shrink-0">
+                ${patient.initials}
+            </div>
+            <div class="min-w-0">
+                <h3 class="font-black text-slate-900 text-base mb-0.5 truncate tracking-tight">${patient.name}</h3>
+                <p class="text-xs text-slate-400 font-mono font-medium">${patient.id}</p>
+                <p class="text-xs text-slate-500 mt-0.5 font-semibold"><i class="fas fa-microchip text-teal-500 mr-1"></i>${patient.deviceId}</p>
+            </div>
+        </div>
+        ${vitalsHTML}
+    `;
+    return wrap;
+}
+
+/* ─── RENDER DEVICES ─── */
+function renderDevices() {
+    const grid = document.getElementById('devices-grid');
+    grid.innerHTML = '';
+    devices.forEach(device => grid.appendChild(createDeviceCard(device)));
+}
+
+function createDeviceCard(device) {
+    const card = document.createElement('div');
+    const statusCls = device.status === 'online' ? 'badge-online' : device.status === 'warning' ? 'badge-warning' : 'badge-offline';
+    const battColor = device.batteryLevel > 50 ? 'text-green-600' : device.batteryLevel > 20 ? 'text-orange-500' : 'text-red-600';
+    const battIcon = device.batteryLevel > 75 ? 'full' : device.batteryLevel > 50 ? 'three-quarters' : device.batteryLevel > 25 ? 'half' : 'quarter';
+    const isType2 = device.type === 'MediTwin Type 2';
+
+    card.className = 'glass glass-hover p-6';
+    card.innerHTML = `
+        <div class="flex justify-between items-start mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 ${isType2 ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'device-icon-bg'} rounded-xl flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                    <i class="fas fa-${isType2 ? 'microchip' : 'heartbeat'}"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm leading-tight tracking-tight">${device.type}</h3>
+                    <p class="text-xs text-slate-400 font-mono font-medium">${device.id}</p>
+                </div>
+            </div>
+            <span class="device-badge ${statusCls} flex-shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full ${device.status==='online'?'bg-green-500':device.status==='warning'?'bg-yellow-500':'bg-red-500'}"></span>
+                ${device.status.toUpperCase()}
+            </span>
+        </div>
+
+        <div class="mb-4 bg-slate-50 rounded-xl p-3">
+            <p class="text-xs font-bold text-slate-400 uppercase mb-2 tracking-wide">Monitoring</p>
+            <div class="grid grid-cols-3 gap-1.5 text-xs text-slate-600 font-medium">
+                <span class="flex items-center gap-1"><i class="fas fa-heartbeat text-red-400 text-xs"></i>HR</span>
+                <span class="flex items-center gap-1"><i class="fas fa-lungs text-blue-400 text-xs"></i>SpO2</span>
+                <span class="flex items-center gap-1"><i class="fas fa-wave-square text-teal-400 text-xs"></i>ECG</span>
+                <span class="flex items-center gap-1"><i class="fas fa-brain text-purple-400 text-xs"></i>Stress</span>
+                <span class="flex items-center gap-1"><i class="fas fa-chart-bar text-indigo-400 text-xs"></i>HRV</span>
+                <span class="flex items-center gap-1"><i class="fas fa-person-falling text-orange-400 text-xs"></i>Fall</span>
+            </div>
+        </div>
+
+        <div class="space-y-2.5 mb-5">
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500 font-medium">Patient</span>
+                <span class="font-bold text-slate-900 text-right">${device.patientName}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500 font-medium">Patient ID</span>
+                <span class="font-mono text-slate-700 text-xs font-bold">${device.patientId}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500 font-medium">Battery</span>
+                <span class="font-bold ${battColor}">
+                    <i class="fas fa-battery-${battIcon} mr-1"></i>${device.batteryLevel}%
+                </span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-slate-500 font-medium">Last Sync</span>
+                <span class="text-slate-700 font-semibold">${getTimeAgo(device.lastSync)}</span>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="viewDeviceDetails('${device.id}')" class="flex-1 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition tracking-wide shadow-sm">
+                <i class="fas fa-info-circle mr-1.5"></i>Details
+            </button>
+            <button onclick="removeDevice('${device.id}')" class="px-4 py-2.5 bg-red-100 hover:bg-red-500 text-red-600 hover:text-white rounded-xl transition shadow-sm">
+                <i class="fas fa-unlink text-sm"></i>
+            </button>
+        </div>
+    `;
+    return card;
+}
+
+/* ─── RENDER ALERTS ─── */
+function renderAlerts() {
+    const list = document.getElementById('alerts-list');
+    list.innerHTML = '';
+    const active = alerts.filter(a => !a.acknowledged);
+    if (active.length === 0) {
+        list.innerHTML = `<div class="glass p-10 text-center">
+            <i class="fas fa-check-circle text-5xl text-green-400 mb-3"></i>
+            <p class="text-slate-600 font-bold">No active alerts — all clear</p>
+        </div>`;
+        return;
+    }
+    active.forEach(alert => list.appendChild(createAlertCard(alert)));
+}
+
+function createAlertCard(alert) {
+    const card = document.createElement('div');
+    const colors = {
+        critical: { bg: 'bg-red-50', border: 'border-red-500', icon: 'text-red-600', btn: 'bg-red-500 hover:bg-red-600' },
+        warning: { bg: 'bg-amber-50', border: 'border-amber-400', icon: 'text-amber-600', btn: 'bg-amber-500 hover:bg-amber-600' },
+        info: { bg: 'bg-blue-50', border: 'border-blue-400', icon: 'text-blue-600', btn: 'bg-blue-500 hover:bg-blue-600' }
+    };
+    const c = colors[alert.severity] || colors.info;
+
+    card.className = `glass p-5 border-l-4 ${c.border} ${c.bg}`;
+    card.innerHTML = `
+        <div class="flex justify-between items-start gap-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-${alert.severity==='critical'?'exclamation-circle':'exclamation-triangle'} ${c.icon} text-xl"></i>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-sm">${alert.patientName}</h4>
+                        <p class="text-xs text-slate-400 font-mono font-medium">${alert.patientId}</p>
+                    </div>
+                    <span class="ml-auto text-[10px] font-black uppercase ${c.icon} bg-white px-2 py-0.5 rounded-full border tracking-wider">${alert.severity}</span>
+                </div>
+                <p class="text-slate-700 text-sm mb-2 font-medium">${alert.message}</p>
+                <p class="text-xs text-slate-400 font-semibold"><i class="far fa-clock mr-1"></i>${getTimeAgo(alert.timestamp)}</p>
+            </div>
+            <button onclick="acknowledgeAlert(${alert.id})" class="flex-shrink-0 px-4 py-2 ${c.btn} text-white text-xs font-bold rounded-xl transition shadow-md">
+                <i class="fas fa-check mr-1"></i>Acknowledge
+            </button>
+        </div>
+    `;
+    return card;
+}
+
+/* ─── RENDER CONVERSATIONS ─── */
+function renderConversations() {
+    const list = document.getElementById('conversations-list');
+    list.innerHTML = '';
+    patients.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition text-left';
+        btn.onclick = () => openChat(p.id);
+        btn.innerHTML = `
+            <div class="w-10 h-10 rounded-full device-icon-bg flex items-center justify-center text-white font-bold text-xs relative flex-shrink-0 shadow-sm">
+                ${p.initials}
+                ${p.unreadMessages > 0 ? `<span class="notif-dot">${p.unreadMessages}</span>` : ''}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-slate-900 text-sm truncate">${p.name}</p>
+                <p class="text-xs text-slate-400 font-medium">${p.status === 'online' ? '🟢 Online' : '⚫ Offline'}</p>
+            </div>
+        `;
+        list.appendChild(btn);
+    });
+}
+
+/* ─── ANALYTICS ─── */
+function renderAnalytics() {
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const vals = [12,10,13,9,14,7,15];
+    const maxV = Math.max(...vals);
+    const actDiv = document.getElementById('analytics-activity');
+    if (actDiv) {
+        actDiv.innerHTML = days.map((d,i) => `
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-500 w-8 font-bold">${d}</span>
+                <div class="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div class="bg-teal-500 h-full rounded-full" style="width:${(vals[i]/maxV)*100}%"></div>
+                </div>
+                <span class="text-xs font-bold text-slate-800 w-5 text-right">${vals[i]}</span>
+            </div>`).join('');
+    }
+
+    const total = devices.length;
+    const online = devices.filter(d=>d.status==='online').length;
+    const warn = devices.filter(d=>d.status==='warning').length;
+    const offline = devices.filter(d=>d.status==='offline').length;
+
+    const dsDiv = document.getElementById('analytics-device-status');
+    if (dsDiv) {
+        dsDiv.innerHTML = `
+            <div><div class="flex justify-between mb-1 text-xs font-bold"><span>Online</span><span class="text-green-600">${Math.round(online/total*100)}%</span></div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5"><div class="bg-green-500 h-full rounded-full" style="width:${online/total*100}%"></div></div></div>
+            <div><div class="flex justify-between mb-1 text-xs font-bold"><span>Warning</span><span class="text-amber-500">${Math.round(warn/total*100)}%</span></div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5"><div class="bg-amber-400 h-full rounded-full" style="width:${warn/total*100}%"></div></div></div>
+            <div><div class="flex justify-between mb-1 text-xs font-bold"><span>Offline</span><span class="text-red-500">${Math.round(offline/total*100)}%</span></div>
+                <div class="w-full bg-slate-100 rounded-full h-2.5"><div class="bg-red-500 h-full rounded-full" style="width:${offline/total*100}%"></div></div></div>`;
+    }
+
+    const dcDiv = document.getElementById('analytics-device-counts');
+    if (dcDiv) {
+        dcDiv.innerHTML = `
+            <div class="text-center"><p class="text-2xl font-black text-green-600">${online}</p><p class="text-xs text-slate-500 font-bold uppercase tracking-wide">Online</p></div>
+            <div class="text-center"><p class="text-2xl font-black text-amber-500">${warn}</p><p class="text-xs text-slate-500 font-bold uppercase tracking-wide">Warning</p></div>
+            <div class="text-center"><p class="text-2xl font-black text-red-500">${offline}</p><p class="text-xs text-slate-500 font-bold uppercase tracking-wide">Offline</p></div>`;
+    }
+
+    const etDiv = document.getElementById('events-timeline');
+    if (etDiv) {
+        etDiv.innerHTML = alerts.slice(0,5).map(a => `
+            <div class="flex gap-4 p-4 bg-${a.severity==='critical'?'red':'amber'}-50 border-l-4 border-${a.severity==='critical'?'red':'amber'}-400 rounded-xl">
+                <div class="w-9 h-9 bg-${a.severity==='critical'?'red':'amber'}-500 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                    <i class="fas fa-exclamation-triangle text-sm"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-slate-900 text-sm">${a.message}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 font-medium">${a.patientName} · ${getTimeAgo(a.timestamp)}</p>
+                </div>
+            </div>`).join('');
+    }
+}
+
+/* ─── STATISTICS ─── */
+function updateStatistics() {
+    const critP = patients.filter(p => p.alerts.length > 0).length;
+    const unread = patients.reduce((s,p) => s + p.unreadMessages, 0);
+    const devOnline = devices.filter(d => d.status === 'online').length;
+    const alertCnt = alerts.filter(a => !a.acknowledged).length;
+
+    setEl('patient-count', patients.length);
+    setEl('device-count', devOnline);
+    setEl('alert-count', alertCnt);
+    setEl('message-count', unread);
+    setEl('stat-patients', patients.length);
+    setEl('stat-critical', critP);
+    setEl('stat-devices', devOnline);
+    setEl('stat-messages', unread);
+    setEl('stat-patients-change', `${patients.filter(p=>p.status==='online').length} online`);
+    setEl('header-notification-count', alertCnt + unread);
+}
+
+/* ─── MODALS ─── */
+function openAddDevice() { document.getElementById('addDeviceModal').classList.add('active'); }
+function closeAddDevice() {
+    document.getElementById('addDeviceModal').classList.remove('active');
+    document.getElementById('addDeviceForm').reset();
+}
+
+function openPatientDetails(patient) {
+    currentPatientForModal = patient;
+    setEl('modal-patient-name', patient.name);
+    setEl('modal-patient-meta', `${patient.id} · Age ${patient.age} · Device: ${patient.deviceId}`);
+
+    // Vitals Tab
+    const vitalsDiv = document.getElementById('modal-vitals');
+    const stressColor = getStressColor(patient.vitals.stressLevel);
+    const stressLabel = getStressLabel(patient.vitals.stressLevel);
+
+    vitalsDiv.innerHTML = patient.status === 'online' ? `
+        <div class="vital-card border-red-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-red-500 font-bold uppercase mb-1 tracking-wider">Heart Rate</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.heartRate}</p>
+            <p class="text-xs text-slate-400 mt-1 font-bold">bpm</p>
+        </div>
+        <div class="vital-card border-blue-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-blue-500 font-bold uppercase mb-1 tracking-wider">SpO2</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.spO2}</p>
+            <p class="text-xs text-slate-400 mt-1 font-bold">%</p>
+        </div>
+        <div class="vital-card border-orange-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-orange-500 font-bold uppercase mb-1 tracking-wider">Temperature</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.temperature}</p>
+            <p class="text-xs text-slate-400 mt-1 font-bold">°C</p>
+        </div>
+        <div class="vital-card border-indigo-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-indigo-500 font-bold uppercase mb-1 tracking-wider">HRV (SDNN)</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.heartRateVariability}</p>
+            <p class="text-xs text-slate-400 mt-1 font-bold">ms</p>
+        </div>
+        <div class="vital-card p-5 rounded-xl" style="border-left-color:${stressColor}">
+            <p class="text-xs font-bold uppercase mb-1 tracking-wider" style="color:${stressColor}">Stress Level</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.stressLevel}</p>
+            <p class="text-xs mt-1 font-bold" style="color:${stressColor}">${stressLabel}</p>
+            <div class="stress-bar mt-2"><div class="stress-fill" style="width:${patient.vitals.stressLevel}%;background:${stressColor}"></div></div>
+        </div>
+        <div class="vital-card border-teal-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-teal-500 font-bold uppercase mb-1 tracking-wider">Fall Status</p>
+            <p class="text-xl font-black text-slate-900 mt-2">${patient.vitals.fallDetected ? 'DETECTED' : 'Normal'}</p>
+            <p class="text-xs text-slate-400 mt-1 font-bold">Monitor Active</p>
+        </div>
+    ` : `<div class="col-span-3 text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+        <i class="fas fa-power-off text-5xl text-slate-300 mb-3 block"></i>
+        <p class="font-bold text-slate-500">Device offline — no live readings</p>
+    </div>`;
+
+    // Fall status
+    const fallDiv = document.getElementById('modal-fall-status');
+    fallDiv.innerHTML = patient.vitals.fallDetected
+        ? `<div class="fall-alert text-sm px-4 py-2 w-full justify-center"><i class="fas fa-exclamation-triangle"></i>FALL EVENT DETECTED — Immediate attention required</div>`
+        : ``;
+
+    // ECG Tab
+    setEl('modal-ecg-hr', `${patient.vitals.heartRate} bpm`);
+    setEl('modal-hrv', patient.vitals.heartRateVariability || '—');
+    setEl('modal-ecg-avg', patient.vitals.heartRate || '—');
+    setEl('modal-rhythm', patient.status==='online' ? 'Normal Sinus' : 'Unavailable');
+
+    // History Tab
+    const histDiv = document.getElementById('modal-history');
+    histDiv.innerHTML = patient.alerts.length > 0
+        ? patient.alerts.map(a => `
+            <div class="p-4 bg-red-50 border-l-4 border-red-400 rounded-xl">
+                <p class="font-bold text-red-800 text-sm">${a}</p>
+                <p class="text-xs text-slate-500 mt-1 font-medium">Today · Logged automatically</p>
+            </div>`).join('') + `
+            <div class="p-4 bg-slate-50 border-l-4 border-teal-400 rounded-xl">
+                <p class="font-bold text-slate-900 text-sm">Vitals logged</p>
+                <p class="text-sm text-slate-600 font-medium">HR: ${patient.vitals.heartRate} bpm · SpO2: ${patient.vitals.spO2}% · Temp: ${patient.vitals.temperature}°C · HRV: ${patient.vitals.heartRateVariability}ms</p>
+                <p class="text-xs text-slate-400 mt-1 font-semibold">${getTimeAgo(patient.lastUpdate)}</p>
+            </div>`
+        : `<div class="p-4 bg-slate-50 border-l-4 border-teal-400 rounded-xl">
+            <p class="font-bold text-slate-900 text-sm">Vitals logged</p>
+            <p class="text-sm text-slate-600 font-medium">HR: ${patient.vitals.heartRate} bpm · SpO2: ${patient.vitals.spO2}% · Temp: ${patient.vitals.temperature}°C</p>
+            <p class="text-xs text-slate-400 mt-1 font-semibold">${getTimeAgo(patient.lastUpdate)}</p>
+        </div>`;
+
+    // Reset to vitals tab
+    switchTab('vitals', document.getElementById('tab-vitals'));
+    document.getElementById('patientModal').classList.add('active');
+
+    // Start modal ECG animation after modal is shown
+    setTimeout(() => {
+        if (patient.status === 'online') animateECG('modal-ecg-canvas', patient);
+    }, 100);
+}
+
+function closePatientModal() {
+    document.getElementById('patientModal').classList.remove('active');
+    if (ecgAnimFrames['modal-ecg-canvas']) {
+        cancelAnimationFrame(ecgAnimFrames['modal-ecg-canvas']);
+        delete ecgAnimFrames['modal-ecg-canvas'];
+    }
+}
+
+function openChat(patientId) {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient) return;
+    setEl('chat-patient-name', patient.name);
+    setEl('chat-patient-status', patient.status === 'online' ? '🟢 Online' : '⚫ Offline');
+    document.getElementById('chat-avatar').textContent = patient.initials;
+
+    const msgDiv = document.getElementById('chat-messages');
+    msgDiv.innerHTML = '';
+    (conversations[patientId] || []).forEach(m => {
+        const b = document.createElement('div');
+        b.className = `msg ${m.sender === 'doctor' ? 'msg-sent' : 'msg-recv'}`;
+        b.innerHTML = `<p>${m.message}</p><p class="text-[10px] mt-1 opacity-70 font-semibold text-right">${m.timestamp.toLocaleTimeString()}</p>`;
+        msgDiv.appendChild(b);
+    });
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+    patient.unreadMessages = 0;
+    updateStatistics();
+    renderConversations();
+    document.getElementById('chatModal').classList.add('active');
+    currentChatPatient = patientId;
+}
+function closeChatModal() {
+    document.getElementById('chatModal').classList.remove('active');
+    currentChatPatient = null;
+}
+
+/* ─── DEVICE ACTIONS ─── */
+function viewDeviceDetails(devId) {
+    const d = devices.find(x => x.id === devId);
+    if (!d) return;
+    const p = patients.find(x => x.id === d.patientId);
+    showInfo(
+        '📡 Device Details',
+        `<strong>Device:</strong> ${d.id}\n<strong>Type:</strong> ${d.type}\n<strong>Status:</strong> ${d.status.toUpperCase()}\n<strong>Patient:</strong> ${d.patientName} (${d.patientId})\n<strong>Battery:</strong> ${d.batteryLevel}%\n<strong>Last Sync:</strong> ${getTimeAgo(d.lastSync)}\n\n<strong>Monitored Vitals</strong>\n• Heart Rate: ${p?.vitals.heartRate || '—'} bpm\n• SpO₂: ${p?.vitals.spO2 || '—'}%\n• HRV: ${p?.vitals.heartRateVariability || '—'} ms\n• Stress: ${getStressLabel(p?.vitals.stressLevel || 0)} (${p?.vitals.stressLevel || 0}%)\n• Fall Detected: ${p?.vitals.fallDetected ? 'YES ⚠️' : 'No'}`
+    );
+}
+function removeDevice(devId) {
+    showConfirm(
+        '🗑️ Remove Device',
+        'Remove this MediTwin device from the system?',
+        () => {
+            const idx = devices.findIndex(d => d.id === devId);
+            if (idx !== -1) { devices.splice(idx, 1); renderDevices(); updateStatistics(); }
+        },
+        'danger'
+    );
+}
+
+/* ─── ALERT ACTIONS ─── */
+function acknowledgeAlert(id) {
+    const a = alerts.find(x => x.id === id);
+    if (a) { a.acknowledged = true; renderAlerts(); updateStatistics(); }
+}
+function clearAllAlerts() {
+    showConfirm(
+        '🧹 Clear All Alerts',
+        'Clear all active alerts? This will mark everything as acknowledged.',
+        () => { alerts.forEach(a => a.acknowledged = true); renderAlerts(); updateStatistics(); },
+        'danger'
+    );
+}
+
+/* ─── CLINICAL NOTES ─── */
+function saveClinicalNotes() {
+    const notes = document.getElementById('clinical-notes').value.trim();
+    if (!notes) return;
+    const container = document.getElementById('saved-notes');
+    const card = document.createElement('div');
+    card.className = 'p-4 bg-slate-50 rounded-xl border border-slate-200';
+    card.innerHTML = `<p class="text-sm text-slate-700 font-medium">${notes}</p><p class="text-xs text-slate-400 mt-2 font-bold">${new Date().toLocaleString()} · ${doctorProfile.name}</p>`;
+    container.insertBefore(card, container.firstChild);
+    document.getElementById('clinical-notes').value = '';
+}
+
+/* ─── TAB SWITCHING ─── */
+function switchTab(tab, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    else document.getElementById('tab-'+tab)?.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    const t = document.getElementById(tab+'-tab');
+    if (t) t.classList.remove('hidden');
+}
+
+/* ─── NAVIGATION ─── */
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        const section = link.dataset.section;
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
+        const sec = document.getElementById(section+'-section');
+        if (sec) { sec.classList.remove('hidden'); sec.classList.add('section-fade'); }
+        if (section === 'analytics') renderAnalytics();
+    });
+});
+
+/* ─── CHAT FORM ─── */
+document.getElementById('chatForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg || !currentChatPatient) return;
+    if (!conversations[currentChatPatient]) conversations[currentChatPatient] = [];
+    const obj = { sender: 'doctor', message: msg, timestamp: new Date() };
+    conversations[currentChatPatient].push(obj);
+    const msgDiv = document.getElementById('chat-messages');
+    const b = document.createElement('div');
+    b.className = 'msg msg-sent';
+    b.innerHTML = `<p>${msg}</p><p class="text-[10px] mt-1 opacity-70 font-semibold text-right">${new Date().toLocaleTimeString()}</p>`;
+    msgDiv.appendChild(b);
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+    input.value = '';
+});
+
+/* ─── ADD DEVICE FORM ─── */
+document.getElementById('addDeviceForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const patientName = document.getElementById('device-patient-name').value;
+    const patientId = document.getElementById('device-patient-id').value;
+    const deviceId = document.getElementById('device-id-input').value;
+    const type = document.getElementById('device-type').value;
+
+    const newDevice = { id: deviceId, type, status: 'online', patientId, patientName, batteryLevel: 100, lastSync: new Date() };
+    const newPatient = {
+        id: patientId,
+        name: patientName,
+        initials: getInitials(patientName),
+        age: 0,
+        status: 'online',
+        deviceId: deviceId,
+        vitals: { heartRate: 72, spO2: 98, temperature: 36.8, stressLevel: 25, heartRateVariability: 55, fallDetected: false },
+        ecgData: generateECGData(),
+        lastUpdate: new Date(),
+        alerts: [],
+        unreadMessages: 0
+    };
+
+    devices.push(newDevice);
+    if (!patients.find(p => p.id === patientId)) {
+        patients.push(newPatient);
+        conversations[patientId] = [];
+    }
+    renderPatients();
+    renderDevices();
+    renderConversations();
+    updateStatistics();
+    closeAddDevice();
+    showToast(`Device ${deviceId} (${type}) linked to ${patientName}`, 'success');
+});
+
+/* ─── VITAL SIMULATION ─── */
+function simulateVitalUpdates() {
+    patients.forEach(p => {
+        if (p.status !== 'online') return;
+        p.vitals.heartRate    = Math.floor(Math.random() * 30) + 65;
+        p.vitals.spO2         = Math.floor(Math.random() * 5) + 94;
+        p.vitals.temperature  = parseFloat((Math.random() * 1.5 + 36.4).toFixed(1));
+        p.vitals.stressLevel  = Math.floor(Math.random() * 80) + 10;
+        p.vitals.heartRateVariability = Math.floor(Math.random() * 60) + 20;
+        p.ecgData = generateECGData();
+        // Auto-generate alerts
+        p.alerts = [];
+        if (p.vitals.heartRate > 100) p.alerts.push(`Tachycardia: HR ${p.vitals.heartRate} bpm`);
+        if (p.vitals.spO2 < 95) p.alerts.push(`Low SpO2: ${p.vitals.spO2}%`);
+        if (p.vitals.stressLevel > 70) p.alerts.push(`High stress: ${p.vitals.stressLevel}%`);
+    });
+    renderPatients();
+    updateStatistics();
+}
+
+/* ─── TIME ─── */
+function updateTime() {
+    setEl('current-time', new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+}
+
+/* ─── MISC ─── */
+function refreshPatients() { renderPatients(); }
+function openNotifications() {
+    const cnt = alerts.filter(a=>!a.acknowledged).length;
+    showInfo(
+        '🔔 Notifications',
+        cnt > 0
+            ? `You have ${cnt} unacknowledged alert${cnt!==1?'s':''}.\nGo to Critical Alerts to review them.`
+            : 'No unacknowledged alerts — all clear!'
+    );
+}
+/* ─── LOGOUT & DELETE ACCOUNT ─── */
+function logout() {
+    showConfirm('👋 Logout', 'Are you sure you want to logout?', () => { window.location.href = '/logout'; });
+}
+
+function deleteAccount() {
+    document.getElementById('deleteAccountModal').classList.add('active');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteAccountModal').classList.remove('active');
+    document.getElementById('delete-confirm-input').value = '';
+    document.getElementById('delete-confirm-error').style.display = 'none';
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Permanently Delete Account';
+}
+
+async function confirmDeleteAccount() {
+    const input = document.getElementById('delete-confirm-input').value.trim();
+    const errEl = document.getElementById('delete-confirm-error');
+    errEl.style.display = 'none';
+
+    if (input !== 'DELETE') {
+        errEl.textContent = '❌ Please type DELETE exactly (in capitals) to confirm.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting…';
+
+    try {
+        const res = await fetch('/api/doctor/delete-account', { method: 'DELETE' });
+        if (res.ok) {
+            window.location.href = '/';
+        } else {
+            const err = await res.json().catch(() => ({}));
+            errEl.textContent = '❌ ' + (err.detail || 'Failed to delete account. Please try again.');
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Permanently Delete Account';
+        }
+    } catch(e) {
+        errEl.textContent = '❌ Network error. Please try again.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Permanently Delete Account';
+    }
+}
+
+/* ─── TOAST ─── */
+function showToast(message, type = 'success', duration = 3500) {
+    const icons = { success: 'fa-check', error: 'fa-times', info: 'fa-info', warning: 'fa-exclamation' };
+    const container = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<div class="toast-icon"><i class="fas ${icons[type]||icons.info}"></i></div><span>${message}</span>`;
+    container.appendChild(t);
+    setTimeout(() => {
+        t.classList.add('removing');
+        setTimeout(() => t.remove(), 300);
+    }, duration);
+}
+
+/* ─── MINI MODAL ─── */
+function _openMiniModal({ iconHtml, iconBg, iconColor, title, body, buttons }) {
+    document.getElementById('mm-icon').style.background = iconBg;
+    document.getElementById('mm-icon').style.color = iconColor;
+    document.getElementById('mm-icon').innerHTML = iconHtml;
+    document.getElementById('mm-title').textContent = title;
+    document.getElementById('mm-body').innerHTML = body.replace(/\n/g,'<br>');
+    const btns = document.getElementById('mm-btns');
+    btns.innerHTML = '';
+    buttons.forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = b.cls || 'mm-btn-ok';
+        btn.textContent = b.label;
+        btn.onclick = () => { closeMiniModal(); if(b.action) b.action(); };
+        btns.appendChild(btn);
+    });
+    document.getElementById('miniModal').classList.add('active');
+}
+function closeMiniModal() { document.getElementById('miniModal').classList.remove('active'); }
+
+function showConfirm(title, message, onConfirm, style = 'default') {
+    _openMiniModal({
+        iconHtml: style === 'danger' ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-question-circle"></i>',
+        iconBg: style === 'danger' ? '#fee2e2' : '#eff6ff',
+        iconColor: style === 'danger' ? '#dc2626' : '#2563eb',
+        title, body: message,
+        buttons: [
+            { label: 'Cancel', cls: 'mm-btn-cancel' },
+            { label: 'Confirm', cls: style === 'danger' ? 'mm-btn-ok danger' : 'mm-btn-ok', action: onConfirm }
+        ]
+    });
+}
+function showInfo(title, message) {
+    _openMiniModal({
+        iconHtml: '<i class="fas fa-info-circle"></i>',
+        iconBg: '#eff6ff', iconColor: '#2563eb',
+        title, body: message,
+        buttons: [{ label: 'Close', cls: 'mm-btn-ok' }]
+    });
+}
+
+/* ─── INIT ─── */
+window.addEventListener('DOMContentLoaded', async () => {
+    const ls      = document.getElementById('loadScreen');
+    const stepEl  = document.getElementById('load-step');
+    const barEl   = document.getElementById('load-bar');
+
+    const steps = [
+        { label: 'Authenticating…',      pct: 20 },
+        { label: 'Loading profile…',     pct: 45 },
+        { label: 'Fetching patients…',   pct: 70 },
+        { label: 'Preparing dashboard…', pct: 88 },
+    ];
+
+    // Advance bar to each checkpoint with a small delay so the user sees movement
+    for (const s of steps) {
+        if (stepEl) stepEl.textContent = s.label;
+        if (barEl)  barEl.style.width  = s.pct + '%';
+        await new Promise(r => setTimeout(r, 220));
+    }
+
+    await loadDoctorProfile();
+
+    if (stepEl) stepEl.textContent = 'Rendering dashboard…';
+    if (barEl)  barEl.style.width  = '95%';
+
+    renderPatients();
+    renderDevices();
+    renderAlerts();
+    renderConversations();
+    renderAnalytics();
+    updateStatistics();
+    updateTime();
+    setInterval(updateTime, 1000);
+    setInterval(simulateVitalUpdates, 6000);
+
+    // Complete bar to 100% then fade out
+    if (barEl)  barEl.style.width  = '100%';
+    if (stepEl) stepEl.textContent = 'Ready!';
+
+    setTimeout(() => {
+        if (ls) {
+            ls.classList.add('fade');
+            setTimeout(() => ls.remove(), 500);
+        }
+    }, 400);
+});
+</script>
+<!-- ── DELETE ACCOUNT MODAL ── -->
+<div id="deleteAccountModal" class="modal">
+    <div class="modal-content bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center text-red-500 text-2xl flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">Delete Account</h3>
+                    <p class="text-xs text-red-500 font-bold mt-0.5 uppercase tracking-wider">This action is irreversible</p>
+                </div>
+            </div>
+            <button onclick="closeDeleteModal()" class="text-slate-400 hover:text-slate-600 text-xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 transition flex-shrink-0">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-5">
+            <p class="text-red-800 text-sm font-semibold mb-2">⚠️ Deleting your account will:</p>
+            <ul class="text-red-700 text-xs space-y-1.5 font-medium ml-2">
+                <li><i class="fas fa-times-circle mr-2 text-red-400"></i>Permanently remove your doctor profile from the database</li>
+                <li><i class="fas fa-times-circle mr-2 text-red-400"></i>Revoke your access to all patient dashboards</li>
+                <li><i class="fas fa-times-circle mr-2 text-red-400"></i>Delete all your clinical notes and saved data</li>
+                <li><i class="fas fa-times-circle mr-2 text-red-400"></i>Require a full new signup to regain access</li>
+            </ul>
+        </div>
+
+        <div class="mb-5">
+            <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-widest">
+                Type <span class="bg-slate-100 px-2 py-0.5 rounded font-mono text-slate-800">DELETE</span> to confirm
+            </label>
+            <input type="text" id="delete-confirm-input" placeholder="Type DELETE here"
+                   class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-red-400 focus:outline-none text-slate-900 font-mono font-bold text-sm transition"
+                   oninput="this.value = this.value.toUpperCase()">
+            <p id="delete-confirm-error" class="text-red-500 text-xs mt-2 font-semibold" style="display:none;"></p>
+        </div>
+
+        <div class="flex gap-3">
+            <button id="confirm-delete-btn" onclick="confirmDeleteAccount()"
+                    class="flex-1 py-3.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition shadow-lg text-sm tracking-wide">
+                <i class="fas fa-trash-alt mr-2"></i>Permanently Delete Account
+            </button>
+            <button onclick="closeDeleteModal()"
+                    class="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-sm">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

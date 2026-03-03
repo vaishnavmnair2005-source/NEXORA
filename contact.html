@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | NEXORA Technologies - Global Medical Support</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-gradient::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            animation: rotate 60s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .floating-particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translate(-100px, -100px) rotate(180deg); opacity: 0.6; }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 60px -15px rgba(14, 165, 233, 0.3);
+        }
+        
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.15);
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            color: #94a3b8;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            background: white;
+            padding: 0 0.25rem;
+        }
+        
+        .input-field:focus + .floating-label,
+        .input-field:not(:placeholder-shown) + .floating-label {
+            top: -0.5rem;
+            left: 0.75rem;
+            font-size: 0.75rem;
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+        
+        .contact-option {
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+        
+        .contact-option:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.25);
+        }
+        
+        .info-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #0ea5e9, #06b6d4, #22d3ee);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        
+        .info-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(14, 165, 233, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-primary:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(14, 165, 233, 0.4);
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 1.5rem;
+            overflow: hidden;
+        }
+        
+        .map-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #0ea5e9;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .success-animation {
+            animation: successPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes successPop {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        
+        .error-message {
+            color: #dc2626;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .input-field.error {
+            border-color: #dc2626 !important;
+        }
+        
+        .phone-prefix {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .phone-input-with-prefix {
+            padding-left: 4rem !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center gap-3 group">
+                    <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto transition-transform group-hover:scale-110">
+                    <div>
+                        <div class="text-xl font-bold text-slate-900">NEXORA</div>
+                        <div class="text-xs text-slate-500 -mt-1">Global Support</div>
+                    </div>
+                </a>
+                <a href="/" class="text-sm font-semibold text-slate-600 hover:text-sky-600 transition flex items-center gap-2">
+                    <i class="fas fa-arrow-left text-xs"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-gradient pt-32 pb-20 px-4 relative">
+        <div class="floating-particle" style="width: 100px; height: 100px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-particle" style="width: 60px; height: 60px; top: 60%; left: 80%; animation-delay: 2s;"></div>
+        <div class="floating-particle" style="width: 80px; height: 80px; top: 40%; left: 60%; animation-delay: 4s;"></div>
+        
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16" data-aos="fade-down">
+                <div class="inline-flex items-center gap-2 px-5 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-8 border border-white/20">
+                    <div class="w-2 h-2 bg-green-400 rounded-full pulse-ring"></div>
+                    <span class="text-sm font-bold text-white">24/7 Global Support Available</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
+                    Let's <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Connect.</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                    Whether you're a healthcare provider, enterprise partner, or individual user, our dedicated team is here to support your journey with NEXORA MediTwin.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-cyan-400 mb-2">< 2h</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Response Time</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-cyan-400 mb-2">24/7</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Support Hours</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-cyan-400 mb-2">50+</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Countries Served</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition">
+                    <div class="text-4xl font-black text-cyan-400 mb-2">98%</div>
+                    <div class="text-xs font-medium text-slate-300 uppercase tracking-wider">Satisfaction Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-4 -mt-8 pb-20 relative z-10">
+        
+        <div class="grid md:grid-cols-3 gap-6 mb-16" data-aos="fade-up">
+            <div class="contact-option glass-card rounded-3xl p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <i class="fas fa-building text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Enterprise Solutions</h3>
+                <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                    Hospital networks, distributors, and large-scale deployments requiring custom API integration and bulk procurement.
+                </p>
+                <div class="flex items-center gap-2 text-sky-600 font-semibold text-sm">
+                    <span>For Organizations</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </div>
+            </div>
+
+            <div class="contact-option glass-card rounded-3xl p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <i class="fas fa-clinic-medical text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Clinical Partners</h3>
+                <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                    Private clinics and individual practitioners seeking local support and regulatory compliance assistance.
+                </p>
+                <div class="flex items-center gap-2 text-teal-600 font-semibold text-sm">
+                    <span>For Healthcare Providers</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </div>
+            </div>
+
+            <div class="contact-option glass-card rounded-3xl p-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                    <i class="fas fa-headset text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Technical Support</h3>
+                <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                    Device troubleshooting, software issues, and technical assistance for existing NEXORA users.
+                </p>
+                <div class="flex items-center gap-2 text-purple-600 font-semibold text-sm">
+                    <span>For Current Users</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 mb-16">
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12" data-aos="fade-right">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-3">Send Us a Message</h2>
+                    <p class="text-slate-600">Fill out the form below and our team will get back to you within 2 hours during business hours.</p>
+                </div>
+
+                <form id="contactForm" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="name" 
+                                required 
+                                placeholder=" " 
+                                class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none peer"
+                            >
+                            <label class="floating-label peer-focus:text-sky-600">Full Name *</label>
+                            <p id="name-error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+                        <div class="relative">
+                            <input 
+                                type="email" 
+                                name="email" 
+                                required 
+                                placeholder=" " 
+                                class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none peer"
+                            >
+                            <label class="floating-label peer-focus:text-sky-600">Email Address *</label>
+                            <p id="email-error" class="text-red-500 text-xs mt-1 hidden"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <select 
+                                name="tier" 
+                                required
+                                class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none appearance-none"
+                            >
+                                <option value="">Select Inquiry Type</option>
+                                <option value="enterprise">Enterprise/Global Partnership</option>
+                                <option value="clinical">Clinical Partnership</option>
+                                <option value="technical">Technical Support</option>
+                                <option value="sales">Sales Inquiry</option>
+                                <option value="general">General Question</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        <div class="relative">
+                            <select 
+                                id="regionSelect"
+                                name="region" 
+                                required
+                                class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none appearance-none"
+                            >
+                                <option value="">Select Region</option>
+                                <option value="na">North America</option>
+                                <option value="eu">Europe</option>
+                                <option value="asia">Asia Pacific</option>
+                                <option value="me">Middle East</option>
+                                <option value="africa">Africa</option>
+                                <option value="latam">Latin America</option>
+                                <option value="global">Global/Other</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <select 
+                            id="countrySelect"
+                            name="country" 
+                            class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none appearance-none"
+                        >
+                            <option value="">Select Country</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+
+                    <div class="relative">
+                        <span id="phonePrefix" class="phone-prefix"></span>
+                        <input 
+                            type="tel" 
+                            id="phoneInput"
+                            name="phone" 
+                            placeholder=" " 
+                            class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none peer"
+                        >
+                        <label class="floating-label peer-focus:text-sky-600">Phone Number (Optional)</label>
+                        <div id="phoneError" class="error-message"></div>
+                    </div>
+
+                    <div class="relative">
+                        <textarea 
+                            name="message" 
+                            required 
+                            minlength="10"
+                            rows="5" 
+                            placeholder=" " 
+                            class="input-field w-full bg-white/80 border-2 border-slate-200 rounded-xl px-5 py-4 text-slate-900 focus:border-sky-500 focus:outline-none resize-none peer"
+                        ></textarea>
+                        <label class="floating-label peer-focus:text-sky-600">Your Message *</label>
+                    </div>
+
+                    <div class="bg-sky-50 border-l-4 border-sky-500 rounded-r-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-sky-600 mt-0.5"></i>
+                            <p class="text-xs text-sky-800 leading-relaxed">
+                                <strong>Priority Support:</strong> Enterprise and clinical inquiries are typically responded to within 1 hour during business hours (9 AM - 6 PM EST).
+                            </p>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit"
+                        class="btn-primary w-full py-5 text-white font-bold rounded-xl shadow-xl flex items-center justify-center gap-3 text-lg relative overflow-hidden"
+                    >
+                        <span class="relative z-10">Send Message</span>
+                        <i class="fas fa-paper-plane relative z-10"></i>
+                    </button>
+                </form>
+
+                <div id="successMessage" class="hidden mt-8 bg-green-50 border-2 border-green-500 rounded-2xl p-6 text-center success-animation">
+                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-green-900 mb-2">Message Sent Successfully!</h3>
+                    <p class="text-green-700">Our team will review your inquiry and respond within 2 hours.</p>
+                </div>
+            </div>
+
+            <div class="space-y-6" data-aos="fade-left">
+                <div class="info-card glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-envelope text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">Email Support</h3>
+                            <p class="text-sm text-slate-500">Direct communication channel</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <a href="/cdn-cgi/l/email-protection#710514101c1f14091e03104341434731161c10181d5f121e1c" class="flex items-center gap-3 text-slate-600 hover:text-sky-600 transition">
+                            <i class="fas fa-at text-sky-500"></i>
+                            <span class="font-semibold"><span class="__cf_email__" data-cfemail="f78392969a99928f988596c5c7c5c1b7909a969e9bd994989a">[email&#160;protected]</span></span>
+                        </a>
+                        <p class="text-xs text-slate-500 pl-8">General inquiries and support requests</p>
+                    </div>
+                </div>
+
+                <div class="info-card glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-map-marker-alt text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">Global Offices</h3>
+                            <p class="text-sm text-slate-500">Worldwide presence</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-building text-sky-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">North America HQ</h4>
+                                <p class="text-xs text-slate-600">San Francisco, CA, USA</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-building text-teal-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">Europe Office</h4>
+                                <p class="text-xs text-slate-600">London, United Kingdom</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-building text-purple-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">Asia Pacific</h4>
+                                <p class="text-xs text-slate-600">Singapore</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-clock text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">Business Hours</h3>
+                            <p class="text-sm text-slate-500">When we're available</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-semibold text-slate-700">Monday - Friday</span>
+                            <span class="text-sm text-slate-600">9:00 AM - 6:00 PM EST</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-semibold text-slate-700">Saturday</span>
+                            <span class="text-sm text-slate-600">10:00 AM - 4:00 PM EST</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-semibold text-slate-700">Sunday</span>
+                            <span class="text-sm text-slate-600">Closed</span>
+                        </div>
+                        <div class="pt-3 border-t border-slate-200">
+                            <div class="bg-green-50 rounded-lg p-3">
+                                <p class="text-xs text-green-800 font-semibold flex items-center gap-2">
+                                    <i class="fas fa-shield-alt"></i>
+                                    24/7 Emergency Technical Support Available
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card glass-card rounded-3xl p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-share-nodes text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-900">Follow Us</h3>
+                            <p class="text-sm text-slate-500">Stay connected</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-12 h-12 bg-slate-100 hover:bg-sky-500 rounded-xl flex items-center justify-center transition group">
+                            <i class="fab fa-linkedin-in text-slate-600 group-hover:text-white transition"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 bg-slate-100 hover:bg-sky-400 rounded-xl flex items-center justify-center transition group">
+                            <i class="fab fa-twitter text-slate-600 group-hover:text-white transition"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 bg-slate-100 hover:bg-pink-500 rounded-xl flex items-center justify-center transition group">
+                            <i class="fab fa-instagram text-slate-600 group-hover:text-white transition"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 bg-slate-100 hover:bg-blue-600 rounded-xl flex items-center justify-center transition group">
+                            <i class="fab fa-facebook-f text-slate-600 group-hover:text-white transition"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-8 md:p-12 mb-16" data-aos="fade-up">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">Global Presence</h2>
+                <p class="text-slate-600">Serving healthcare providers and patients across 50+ countries</p>
+            </div>
+            <div class="map-container">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <svg viewBox="0 0 1000 500" class="w-full h-full opacity-80" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M150 150 Q 200 120 250 130 T 350 140 L 380 160 Q 400 180 420 170 L 450 160" 
+                              stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.4"/>
+                        <path d="M500 200 Q 550 180 600 190 L 650 210 Q 700 220 750 210" 
+                              stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.4"/>
+                        <path d="M200 300 L 250 280 Q 300 270 350 290 L 400 300" 
+                              stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.4"/>
+                        
+                        <circle cx="250" cy="200" r="6" class="map-dot" style="animation-delay: 0s;"/>
+                        <circle cx="450" cy="180" r="6" class="map-dot" style="animation-delay: 0.5s;"/>
+                        <circle cx="650" cy="220" r="6" class="map-dot" style="animation-delay: 1s;"/>
+                        <circle cx="350" cy="290" r="6" class="map-dot" style="animation-delay: 1.5s;"/>
+                        <circle cx="550" cy="250" r="6" class="map-dot" style="animation-delay: 2s;"/>
+                    </svg>
+                </div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="text-center text-white">
+                        <i class="fas fa-globe-americas text-6xl text-sky-400/30 mb-4"></i>
+                        <h3 class="text-2xl font-bold mb-2">Worldwide Coverage</h3>
+                        <p class="text-slate-300">Supporting healthcare innovation across continents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-8 md:p-12 mb-16" data-aos="fade-up">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 mb-3">Frequently Asked Questions</h2>
+                <p class="text-slate-600">Quick answers to common inquiries</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-clock text-sky-500"></i>
+                        How quickly will I receive a response?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Enterprise and clinical inquiries are typically answered within 1-2 hours during business hours. General inquiries receive responses within 24 hours.
+                    </p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-building text-teal-500"></i>
+                        Do you offer on-site demonstrations?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Yes! For healthcare providers and enterprise partners, we provide on-site demonstrations and training sessions. Contact us to schedule.
+                    </p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-globe text-purple-500"></i>
+                        Is international support available?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Absolutely. We have regional support teams across North America, Europe, Asia Pacific, and more. Select your region in the contact form.
+                    </p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-6 hover:shadow-lg transition">
+                    <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-3">
+                        <i class="fas fa-headset text-orange-500"></i>
+                        What about emergency technical support?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        24/7 emergency technical support is available for critical issues affecting patient care. Use the priority support line provided in your account.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-12 text-center bg-gradient-to-br from-sky-500 to-blue-600 text-white overflow-hidden relative" data-aos="zoom-in">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="relative z-10">
+                <i class="fas fa-rocket text-5xl mb-6 opacity-90"></i>
+                <h2 class="text-4xl font-bold mb-4">Ready to Transform Healthcare?</h2>
+                <p class="text-xl text-sky-100 mb-8 max-w-2xl mx-auto">
+                    Join thousands of healthcare providers using NEXORA MediTwin to deliver proactive, personalized care.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/signup" class="px-8 py-4 bg-white text-sky-600 rounded-xl font-bold hover:bg-slate-100 transition shadow-xl">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Create Account
+                    </a>
+                    <a href="/about" class="px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-xl font-bold hover:bg-white/30 transition">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 pt-20 pb-10 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="/" class="flex items-center gap-3 mb-6">
+                        <img src="/static/images/company_logo.png" alt="NEXORA" class="h-10 w-auto brightness-110">
+                        <span class="text-2xl font-bold text-white tracking-tighter">NEXORA</span>
+                    </a>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-8">
+                        Empowering the future of proactive healthcare through AI-driven Digital Twin technology and medical-grade IoT sensing.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-sky-500 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Platform</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/#features" class="hover:text-sky-400 transition">Vital Monitoring</a></li>
+                        <li><a href="/#how-it-works" class="hover:text-sky-400 transition">Cloud Digital Twin</a></li>
+                        <li><a href="/#tech" class="hover:text-sky-400 transition">Edge AI Engine</a></li>
+                        <li><a href="/#live-demo" class="hover:text-sky-400 transition">Live Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Resources</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/static/NEXORA MediTwin Documentation.pdf" download class="hover:text-sky-400 transition">Technical Whitepaper</a></li>
+                        <li><a href="/about" class="hover:text-sky-400 transition">Architecture Guide</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-sky-400 transition">Clinical Partners</a></li>
+                        <li><a href="/privacy" class="hover:text-sky-400 transition">Privacy Protocols</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-xs">Company</h4>
+                    <ul class="space-y-4 text-sm">
+                        <li><a href="/about" class="hover:text-sky-400 transition">About Us</a></li>
+                        <li><a href="/help" class="hover:text-sky-400 transition">Help Center & FAQ</a></li>
+                        <li><a href="/contact" class="hover:text-sky-400 transition">Contact Sales</a></li>
+                        <li><a href="/enquire-locally" class="hover:text-sky-400 transition">Regional Support</a></li>
+                        <li><a href="/security" class="hover:text-sky-400 transition">Data Security</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-xs text-slate-500">
+                    © 2025 NEXORA Technologies Inc. All rights reserved.
+                </p>
+                <div class="flex gap-8 text-xs text-slate-500 uppercase tracking-widest">
+                    <a href="/terms" class="hover:text-white transition">Terms of Use</a>
+                    <a href="/privacy" class="hover:text-white transition">Privacy Policy</a>
+                    <a href="/regulatory" class="hover:text-white transition">Regulatory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+
+        // Country data with codes and phone rules
+        const countryData = {
+            na: [
+                { name: "United States", code: "+1", minDigits: 10, maxDigits: 10 },
+                { name: "Canada", code: "+1", minDigits: 10, maxDigits: 10 },
+                { name: "Mexico", code: "+52", minDigits: 10, maxDigits: 10 }
+            ],
+            eu: [
+                { name: "United Kingdom", code: "+44", minDigits: 10, maxDigits: 10 },
+                { name: "Germany", code: "+49", minDigits: 10, maxDigits: 11 },
+                { name: "France", code: "+33", minDigits: 9, maxDigits: 9 },
+                { name: "Italy", code: "+39", minDigits: 9, maxDigits: 10 },
+                { name: "Spain", code: "+34", minDigits: 9, maxDigits: 9 },
+                { name: "Netherlands", code: "+31", minDigits: 9, maxDigits: 9 },
+                { name: "Belgium", code: "+32", minDigits: 8, maxDigits: 9 },
+                { name: "Switzerland", code: "+41", minDigits: 9, maxDigits: 9 },
+                { name: "Austria", code: "+43", minDigits: 10, maxDigits: 13 },
+                { name: "Poland", code: "+48", minDigits: 9, maxDigits: 9 }
+            ],
+            asia: [
+                { name: "India", code: "+91", minDigits: 10, maxDigits: 10 },
+                { name: "China", code: "+86", minDigits: 11, maxDigits: 11 },
+                { name: "Japan", code: "+81", minDigits: 10, maxDigits: 10 },
+                { name: "Singapore", code: "+65", minDigits: 8, maxDigits: 8 },
+                { name: "South Korea", code: "+82", minDigits: 9, maxDigits: 10 },
+                { name: "Malaysia", code: "+60", minDigits: 9, maxDigits: 10 },
+                { name: "Thailand", code: "+66", minDigits: 9, maxDigits: 9 },
+                { name: "Indonesia", code: "+62", minDigits: 9, maxDigits: 12 },
+                { name: "Philippines", code: "+63", minDigits: 10, maxDigits: 10 },
+                { name: "Vietnam", code: "+84", minDigits: 9, maxDigits: 10 }
+            ],
+            me: [
+                { name: "United Arab Emirates", code: "+971", minDigits: 9, maxDigits: 9 },
+                { name: "Saudi Arabia", code: "+966", minDigits: 9, maxDigits: 9 },
+                { name: "Qatar", code: "+974", minDigits: 8, maxDigits: 8 },
+                { name: "Kuwait", code: "+965", minDigits: 8, maxDigits: 8 },
+                { name: "Bahrain", code: "+973", minDigits: 8, maxDigits: 8 },
+                { name: "Oman", code: "+968", minDigits: 8, maxDigits: 8 },
+                { name: "Israel", code: "+972", minDigits: 9, maxDigits: 9 },
+                { name: "Turkey", code: "+90", minDigits: 10, maxDigits: 10 }
+            ],
+            africa: [
+                { name: "South Africa", code: "+27", minDigits: 9, maxDigits: 9 },
+                { name: "Egypt", code: "+20", minDigits: 10, maxDigits: 10 },
+                { name: "Nigeria", code: "+234", minDigits: 10, maxDigits: 10 },
+                { name: "Kenya", code: "+254", minDigits: 9, maxDigits: 10 },
+                { name: "Morocco", code: "+212", minDigits: 9, maxDigits: 9 },
+                { name: "Ghana", code: "+233", minDigits: 9, maxDigits: 9 },
+                { name: "Ethiopia", code: "+251", minDigits: 9, maxDigits: 9 },
+                { name: "Tanzania", code: "+255", minDigits: 9, maxDigits: 9 }
+            ],
+            latam: [
+                { name: "Brazil", code: "+55", minDigits: 10, maxDigits: 11 },
+                { name: "Argentina", code: "+54", minDigits: 10, maxDigits: 11 },
+                { name: "Chile", code: "+56", minDigits: 9, maxDigits: 9 },
+                { name: "Colombia", code: "+57", minDigits: 10, maxDigits: 10 },
+                { name: "Peru", code: "+51", minDigits: 9, maxDigits: 9 },
+                { name: "Venezuela", code: "+58", minDigits: 10, maxDigits: 10 },
+                { name: "Ecuador", code: "+593", minDigits: 9, maxDigits: 9 },
+                { name: "Uruguay", code: "+598", minDigits: 8, maxDigits: 9 }
+            ],
+            global: [
+                { name: "Australia", code: "+61", minDigits: 9, maxDigits: 9 },
+                { name: "New Zealand", code: "+64", minDigits: 8, maxDigits: 10 },
+                { name: "Russia", code: "+7", minDigits: 10, maxDigits: 10 }
+            ]
+        };
+
+        let selectedCountry = null;
+
+        // Region change handler
+        const regionSelect = document.getElementById('regionSelect');
+        const countrySelect = document.getElementById('countrySelect');
+        const phoneInput = document.getElementById('phoneInput');
+        const phonePrefix = document.getElementById('phonePrefix');
+        const phoneError = document.getElementById('phoneError');
+
+        regionSelect.addEventListener('change', function() {
+            const region = this.value;
+            countrySelect.innerHTML = '<option value="">Select Country</option>';
+            phonePrefix.textContent = '';
+            phoneInput.classList.remove('phone-input-with-prefix');
+            selectedCountry = null;
+            
+            if (region && countryData[region]) {
+                countryData[region].forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(country);
+                    option.textContent = country.name;
+                    countrySelect.appendChild(option);
+                });
+            }
+        });
+
+        // Country change handler
+        countrySelect.addEventListener('change', function() {
+            if (this.value) {
+                selectedCountry = JSON.parse(this.value);
+                phonePrefix.textContent = selectedCountry.code;
+                phoneInput.classList.add('phone-input-with-prefix');
+                phoneInput.value = '';
+                clearPhoneError();
+            } else {
+                selectedCountry = null;
+                phonePrefix.textContent = '';
+                phoneInput.classList.remove('phone-input-with-prefix');
+                clearPhoneError();
+            }
+        });
+
+        // Phone input handler - only allow numbers
+        phoneInput.addEventListener('input', function(e) {
+            // Remove all non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+            validatePhone();
+        });
+
+        // Error message handling
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.innerText = message;
+                errorElement.classList.remove('hidden');
+                errorElement.classList.add('show');
+                // Find input above it
+                const inputField = errorElement.previousElementSibling;
+                if(inputField) inputField.classList.add('error');
+            }
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.innerText = '';
+                el.classList.remove('show');
+            });
+            document.querySelectorAll('.input-field').forEach(el => {
+                el.classList.remove('error');
+            });
+        }
+
+        function showPhoneError(message) {
+            phoneError.textContent = message;
+            phoneError.classList.add('show');
+            phoneInput.classList.add('error');
+        }
+
+        function clearPhoneError() {
+            phoneError.textContent = '';
+            phoneError.classList.remove('show');
+            phoneInput.classList.remove('error');
+        }
+
+        function validatePhone() {
+            const value = phoneInput.value;
+            
+            // Clear error if field is empty (optional field)
+            if (!value) {
+                clearPhoneError();
+                return true;
+            }
+
+            // If no country selected
+            if (!selectedCountry) {
+                showPhoneError('Please select a country first');
+                return false;
+            }
+
+            const digitCount = value.length;
+            const { minDigits, maxDigits, name } = selectedCountry;
+
+            // Check if within valid range
+            if (digitCount < minDigits) {
+                showPhoneError(`Phone number for ${name} must be at least ${minDigits} digits. Currently: ${digitCount} digits.`);
+                return false;
+            } else if (digitCount > maxDigits) {
+                showPhoneError(`Phone number for ${name} cannot exceed ${maxDigits} digits. Currently: ${digitCount} digits.`);
+                return false;
+            } else {
+                clearPhoneError();
+                return true;
+            }
+        }
+
+        // Form submission handler
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // --- VALIDATION START ---
+            clearErrors();
+            let isValid = true;
+
+            // 1. Name Validation (Letters only)
+            const nameInput = e.target.elements['name'];
+            const nameValue = nameInput.value.trim();
+            if (!/^[A-Za-z\s]+$/.test(nameValue)) {
+                showError('name-error', '❌ Invalid Name: Please use only letters (A-Z).');
+                nameInput.focus();
+                isValid = false;
+            }
+
+            // 2. Email Validation (Gmail only)
+            const emailInput = e.target.elements['email'];
+            const emailValue = emailInput.value.trim();
+            const gmailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+            if (!gmailPattern.test(emailValue)) {
+                showError('email-error', '❌ Invalid Email: Only @gmail.com addresses are accepted.');
+                if (isValid) emailInput.focus(); // Focus only if name was valid
+                isValid = false;
+            }
+
+            // 3. Phone Validation (Strict Country Rules)
+            // If phone has a value, validate it
+            if (phoneInput.value && !validatePhone()) {
+                if (isValid) phoneInput.focus();
+                isValid = false;
+            }
+
+            if (!isValid) return; // Stop submission if validation failed
+
+            // --- VALIDATION END ---
+            
+            // Disable button
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="relative z-10">Sending...</span><i class="fas fa-spinner fa-spin relative z-10"></i>';
+
+            const formData = new FormData(e.target);
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // Show success message
+                    e.target.style.display = 'none';
+                    document.getElementById('successMessage').classList.remove('hidden');
+                    
+                    // Optional: Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = '/success';
+                    }, 3000);
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                alert('⚠️ Delivery Error. Please email teamnexora2026@gmail.com directly.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span class="relative z-10">Send Message</span><i class="fas fa-paper-plane relative z-10"></i>';
+            }
+        });
+
+        // Add floating label behavior for select fields
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', function() {
+                if(this.value) {
+                    this.classList.add('has-value');
+                } else {
+                    this.classList.remove('has-value');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
