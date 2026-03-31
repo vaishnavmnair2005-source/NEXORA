@@ -309,7 +309,7 @@
                 
                 <div class="grid grid-cols-3 gap-6">
                     <div class="stat-card text-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                        <div class="text-4xl font-black text-white metric-counter">99.9%</div>
+                        <div class="text-4xl font-black text-white metric-counter">85%</div>
                         <div class="text-sm text-blue-200 font-medium mt-1">Accuracy</div>
                     </div>
                     <div class="stat-card text-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
@@ -317,7 +317,7 @@
                         <div class="text-sm text-blue-200 font-medium mt-1">Monitoring</div>
                     </div>
                     <div class="stat-card text-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                        <div class="text-4xl font-black text-white metric-counter">6+</div>
+                        <div class="text-4xl font-black text-white metric-counter">5+</div>
                         <div class="text-sm text-blue-200 font-medium mt-1">Vitals</div>
                     </div>
                 </div>
@@ -382,7 +382,7 @@
                 <div class="inline-block px-4 py-2 bg-sky-100 text-sky-700 rounded-full text-sm font-bold mb-4">
                     <i class="fas fa-heartbeat mr-2"></i>Comprehensive Monitoring
                 </div>
-                <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-4">Six Critical Health Parameters</h2>
+                <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-4">Five Critical Health Parameters</h2>
                 <p class="text-xl text-slate-600 max-w-2xl mx-auto">Real-time tracking with medical-grade precision and AI-powered insights</p>
             </div>
 
@@ -427,11 +427,11 @@
                     <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mb-5 text-2xl shadow-lg">
                         <i class="fa-solid fa-wave-square"></i>
                     </div>
-                    <h3 class="font-bold text-xl mb-3 text-slate-800">ECG & HRV</h3>
-                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">Cardiac electrical activity with stress recovery and autonomic balance metrics.</p>
-                    <div class="flex items-center gap-2 text-xs text-purple-600 font-semibold">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Arrhythmia detection</span>
+                    <h3 class="font-bold text-xl mb-3 text-slate-800">ECG & HRV Analysis</h3>
+                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">Deep cardiac analysis with RMSSD, SDNN & pNN50 — three precision HRV metrics for autonomic balance assessment.</p>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2 text-xs text-purple-600 font-semibold"><i class="fas fa-check-circle"></i><span>RMSSD · SDNN · pNN50</span></div>
+                        <div class="flex items-center gap-2 text-xs text-purple-500 font-semibold"><i class="fas fa-check-circle"></i><span>Arrhythmia detection</span></div>
                     </div>
                 </div>
                 
@@ -444,18 +444,6 @@
                     <div class="flex items-center gap-2 text-xs text-yellow-600 font-semibold">
                         <i class="fas fa-check-circle"></i>
                         <span>Auto emergency alert</span>
-                    </div>
-                </div>
-                
-                <div class="vital-card bg-gradient-to-br from-teal-50 to-white p-8 rounded-2xl shadow-lg border border-teal-100">
-                    <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-2xl flex items-center justify-center mb-5 text-2xl shadow-lg">
-                        <i class="fa-solid fa-brain"></i>
-                    </div>
-                    <h3 class="font-bold text-xl mb-3 text-slate-800">Stress Level</h3>
-                    <p class="text-sm text-slate-600 mb-4 leading-relaxed">GSR-based stress detection with mindfulness recommendations and trends.</p>
-                    <div class="flex items-center gap-2 text-xs text-teal-600 font-semibold">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Mental wellness tracking</span>
                     </div>
                 </div>
             </div>
@@ -653,33 +641,49 @@
                             <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-wave-square text-white text-sm"></i>
                             </div>
-                            <p class="text-gray-600 text-sm font-semibold">HRV</p>
+                            <p class="text-gray-600 text-sm font-semibold">HRV — RMSSD</p>
                         </div>
                         <p class="text-4xl font-black text-slate-800 mb-1">
-                            <span id="val-hrv" class="metric-counter">--</span>
+                            <span id="val-rmssd" class="metric-counter">--</span>
                         </p>
                         <p class="text-xs text-gray-500 font-medium mb-3">milliseconds</p>
                         <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div id="hrv-bar" class="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500" style="width: 0%"></div>
+                            <div id="rmssd-bar" class="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
-                    
-                    <div class="bg-gradient-to-br from-teal-50 to-white p-6 rounded-2xl border border-teal-100 shadow-sm hover:shadow-lg transition-shadow">
+
+                    <div class="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-2xl border border-indigo-100 shadow-sm hover:shadow-lg transition-shadow">
                         <div class="flex items-center gap-2 mb-3">
-                            <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-brain text-white text-sm"></i>
+                            <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-chart-bar text-white text-sm"></i>
                             </div>
-                            <p class="text-gray-600 text-sm font-semibold">Stress</p>
+                            <p class="text-gray-600 text-sm font-semibold">HRV — SDNN</p>
                         </div>
-                        <p class="text-3xl font-black mb-1">
-                            <span id="val-stress" class="metric-counter">--</span>
+                        <p class="text-4xl font-black text-slate-800 mb-1">
+                            <span id="val-sdnn" class="metric-counter">--</span>
                         </p>
-                        <p class="text-xs text-gray-500 font-medium mb-3">current level</p>
+                        <p class="text-xs text-gray-500 font-medium mb-3">milliseconds</p>
                         <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div id="stress-bar" class="h-full bg-gradient-to-r from-teal-500 to-teal-600 transition-all duration-500" style="width: 0%"></div>
+                            <div id="sdnn-bar" class="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
-                    
+
+                    <div class="bg-gradient-to-br from-violet-50 to-white p-6 rounded-2xl border border-violet-100 shadow-sm hover:shadow-lg transition-shadow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-8 h-8 bg-violet-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-percent text-white text-sm"></i>
+                            </div>
+                            <p class="text-gray-600 text-sm font-semibold">HRV — pNN50</p>
+                        </div>
+                        <p class="text-4xl font-black text-slate-800 mb-1">
+                            <span id="val-pnn50" class="metric-counter">--</span>
+                        </p>
+                        <p class="text-xs text-gray-500 font-medium mb-3">percentage</p>
+                        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div id="pnn50-bar" class="h-full bg-gradient-to-r from-violet-500 to-violet-600 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
                     <div class="bg-gradient-to-br from-yellow-50 to-white p-6 rounded-2xl border border-yellow-100 shadow-sm hover:shadow-lg transition-shadow">
                         <div class="flex items-center gap-2 mb-3">
                             <div class="w-8 h-8 bg-yellow-600 rounded-lg flex items-center justify-center">
@@ -846,13 +850,13 @@
             setTimeout(() => notification.classList.remove('show'), 4000);
         }
 
-        // Dashboard Updates
         function updateDashboard() {
             const hr = Math.floor(Math.random() * 41) + 60;
             const spo2 = Math.floor(Math.random() * 6) + 95;
             const temp = (Math.random() * 1.0 + 36.5).toFixed(1);
-            const hrv = Math.floor(Math.random() * 81) + 20;
-            const stress = ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)];
+            const rmssd = Math.floor(Math.random() * 60) + 20;
+            const sdnn  = Math.floor(Math.random() * 70) + 25;
+            const pnn50 = (Math.random() * 45 + 5).toFixed(1);
             const fall = Math.random() < 0.95 ? 'No Fall' : 'Fall Detected';
 
             document.getElementById('val-hr').textContent = hr;
@@ -864,13 +868,14 @@
             document.getElementById('val-temp').textContent = temp;
             document.getElementById('temp-bar').style.width = ((temp - 36.5) / 1.0 * 100) + '%';
 
-            document.getElementById('val-hrv').textContent = hrv;
-            document.getElementById('hrv-bar').style.width = ((hrv - 20) / 80 * 100) + '%';
+            document.getElementById('val-rmssd').textContent = rmssd;
+            document.getElementById('rmssd-bar').style.width = Math.min((rmssd / 80) * 100, 100) + '%';
 
-            const stressEl = document.getElementById('val-stress');
-            stressEl.textContent = stress;
-            stressEl.className = 'metric-counter text-' + (stress === 'Low' ? 'green' : stress === 'Medium' ? 'yellow' : 'red') + '-600';
-            document.getElementById('stress-bar').style.width = (stress === 'Low' ? 33 : stress === 'Medium' ? 66 : 100) + '%';
+            document.getElementById('val-sdnn').textContent = sdnn;
+            document.getElementById('sdnn-bar').style.width = Math.min((sdnn / 100) * 100, 100) + '%';
+
+            document.getElementById('val-pnn50').textContent = pnn50;
+            document.getElementById('pnn50-bar').style.width = Math.min((pnn50 / 50) * 100, 100) + '%';
 
             const fallEl = document.getElementById('val-fall');
             fallEl.textContent = fall;

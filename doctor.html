@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #0d9488;
@@ -83,13 +85,19 @@
         .ecg-canvas { width: 100%; height: 80px; display: block; }
         .ecg-wrapper { background: #0a1628; border-radius: 12px; padding: 8px 12px; overflow: hidden; }
 
-        /* Stress gauge */
-        .stress-bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
-        .stress-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+        /* HRV gauge bars */
+        .hrv-bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
+        .hrv-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
 
         /* Fall detected badge */
         .fall-alert { background: #fef2f2; border: 2px solid #fca5a5; color: #dc2626; border-radius: 10px; padding: 4px 10px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
         .fall-safe { background: #f0fdf4; border: 2px solid #86efac; color: #16a34a; border-radius: 10px; padding: 4px 10px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* Vital error state — shown when vitals_raw_median returns 0 for a field */
+        .vital-err { color: #ef4444 !important; font-size: 1rem !important; letter-spacing: .04em; }
+        .vital-err-badge { display:inline-flex; align-items:center; gap:3px; background:#fef2f2; border:1px solid #fca5a5; color:#dc2626; border-radius:6px; padding:1px 6px; font-size:9px; font-weight:800; letter-spacing:.06em; }
+        .vital-card-error { border-color: #ef4444 !important; background: linear-gradient(135deg,#fff5f5,#fef2f2) !important; animation: errPulse 2s ease-in-out infinite; }
+        @keyframes errPulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.25)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -177,16 +185,6 @@
 
 <!-- ── TOAST CONTAINER ── -->
 <div id="toast-container"></div>
-
-<!-- ── MINI CONFIRM / INFO MODAL ── -->
-<div id="miniModal">
-    <div class="mm-box">
-        <div class="mm-icon" id="mm-icon"></div>
-        <h3 id="mm-title"></h3>
-        <p id="mm-body"></p>
-        <div class="mm-btns" id="mm-btns"></div>
-    </div>
-</div>
 
 <aside class="w-72 sidebar text-slate-300 flex flex-col justify-between py-6 px-5 shadow-2xl z-50 flex-shrink-0">
     <div>
@@ -427,6 +425,16 @@
                     <div class="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-slate-100" id="analytics-device-counts"></div>
                 </div>
             </div>
+            <!-- HRV ANALYTICS CHART -->
+            <div class="glass p-6 mb-6">
+                <h3 class="font-bold text-slate-900 mb-1 flex items-center gap-2 text-xs uppercase tracking-widest">
+                    <i class="fas fa-wave-square text-violet-500"></i> HRV Live Monitor — All Patients
+                </h3>
+                <p class="text-xs text-slate-400 font-medium mb-4">RMSSD · SDNN · pNN50 real-time trend across online patients</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" id="hrv-patient-bars"></div>
+                <!-- per-patient HRV canvas monitors rendered by renderAnalytics() -->
+                <div id="hrv-canvas-row" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
             <div class="glass p-6">
                 <h3 class="font-bold text-slate-900 mb-5 flex items-center gap-2 text-xs uppercase tracking-widest">
                     <i class="fas fa-history text-teal-500"></i> Recent Critical Events
@@ -478,8 +486,9 @@
                     <span><i class="fas fa-check mr-1 text-teal-500"></i>Heart Rate</span>
                     <span><i class="fas fa-check mr-1 text-teal-500"></i>SpO2</span>
                     <span><i class="fas fa-check mr-1 text-teal-500"></i>ECG Waveform</span>
-                    <span><i class="fas fa-check mr-1 text-teal-500"></i>Stress Level</span>
-                    <span><i class="fas fa-check mr-1 text-teal-500"></i>HRV</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>HRV — RMSSD</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>HRV — SDNN</span>
+                    <span><i class="fas fa-check mr-1 text-teal-500"></i>HRV — pNN50</span>
                     <span><i class="fas fa-check mr-1 text-teal-500"></i>Fall Detection</span>
                 </div>
             </div>
@@ -521,6 +530,9 @@
             <button class="tab-btn" id="tab-notes" onclick="switchTab('notes', this)">
                 <i class="fas fa-clipboard-list mr-1.5"></i>Clinical Notes
             </button>
+            <button class="tab-btn" id="tab-ai-report" onclick="switchTab('ai-report', this)">
+                <i class="fas fa-file-medical-alt mr-1.5"></i>AI Report
+            </button>
         </div>
 
         <div id="vitals-tab" class="tab-content">
@@ -538,16 +550,26 @@
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div class="glass p-4 text-center">
-                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">HRV (SDNN)</p>
-                    <p class="text-2xl font-black text-slate-900" id="modal-hrv">—</p>
+                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">RMSSD</p>
+                    <p class="text-2xl font-black text-violet-700" id="modal-hrv-rmssd">—</p>
                     <p class="text-xs text-slate-400 mt-1 font-semibold">ms</p>
+                </div>
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">SDNN</p>
+                    <p class="text-2xl font-black text-indigo-700" id="modal-hrv-sdnn">—</p>
+                    <p class="text-xs text-slate-400 mt-1 font-semibold">ms</p>
+                </div>
+                <div class="glass p-4 text-center">
+                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">pNN50</p>
+                    <p class="text-2xl font-black text-purple-700" id="modal-hrv-pnn50">—</p>
+                    <p class="text-xs text-slate-400 mt-1 font-semibold">%</p>
                 </div>
                 <div class="glass p-4 text-center">
                     <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">HR Avg</p>
                     <p class="text-2xl font-black text-slate-900" id="modal-ecg-avg">—</p>
                     <p class="text-xs text-slate-400 mt-1 font-semibold">bpm</p>
                 </div>
-                <div class="glass p-4 text-center">
+                <div class="glass p-4 text-center col-span-2">
                     <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">Rhythm</p>
                     <p class="text-lg font-black text-green-600" id="modal-rhythm">—</p>
                     <p class="text-xs text-slate-400 mt-1 font-semibold">classification</p>
@@ -566,6 +588,117 @@
                     <i class="fas fa-save mr-2"></i>Save Notes
                 </button>
                 <div id="saved-notes" class="mt-4 space-y-2"></div>
+            </div>
+        </div>
+
+        <div id="ai-report-tab" class="tab-content hidden">
+            <!-- ── HEADER ── -->
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h4 class="font-black text-slate-900 text-base tracking-tight flex items-center gap-2">
+                        <i class="fas fa-robot text-teal-500"></i> 30-Minute AI Clinical Report
+                    </h4>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Ollama llama3 local · vitals_raw · Heart Rate · SpO₂ · Temperature · HRV · Activity · ECG · RMSSD · SDNN · pNN50</p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                    <div id="doc-report-auto-badge" style="display:none" class="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200 text-teal-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                        <i class="fas fa-sync-alt fa-spin text-[9px]"></i> Auto · <span id="doc-report-countdown">30:00</span>
+                    </div>
+                    <button id="doc-gen-report-btn" onclick="doctorGenerateReport()"
+                        class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-indigo-500 hover:opacity-90 text-white font-bold rounded-xl transition shadow-lg text-xs">
+                        <i class="fas fa-brain"></i> Generate Report
+                    </button>
+                    <button id="doc-export-report-btn" onclick="doctorExportReportPDF()" style="display:none"
+                        class="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition shadow-lg text-xs">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── LOADING ── -->
+            <div id="doc-report-loading" style="display:none" class="text-center py-12">
+                <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-teal-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-brain text-white text-xl animate-pulse"></i>
+                </div>
+                <p class="text-slate-700 font-bold mb-1">Analysing 30 minutes of raw vitals…</p>
+                <p class="text-slate-400 text-xs font-medium mb-4">Ollama llama3 reasoning over heart rate, SpO₂, temperature, HRV, activity. Please wait 30–90 seconds.</p>
+                <div class="w-56 mx-auto bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-teal-500 to-indigo-500 rounded-full animate-pulse" style="width:70%"></div>
+                </div>
+            </div>
+
+            <!-- ── OUTPUT ── -->
+            <div id="doc-report-output" style="display:none">
+
+                <!-- Stats strip -->
+                <div id="doc-report-stats" class="grid grid-cols-4 md:grid-cols-8 gap-2 mb-4"></div>
+
+                <!-- ECG live graph + Activity bar -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <!-- ECG / Heart Rate waveform -->
+                    <div class="bg-[#0a1628] rounded-2xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] font-black text-teal-400 uppercase tracking-widest">ECG — Heart Rate Waveform (30 min)</span>
+                            <span class="text-[10px] text-teal-300 font-mono font-bold" id="doc-ecg-bpm-label">— bpm</span>
+                        </div>
+                        <canvas id="doc-report-ecg-canvas" height="80" style="width:100%;display:block;"></canvas>
+                    </div>
+                    <!-- Activity state pie / bar -->
+                    <div class="glass p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Activity State Distribution</p>
+                        <div id="doc-activity-bars" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- HRV 3-channel charts -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                    <div class="glass p-3 rounded-xl">
+                        <p class="text-[9px] font-black text-violet-500 uppercase tracking-widest mb-1">RMSSD (ms) — 30 min trend</p>
+                        <div style="position:relative;height:80px;"><canvas id="doc-chart-rmssd"></canvas></div>
+                    </div>
+                    <div class="glass p-3 rounded-xl">
+                        <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">SDNN (ms) — 30 min trend</p>
+                        <div style="position:relative;height:80px;"><canvas id="doc-chart-sdnn"></canvas></div>
+                    </div>
+                    <div class="glass p-3 rounded-xl">
+                        <p class="text-[9px] font-black text-purple-500 uppercase tracking-widest mb-1">pNN50 (%) — 30 min trend</p>
+                        <div style="position:relative;height:80px;"><canvas id="doc-chart-pnn50"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- SpO2 + Temperature charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div class="glass p-3 rounded-xl">
+                        <p class="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">SpO₂ (%) — 30 min trend</p>
+                        <div style="position:relative;height:80px;"><canvas id="doc-chart-spo2"></canvas></div>
+                    </div>
+                    <div class="glass p-3 rounded-xl">
+                        <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">Temperature (°C) — 30 min trend</p>
+                        <div style="position:relative;height:80px;"><canvas id="doc-chart-temp"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- LLM Report text -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-h-[500px] overflow-y-auto">
+                    <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
+                        <i class="fas fa-file-medical-alt text-teal-500 text-sm"></i>
+                        <span class="text-xs font-black text-slate-700 uppercase tracking-widest">LLM Clinical Reasoning — Full Report</span>
+                    </div>
+                    <pre id="doc-report-text" class="text-[11px] text-slate-800 font-mono leading-relaxed whitespace-pre-wrap"></pre>
+                </div>
+                <p class="text-[9px] text-slate-400 font-medium mt-2 text-right">
+                    <i class="fas fa-clock mr-1"></i>Generated: <span id="doc-report-generated-at">—</span>
+                    &nbsp;·&nbsp; <span id="doc-report-readings">—</span> raw sensor readings analysed
+                </p>
+            </div>
+
+            <!-- ── EMPTY STATE ── -->
+            <div id="doc-report-empty" class="text-center py-12">
+                <div class="w-14 h-14 mx-auto mb-3 bg-slate-100 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-file-medical-alt text-slate-300 text-xl"></i>
+                </div>
+                <p class="text-slate-500 font-bold">No report generated yet</p>
+                <p class="text-slate-400 text-xs font-medium mt-1">Click "Generate Report" — llama3 will reason over heart rate, SpO₂, temperature, HRV, ECG, RMSSD, SDNN, pNN50 and activity state from vitals_raw.</p>
             </div>
         </div>
     </div>
@@ -665,117 +798,26 @@ function getTimeAgo(date) {
     if (s < 86400) return `${Math.floor(s/3600)} hours ago`;
     return `${Math.floor(s/86400)} days ago`;
 }
-function getStressColor(level) {
-    if (level < 30) return '#22c55e';
-    if (level < 60) return '#f59e0b';
-    return '#ef4444';
-}
-function getStressLabel(level) {
-    if (level < 30) return 'Low';
-    if (level < 60) return 'Moderate';
-    return 'High';
-}
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
 }
 
+// HRV status helpers
+function getHRVStatus(rmssd) {
+    if (rmssd >= 40) return { label: 'Healthy', color: '#22c55e' };
+    if (rmssd >= 20) return { label: 'Low', color: '#f59e0b' };
+    return { label: 'Very Low', color: '#ef4444' };
+}
+
 /* ─── DATA ─── */
-let patients = [
-    {
-        id: "NEX-8821",
-        name: "John Doe",
-        initials: "JD",
-        age: 58,
-        status: "online",
-        deviceId: "MT-001",
-        vitals: {
-            heartRate: 78,
-            spO2: 98,
-            temperature: 37.2,
-            stressLevel: 35,
-            heartRateVariability: 52,
-            fallDetected: false
-        },
-        ecgData: generateECGData(),
-        lastUpdate: new Date(),
-        alerts: [],
-        unreadMessages: 2
-    },
-    {
-        id: "NEX-9901",
-        name: "Emma Wilson",
-        initials: "EW",
-        age: 44,
-        status: "online",
-        deviceId: "MT-002",
-        vitals: {
-            heartRate: 106,
-            spO2: 94,
-            temperature: 38.4,
-            stressLevel: 72,
-            heartRateVariability: 28,
-            fallDetected: false
-        },
-        ecgData: generateECGData(),
-        lastUpdate: new Date(),
-        alerts: ["Tachycardia detected", "High stress level"],
-        unreadMessages: 0
-    },
-    {
-        id: "NEX-7734",
-        name: "Robert Chen",
-        initials: "RC",
-        age: 67,
-        status: "offline",
-        deviceId: "MT-003",
-        vitals: {
-            heartRate: 0,
-            spO2: 0,
-            temperature: 0,
-            stressLevel: 0,
-            heartRateVariability: 0,
-            fallDetected: false
-        },
-        ecgData: [],
-        lastUpdate: new Date(Date.now() - 7200000),
-        alerts: [],
-        unreadMessages: 1
-    },
-    {
-        id: "NEX-5512",
-        name: "Alice Parker",
-        initials: "AP",
-        age: 72,
-        status: "online",
-        deviceId: "MT-004",
-        vitals: {
-            heartRate: 68,
-            spO2: 97,
-            temperature: 36.9,
-            stressLevel: 22,
-            heartRateVariability: 61,
-            fallDetected: true
-        },
-        ecgData: generateECGData(),
-        lastUpdate: new Date(),
-        alerts: ["Fall detected!"],
-        unreadMessages: 3
-    }
-];
+// Patients are loaded exclusively from the database via loadRealPatients()
+let patients = [];
 
-let devices = [
-    { id: "MT-001", type: "MediTwin Type 1", status: "online",  patientId: "NEX-8821", patientName: "John Doe",    batteryLevel: 87, lastSync: new Date() },
-    { id: "MT-002", type: "MediTwin Type 2", status: "online",  patientId: "NEX-9901", patientName: "Emma Wilson", batteryLevel: 45, lastSync: new Date() },
-    { id: "MT-003", type: "MediTwin Type 1", status: "offline", patientId: "NEX-7734", patientName: "Robert Chen", batteryLevel: 9,  lastSync: new Date(Date.now()-7200000) },
-    { id: "MT-004", type: "MediTwin Type 2", status: "warning", patientId: "NEX-5512", patientName: "Alice Parker", batteryLevel: 21, lastSync: new Date() }
-];
+// Devices are populated from the database via loadRealPatients()
+let devices = [];
 
-let alerts = [
-    { id: 1, patientId: "NEX-9901", patientName: "Emma Wilson", message: "Tachycardia: HR 106 bpm — above normal threshold", severity: "critical", timestamp: new Date(), acknowledged: false },
-    { id: 2, patientId: "NEX-9901", patientName: "Emma Wilson", message: "High stress level detected: 72%", severity: "warning", timestamp: new Date(Date.now()-600000), acknowledged: false },
-    { id: 3, patientId: "NEX-5512", patientName: "Alice Parker", message: "Fall event detected — immediate attention required", severity: "critical", timestamp: new Date(), acknowledged: false },
-    { id: 4, patientId: "NEX-7734", patientName: "Robert Chen", message: "MediTwin device offline — signal lost", severity: "warning", timestamp: new Date(Date.now()-7200000), acknowledged: false }
-];
+// Alerts are populated dynamically from real patient data
+let alerts = [];
 
 let conversations = {};
 patients.forEach(p => {
@@ -842,15 +884,50 @@ function drawECGOnCanvas(canvas, ecgPoints, color = '#00ff88') {
     ctx.shadowBlur = 0;
 }
 
+function drawECGWaiting(canvas) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.offsetWidth || 600;
+    const H = canvas.height;
+    canvas.width = W;
+    ctx.clearRect(0, 0, W, H);
+    // Flat baseline
+    ctx.strokeStyle = 'rgba(0,255,136,0.2)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, H / 2);
+    ctx.lineTo(W, H / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Waiting text
+    ctx.fillStyle = 'rgba(0,255,136,0.35)';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Waiting for ECG signal…', W / 2, H / 2 - 8);
+}
+
 function animateECG(canvasId, patient) {
     const canvas = document.getElementById(canvasId);
-    if (!canvas || patient.status !== 'online') return;
+    if (!canvas) return;
+    // Only start animation once live sensor data has arrived
+    if (!patient.liveHeartRate && !patient.ecgData?.length) {
+        if (ecgAnimFrames[canvasId]) { cancelAnimationFrame(ecgAnimFrames[canvasId]); delete ecgAnimFrames[canvasId]; }
+        drawECGWaiting(canvas);
+        return;
+    }
+    if (!patient.ecgData || !patient.ecgData.length) patient.ecgData = generateECGData();
     if (ecgAnimFrames[canvasId]) cancelAnimationFrame(ecgAnimFrames[canvasId]);
     let offset = 0;
+    let subPixel = 0;
     function frame() {
+        const bpm = patient.liveHeartRate || patient.vitals.heartRate || 72;
+        subPixel += bpm / 72;
+        const steps = Math.floor(subPixel);
+        subPixel -= steps;
+        offset = (offset + steps) % patient.ecgData.length;
         const shifted = [...patient.ecgData.slice(offset), ...patient.ecgData.slice(0, offset)];
         drawECGOnCanvas(canvas, shifted, '#00ff88');
-        offset = (offset + 1) % patient.ecgData.length;
         ecgAnimFrames[canvasId] = requestAnimationFrame(frame);
     }
     frame();
@@ -877,8 +954,9 @@ function filterPatients(filter, btn) {
 function renderPatients() {
     const grid = document.getElementById('patients-grid');
     grid.innerHTML = '';
-    // Stop previous ECG anims
+    // Stop previous ECG anims and destroy card HRV chart instances
     Object.keys(ecgAnimFrames).forEach(k => { if (k.startsWith('ecg-mini-')) { cancelAnimationFrame(ecgAnimFrames[k]); delete ecgAnimFrames[k]; } });
+    patients.forEach(p => destroyCardHRVChart(p.id));
 
     const list = activeFilter === 'all' ? patients
         : activeFilter === 'online' ? patients.filter(p=>p.status==='online')
@@ -886,7 +964,13 @@ function renderPatients() {
         : patients.filter(p=>p.vitals.fallDetected);
 
     if (list.length === 0) {
-        grid.innerHTML = `<div class="glass p-10 col-span-3 text-center"><i class="fas fa-search text-4xl text-slate-200 mb-3"></i><p class="text-slate-400 font-semibold">No patients match this filter</p></div>`;
+        const msg = patients.length === 0
+            ? `<i class="fas fa-user-slash text-4xl text-slate-300 mb-3 block"></i>
+               <p class="text-slate-500 font-bold text-base mb-1">No patients assigned</p>
+               <p class="text-slate-400 text-sm font-medium">Patients linked to your account will appear here automatically.</p>`
+            : `<i class="fas fa-search text-4xl text-slate-200 mb-3 block"></i>
+               <p class="text-slate-400 font-semibold">No patients match this filter</p>`;
+        grid.innerHTML = `<div class="glass p-10 col-span-3 text-center">${msg}</div>`;
         return;
     }
 
@@ -895,13 +979,13 @@ function renderPatients() {
         grid.appendChild(card);
     });
 
-    // Start ECG animations after cards are added to DOM
+    // Init ECG + card HRV charts after canvases exist in DOM
     requestAnimationFrame(() => {
         list.forEach(p => {
-            if (p.status === 'online') {
-                animateECG(`ecg-mini-${p.id}`, p);
-            }
+            animateECG(`ecg-mini-${p.id}`, p);
+            createCardHRVChart(p.id);   // draws empty chart; grows as medians arrive
         });
+        if (typeof pollDoctorLiveECG === 'function') pollDoctorLiveECG();
     });
 }
 
@@ -912,82 +996,93 @@ function createPatientCard(patient) {
     const borderColor = isFall ? 'border-red-600' : isCritical ? 'border-amber-500' : patient.status === 'online' ? 'border-teal-400' : 'border-slate-300';
 
     wrap.className = `patient-card bg-white rounded-2xl shadow-md border-l-4 ${borderColor} p-6 ${isCritical ? 'critical-card' : ''}`;
+    wrap.id = `card-wrap-${patient.id}`;
     wrap.onclick = () => openPatientDetails(patient);
 
-    const statusBadge = patient.status === 'online'
-        ? `<div class="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200">
-               <div class="relative w-2 h-2"><div class="w-2 h-2 bg-green-500 rounded-full live-pulse"></div></div>
-               <span class="text-xs font-black">LIVE</span>
-           </div>`
-        : `<div class="flex items-center gap-1.5 bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full">
-               <div class="w-2 h-2 bg-slate-400 rounded-full"></div>
-               <span class="text-xs font-black">OFFLINE</span>
-           </div>`;
+    const statusBadge = `<div id="status-badge-${patient.id}">${buildStatusBadge(patient.status)}</div>`;
 
-    let vitalsHTML = '';
-    if (patient.status === 'online') {
-        const stressColor = getStressColor(patient.vitals.stressLevel);
-        const stressLabel = getStressLabel(patient.vitals.stressLevel);
-        const stressPct = patient.vitals.stressLevel;
-        vitalsHTML = `
-            <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="vital-card border-red-400 p-3 rounded-xl text-center">
-                    <p class="text-xs text-red-500 font-bold uppercase leading-none mb-1 tracking-wider">HR</p>
-                    <p class="text-2xl font-black text-slate-900 leading-none">${patient.vitals.heartRate}</p>
-                    <p class="text-xs text-slate-400 mt-0.5 font-bold">bpm</p>
-                </div>
-                <div class="vital-card border-blue-400 p-3 rounded-xl text-center">
-                    <p class="text-xs text-blue-500 font-bold uppercase leading-none mb-1 tracking-wider">SpO2</p>
-                    <p class="text-2xl font-black text-slate-900 leading-none">${patient.vitals.spO2}</p>
-                    <p class="text-xs text-slate-400 mt-0.5 font-bold">%</p>
-                </div>
-                <div class="vital-card border-indigo-400 p-3 rounded-xl text-center">
-                    <p class="text-xs text-indigo-500 font-bold uppercase leading-none mb-1 tracking-wider">HRV</p>
-                    <p class="text-2xl font-black text-slate-900 leading-none">${patient.vitals.heartRateVariability}</p>
-                    <p class="text-xs text-slate-400 mt-0.5 font-bold">ms</p>
-                </div>
+    // Vitals: show '--' until first median arrives; each field independently shows '--' if its DB value is 0
+    const hrvStatus = getHRVStatus(patient.vitals.hrv_rmssd);
+    const v = patient.vitals;
+    const fmt = (val, decimals) => val > 0 ? (decimals ? val.toFixed(decimals) : val) : '--';
+    const vitalsHTML = `
+        <div class="grid grid-cols-3 gap-1.5 mb-3" id="vital-grid-${patient.id}">
+            <div class="vital-card border-red-400 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-red-500 font-bold uppercase leading-none mb-1 tracking-wider">Heart Rate</p>
+                <p class="text-xl font-black text-slate-900 leading-none" id="vital-hr-${patient.id}">${fmt(v.heartRate)}</p>
+                <p class="text-[9px] text-slate-400 mt-0.5 font-bold">bpm</p>
             </div>
-            <div class="mb-3">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Stress</span>
-                    <span class="text-xs font-black" style="color:${stressColor}">${stressLabel} (${stressPct}%)</span>
-                </div>
-                <div class="stress-bar"><div class="stress-fill" style="width:${stressPct}%;background:${stressColor}"></div></div>
+            <div class="vital-card border-blue-400 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-blue-500 font-bold uppercase leading-none mb-1 tracking-wider">SpO₂</p>
+                <p class="text-xl font-black text-slate-900 leading-none" id="vital-spo2-${patient.id}">${fmt(v.spO2)}</p>
+                <p class="text-[9px] text-slate-400 mt-0.5 font-bold">%</p>
             </div>
-            <div class="ecg-wrapper mb-3">
-                <div class="flex justify-between items-center mb-1 px-1">
-                    <span class="text-xs text-teal-400 font-bold tracking-widest">ECG</span>
-                    <span class="text-xs text-teal-300 font-mono font-bold">${patient.vitals.heartRate} bpm</span>
-                </div>
-                <canvas id="ecg-mini-${patient.id}" class="ecg-mini" height="48"></canvas>
+            <div class="vital-card border-orange-400 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-orange-500 font-bold uppercase leading-none mb-1 tracking-wider">Temp</p>
+                <p class="text-xl font-black text-slate-900 leading-none" id="vital-temp-${patient.id}">${fmt(v.temperature, 1)}</p>
+                <p class="text-[9px] text-slate-400 mt-0.5 font-bold">°C</p>
             </div>
-            <div class="flex items-center justify-between mb-4">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Fall Detection</span>
-                ${patient.vitals.fallDetected
-                    ? `<span class="fall-alert"><i class="fas fa-exclamation-triangle"></i>FALL DETECTED</span>`
-                    : `<span class="fall-safe"><i class="fas fa-shield-alt"></i>No Fall</span>`}
+            <div class="vital-card border-violet-400 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-violet-500 font-bold uppercase leading-none mb-1 tracking-wider">RMSSD</p>
+                <p class="text-xl font-black text-slate-900 leading-none" id="vital-rmssd-${patient.id}">${fmt(v.hrv_rmssd)}</p>
+                <p class="text-[9px] text-slate-400 mt-0.5 font-bold">ms</p>
             </div>
-            <div class="flex gap-2">
-                <button onclick="event.stopPropagation();openPatientDetails(patients.find(p=>p.id==='${patient.id}'))"
-                    class="flex-1 py-3 bg-gradient-to-r from-teal-500 to-indigo-500 text-white text-xs font-bold rounded-xl hover:shadow-lg transition tracking-wide">
-                    <i class="fas fa-chart-line mr-1"></i> View Details
-                </button>
-                <button onclick="event.stopPropagation();openChat('${patient.id}')"
-                    class="px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition relative shadow-md">
-                    <i class="fas fa-comment text-sm"></i>
-                    ${patient.unreadMessages > 0 ? `<span class="notif-dot" style="width:14px;height:14px;font-size:8px">${patient.unreadMessages}</span>` : ''}
-                </button>
+            <div class="vital-card border-indigo-400 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-indigo-500 font-bold uppercase leading-none mb-1 tracking-wider">SDNN</p>
+                <p class="text-xl font-black text-slate-900 leading-none" id="vital-sdnn-${patient.id}">${fmt(v.hrv_sdnn)}</p>
+                <p class="text-[9px] text-slate-400 mt-0.5 font-bold">ms</p>
             </div>
-        `;
-    } else {
-        vitalsHTML = `
-            <div class="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                <i class="fas fa-power-off text-4xl text-slate-300 mb-3 block"></i>
-                <p class="font-bold text-slate-700 text-sm mb-1">MediTwin Disconnected</p>
-                <p class="text-xs text-slate-400 font-medium">Last seen: ${getTimeAgo(patient.lastUpdate)}</p>
+            <div class="vital-card border-purple-400 p-2.5 rounded-xl text-center">
+                <p class="text-[9px] text-purple-500 font-bold uppercase leading-none mb-1 tracking-wider">pNN50</p>
+                <p class="text-xl font-black text-slate-900 leading-none" id="vital-pnn50-${patient.id}">${fmt(v.hrv_pnn50, 1)}</p>
+                <p class="text-[9px] text-slate-400 mt-0.5 font-bold">%</p>
             </div>
-        `;
-    }
+        </div>
+
+        <div class="mb-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+                    <i class="fas fa-wave-square" style="color:#8b5cf6;font-size:9px;"></i>HRV Trend — per minute
+                </span>
+                <span class="text-[10px] font-black" id="vital-hrv-status-${patient.id}" style="color:${v.hrv_rmssd > 0 ? hrvStatus.color : '#94a3b8'}">${v.hrv_rmssd > 0 ? hrvStatus.label : 'Awaiting…'}</span>
+            </div>
+            <div style="position:relative;height:72px;">
+                <canvas id="card-hrv-combined-${patient.id}"></canvas>
+            </div>
+            <div class="flex justify-between mt-1.5 px-0.5">
+                <span class="text-[9px] font-bold" style="color:#a78bfa">RMSSD: <span id="val-rmssd-${patient.id}">${fmt(v.hrv_rmssd)}ms</span></span>
+                <span class="text-[9px] font-bold" style="color:#6366f1">SDNN: <span id="val-sdnn-${patient.id}">${fmt(v.hrv_sdnn)}ms</span></span>
+                <span class="text-[9px] font-bold" style="color:#8b5cf6">pNN50: <span id="val-pnn50-${patient.id}">${fmt(v.hrv_pnn50, 1)}%</span></span>
+            </div>
+        </div>
+
+        <div class="ecg-wrapper mb-3">
+            <div class="flex justify-between items-center mb-1 px-1">
+                <span class="text-xs text-teal-400 font-bold tracking-widest">ECG ● Live</span>
+                <span class="text-xs text-teal-300 font-mono font-bold" id="vital-ecg-bpm-${patient.id}">${patient.liveHeartRate || (v.heartRate > 0 ? v.heartRate : '--')} bpm</span>
+            </div>
+            <canvas id="ecg-mini-${patient.id}" class="ecg-mini" height="48"></canvas>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Fall Detection</span>
+            <span id="vital-fall-${patient.id}">${v.fallDetected
+                ? '<span class=\"fall-alert\"><i class=\"fas fa-exclamation-triangle\"></i>FALL DETECTED</span>'
+                : '<span class=\"fall-safe\"><i class=\"fas fa-shield-alt\"></i>No Fall</span>'}</span>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="event.stopPropagation();openPatientDetails(patients.find(p=>p.id==='${patient.id}'))"
+                class="flex-1 py-3 bg-gradient-to-r from-teal-500 to-indigo-500 text-white text-xs font-bold rounded-xl hover:shadow-lg transition tracking-wide">
+                <i class="fas fa-chart-line mr-1"></i> View Details
+            </button>
+            <button onclick="event.stopPropagation();openChat('${patient.id}')"
+                class="px-4 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition relative shadow-md">
+                <i class="fas fa-comment text-sm"></i>
+                ${patient.unreadMessages > 0 ? `<span class="notif-dot" style="width:14px;height:14px;font-size:8px">${patient.unreadMessages}</span>` : ''}
+            </button>
+        </div>
+    `; 
 
     wrap.innerHTML = `
         <div class="absolute top-5 right-5">${statusBadge}</div>
@@ -999,6 +1094,12 @@ function createPatientCard(patient) {
                 <h3 class="font-black text-slate-900 text-base mb-0.5 truncate tracking-tight">${patient.name}</h3>
                 <p class="text-xs text-slate-400 font-mono font-medium">${patient.id}</p>
                 <p class="text-xs text-slate-500 mt-0.5 font-semibold"><i class="fas fa-microchip text-teal-500 mr-1"></i>${patient.deviceId}</p>
+                <p class="text-[10px] mt-0.5 font-medium" id="vital-lastseen-${patient.id}"
+                   style="${patient.vitals.heartRate > 0 ? 'color:#94a3b8' : 'color:#0d9488;animation:blinkRed 1.5s ease-in-out infinite'}">
+                    ${patient.vitals.heartRate > 0
+                        ? 'Updated ' + new Date(patient.lastUpdate).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+                        : '⟳ Fetching vitals…'}
+                </p>
             </div>
         </div>
         ${vitalsHTML}
@@ -1015,10 +1116,58 @@ function renderDevices() {
 
 function createDeviceCard(device) {
     const card = document.createElement('div');
+    // Sync device status from linked patient in real time
+    const linkedPatient = patients.find(p => p.deviceId === device.id || p.id === device.patientId);
+    if (linkedPatient) { device.status = linkedPatient.status; device.lastSync = linkedPatient.lastUpdate || device.lastSync; }
+
     const statusCls = device.status === 'online' ? 'badge-online' : device.status === 'warning' ? 'badge-warning' : 'badge-offline';
     const battColor = device.batteryLevel > 50 ? 'text-green-600' : device.batteryLevel > 20 ? 'text-orange-500' : 'text-red-600';
     const battIcon = device.batteryLevel > 75 ? 'full' : device.batteryLevel > 50 ? 'three-quarters' : device.batteryLevel > 25 ? 'half' : 'quarter';
     const isType2 = device.type === 'MediTwin Type 2';
+
+    // Build vitals mini-grid from linked patient
+    let vitalsSection = '';
+    if (linkedPatient) {
+        const v  = linkedPatient.vitals || {};
+        const ve = linkedPatient.vitalErrors || {};
+        const fmtVal = (errKey, value, unit, fmt) => {
+            if (ve[errKey]) return `<span class="text-red-500 font-black text-xs">ERR <i class="fas fa-exclamation-circle text-[10px]"></i></span>`;
+            return value > 0 ? `<span class="font-black text-slate-900 text-sm">${fmt ? fmt(value) : value}<span class="text-[10px] text-slate-400 font-medium ml-0.5">${unit}</span></span>`
+                             : `<span class="text-slate-400 font-bold text-sm">—</span>`;
+        };
+        vitalsSection = `
+        <div class="mb-4 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Live Vitals</p>
+                ${device.status === 'online'
+                    ? `<span class="flex items-center gap-1 text-[10px] font-black text-green-600"><span class="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" style="animation:ring 2s cubic-bezier(.4,0,.6,1) infinite"></span>LIVE</span>`
+                    : `<span class="text-[10px] font-bold text-slate-400">OFFLINE</span>`}
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white rounded-lg p-2 text-center border ${ve.heartRate ? 'border-red-300 bg-red-50' : 'border-slate-100'}">
+                    <p class="text-[9px] font-bold text-red-400 uppercase mb-0.5">HR</p>
+                    ${fmtVal('heartRate', v.heartRate, 'bpm')}
+                </div>
+                <div class="bg-white rounded-lg p-2 text-center border ${ve.spO2 ? 'border-red-300 bg-red-50' : 'border-slate-100'}">
+                    <p class="text-[9px] font-bold text-blue-400 uppercase mb-0.5">SpO₂</p>
+                    ${fmtVal('spO2', v.spO2, '%')}
+                </div>
+                <div class="bg-white rounded-lg p-2 text-center border ${ve.temperature ? 'border-red-300 bg-red-50' : 'border-slate-100'}">
+                    <p class="text-[9px] font-bold text-orange-400 uppercase mb-0.5">Temp</p>
+                    ${fmtVal('temperature', v.temperature, '°C', x => x.toFixed(1))}
+                </div>
+                <div class="bg-white rounded-lg p-2 text-center border ${ve.hrv_rmssd ? 'border-red-300 bg-red-50' : 'border-slate-100'}">
+                    <p class="text-[9px] font-bold text-indigo-400 uppercase mb-0.5">RMSSD</p>
+                    ${fmtVal('hrv_rmssd', v.hrv_rmssd, 'ms')}
+                </div>
+            </div>
+            ${Object.keys(ve).length > 0 ? `
+            <div class="mt-2 flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">
+                <i class="fas fa-exclamation-triangle text-red-500 text-xs"></i>
+                <span class="text-[10px] font-bold text-red-600">${Object.keys(ve).length} sensor channel${Object.keys(ve).length > 1 ? 's' : ''} reporting error</span>
+            </div>` : ''}
+        </div>`;
+    }
 
     card.className = 'glass glass-hover p-6';
     card.innerHTML = `
@@ -1033,22 +1182,12 @@ function createDeviceCard(device) {
                 </div>
             </div>
             <span class="device-badge ${statusCls} flex-shrink-0">
-                <span class="w-1.5 h-1.5 rounded-full ${device.status==='online'?'bg-green-500':device.status==='warning'?'bg-yellow-500':'bg-red-500'}"></span>
+                <span class="w-1.5 h-1.5 rounded-full ${device.status==='online'?'bg-green-500 live-pulse':device.status==='warning'?'bg-yellow-500':'bg-red-500'}"></span>
                 ${device.status.toUpperCase()}
             </span>
         </div>
 
-        <div class="mb-4 bg-slate-50 rounded-xl p-3">
-            <p class="text-xs font-bold text-slate-400 uppercase mb-2 tracking-wide">Monitoring</p>
-            <div class="grid grid-cols-3 gap-1.5 text-xs text-slate-600 font-medium">
-                <span class="flex items-center gap-1"><i class="fas fa-heartbeat text-red-400 text-xs"></i>HR</span>
-                <span class="flex items-center gap-1"><i class="fas fa-lungs text-blue-400 text-xs"></i>SpO2</span>
-                <span class="flex items-center gap-1"><i class="fas fa-wave-square text-teal-400 text-xs"></i>ECG</span>
-                <span class="flex items-center gap-1"><i class="fas fa-brain text-purple-400 text-xs"></i>Stress</span>
-                <span class="flex items-center gap-1"><i class="fas fa-chart-bar text-indigo-400 text-xs"></i>HRV</span>
-                <span class="flex items-center gap-1"><i class="fas fa-person-falling text-orange-400 text-xs"></i>Fall</span>
-            </div>
-        </div>
+        ${vitalsSection}
 
         <div class="space-y-2.5 mb-5">
             <div class="flex justify-between text-sm">
@@ -1062,7 +1201,7 @@ function createDeviceCard(device) {
             <div class="flex justify-between text-sm">
                 <span class="text-slate-500 font-medium">Battery</span>
                 <span class="font-bold ${battColor}">
-                    <i class="fas fa-battery-${battIcon} mr-1"></i>${device.batteryLevel}%
+                    ${device.batteryLevel != null ? `<i class="fas fa-battery-${battIcon} mr-1"></i>${device.batteryLevel}%` : '<span class="text-slate-400">—</span>'}
                 </span>
             </div>
             <div class="flex justify-between text-sm">
@@ -1206,6 +1345,65 @@ function renderAnalytics() {
                 </div>
             </div>`).join('');
     }
+
+    // HRV per-patient canvas monitors
+    const onlinePatients = patients.filter(p => p.status === 'online');
+    const barsDiv = document.getElementById('hrv-patient-bars');
+    if (barsDiv) {
+        barsDiv.innerHTML = onlinePatients.map(p => {
+            const hs = getHRVStatus(p.vitals.hrv_rmssd);
+            return `<div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-7 h-7 rounded-lg device-icon-bg flex items-center justify-center text-white font-bold text-xs flex-shrink-0">${p.initials}</div>
+                    <div class="min-w-0"><p class="font-bold text-slate-900 text-xs truncate">${p.name}</p><p class="text-[10px] font-medium" style="color:${hs.color}">${hs.label}</p></div>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-1.5"><span class="text-[9px] font-bold text-violet-500 w-10">RMSSD</span><div class="flex-1 hrv-bar"><div class="hrv-fill" style="width:${Math.min(p.vitals.hrv_rmssd,100)}%;background:#a78bfa"></div></div><span class="text-[9px] font-bold text-slate-500 w-8 text-right">${p.vitals.hrv_rmssd}ms</span></div>
+                    <div class="flex items-center gap-1.5"><span class="text-[9px] font-bold text-indigo-500 w-10">SDNN</span><div class="flex-1 hrv-bar"><div class="hrv-fill" style="width:${Math.min(p.vitals.hrv_sdnn,120)/1.2}%;background:#6366f1"></div></div><span class="text-[9px] font-bold text-slate-500 w-8 text-right">${p.vitals.hrv_sdnn}ms</span></div>
+                    <div class="flex items-center gap-1.5"><span class="text-[9px] font-bold text-purple-500 w-10">pNN50</span><div class="flex-1 hrv-bar"><div class="hrv-fill" style="width:${Math.min(p.vitals.hrv_pnn50*2,100)}%;background:#8b5cf6"></div></div><span class="text-[9px] font-bold text-slate-500 w-8 text-right">${p.vitals.hrv_pnn50}%</span></div>
+                </div>
+            </div>`;
+        }).join('') || '<p class="text-xs text-slate-400 font-medium col-span-3">No online patients.</p>';
+    }
+    // Render HRV analytics — per-patient 3-channel charts
+    const canvasRow = document.getElementById('hrv-canvas-row');
+    if (canvasRow) {
+        // Destroy old chart instances
+        canvasRow.querySelectorAll('canvas').forEach(c => {
+            if (_docHRVInsts[c.id]) { try{_docHRVInsts[c.id].destroy();}catch(e){} delete _docHRVInsts[c.id]; }
+        });
+        canvasRow.innerHTML = onlinePatients.length ? onlinePatients.map(p => `
+            <div class="glass p-5">
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 rounded-xl device-icon-bg flex items-center justify-center text-white font-bold text-xs flex-shrink-0">${p.initials}</div>
+                <div>
+                  <p class="font-bold text-slate-900 text-sm">${p.name}</p>
+                  <p class="text-xs font-semibold" style="color:${getHRVStatus(p.vitals.hrv_rmssd).color}">${getHRVStatus(p.vitals.hrv_rmssd).label} autonomic tone</p>
+                </div>
+              </div>
+              ${_docHRV_CFG.map(cfg => `
+              <div class="mb-3">
+                <div class="flex justify-between items-center mb-1.5">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0" style="background:${cfg.color};"></span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">${cfg.key.replace('hrv_','').toUpperCase()}</span>
+                    <span class="text-[10px] text-slate-400 font-medium">Normal ≥ ${cfg.normalMin} ${cfg.unit}</span>
+                  </div>
+                  <span class="text-sm font-black" style="color:${cfg.color};font-family:monospace;">${p.vitals[cfg.key]} <span class="text-xs text-slate-400 font-medium">${cfg.unit}</span></span>
+                </div>
+                <div style="position:relative;height:48px;"><canvas id="analytics-hrv-ch-${p.id}-${cfg.bufKey}"></canvas></div>
+              </div>`).join('')}
+            </div>`).join('')
+          : '<p class="text-sm text-slate-400 font-medium col-span-2 text-center py-8">No online patients to display.</p>';
+
+        setTimeout(() => {
+            onlinePatients.forEach(p => {
+                initDocHRVChannels(p.id, p.vitals, `analytics-hrv-ch-${p.id}`);
+            });
+        }, 60);
+    }
+
+    if (window._analyticsHRVChart) { try{window._analyticsHRVChart.destroy();}catch(e){} window._analyticsHRVChart = null; }
 }
 
 /* ─── STATISTICS ─── */
@@ -1226,6 +1424,7 @@ function updateStatistics() {
     setEl('stat-patients-change', `${patients.filter(p=>p.status==='online').length} online`);
     setEl('header-notification-count', alertCnt + unread);
 }
+const updateStats = updateStatistics;   // alias used by polling functions
 
 /* ─── MODALS ─── */
 function openAddDevice() { document.getElementById('addDeviceModal').classList.add('active'); }
@@ -1239,12 +1438,19 @@ function openPatientDetails(patient) {
     setEl('modal-patient-name', patient.name);
     setEl('modal-patient-meta', `${patient.id} · Age ${patient.age} · Device: ${patient.deviceId}`);
 
+    // Store the numeric DB id for the AI report endpoint
+    window._openModalPatientNumericId = patient.numericId || null;
+    // Reset cached report so a new patient always starts fresh
+    _docCurrentReportData = null;
+    _showDocReportStateIfVisible('empty');
+
     // Vitals Tab
     const vitalsDiv = document.getElementById('modal-vitals');
-    const stressColor = getStressColor(patient.vitals.stressLevel);
-    const stressLabel = getStressLabel(patient.vitals.stressLevel);
+    const hrvStatus = getHRVStatus(patient.vitals.hrv_rmssd || 0);
 
-    vitalsDiv.innerHTML = patient.status === 'online' ? `
+    // Show vitals if any reading exists, regardless of online status
+    const hasVitals = patient.vitals.heartRate > 0 || patient.vitals.spO2 > 0 || patient.vitals.temperature > 0;
+    vitalsDiv.innerHTML = hasVitals ? `
         <div class="vital-card border-red-400 p-5 rounded-xl text-center">
             <p class="text-xs text-red-500 font-bold uppercase mb-1 tracking-wider">Heart Rate</p>
             <p class="text-4xl font-black text-slate-900">${patient.vitals.heartRate}</p>
@@ -1260,21 +1466,59 @@ function openPatientDetails(patient) {
             <p class="text-4xl font-black text-slate-900">${patient.vitals.temperature}</p>
             <p class="text-xs text-slate-400 mt-1 font-bold">°C</p>
         </div>
-        <div class="vital-card border-indigo-400 p-5 rounded-xl text-center">
-            <p class="text-xs text-indigo-500 font-bold uppercase mb-1 tracking-wider">HRV (SDNN)</p>
-            <p class="text-4xl font-black text-slate-900">${patient.vitals.heartRateVariability}</p>
+        <div class="vital-card border-violet-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-violet-500 font-bold uppercase mb-1 tracking-wider">HRV — RMSSD</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.hrv_rmssd}</p>
             <p class="text-xs text-slate-400 mt-1 font-bold">ms</p>
         </div>
-        <div class="vital-card p-5 rounded-xl" style="border-left-color:${stressColor}">
-            <p class="text-xs font-bold uppercase mb-1 tracking-wider" style="color:${stressColor}">Stress Level</p>
-            <p class="text-4xl font-black text-slate-900">${patient.vitals.stressLevel}</p>
-            <p class="text-xs mt-1 font-bold" style="color:${stressColor}">${stressLabel}</p>
-            <div class="stress-bar mt-2"><div class="stress-fill" style="width:${patient.vitals.stressLevel}%;background:${stressColor}"></div></div>
+        <div class="vital-card border-indigo-400 p-5 rounded-xl text-center">
+            <p class="text-xs text-indigo-500 font-bold uppercase mb-1 tracking-wider">HRV — SDNN</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.hrv_sdnn}</p>
+            <p class="text-xs text-slate-400 mt-1 font-bold">ms</p>
         </div>
-        <div class="vital-card border-teal-400 p-5 rounded-xl text-center">
+        <div class="vital-card border-purple-400 p-5 rounded-xl">
+            <p class="text-xs text-purple-500 font-bold uppercase mb-1 tracking-wider">HRV — pNN50</p>
+            <p class="text-4xl font-black text-slate-900">${patient.vitals.hrv_pnn50}<span class="text-base font-semibold text-slate-400 ml-1">%</span></p>
+            <div style="margin-top:6px;">
+              <div class="flex justify-between text-[10px] font-bold mb-1"><span style="color:${hrvStatus.color}">${hrvStatus.label}</span><span class="text-slate-400">/ 50%</span></div>
+              <div class="hrv-bar"><div class="hrv-fill" style="width:${Math.min(patient.vitals.hrv_pnn50*2,100)}%;background:#8b5cf6"></div></div>
+            </div>
+        </div>
+        <div class="vital-card border-teal-400 p-5 rounded-xl text-center col-span-1">
             <p class="text-xs text-teal-500 font-bold uppercase mb-1 tracking-wider">Fall Status</p>
             <p class="text-xl font-black text-slate-900 mt-2">${patient.vitals.fallDetected ? 'DETECTED' : 'Normal'}</p>
             <p class="text-xs text-slate-400 mt-1 font-bold">Monitor Active</p>
+        </div>
+        <div class="col-span-3 mt-1">
+          <div class="border border-slate-100 rounded-2xl overflow-hidden">
+            <div style="padding:10px 14px 6px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:8px;">
+              <i class="fas fa-wave-square" style="color:#8b5cf6;font-size:11px;"></i>
+              <span style="font-size:12px;font-weight:700;color:#0f172a;">HRV — Live Trend</span>
+            </div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+              <div style="background:#faf5ff;border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:#a78bfa;display:inline-block;"></span><span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#7c3aed;">RMSSD</span><span style="font-size:9px;color:#94a3b8;">· Normal ≥ 20 ms</span></div>
+                  <span style="font-size:16px;font-weight:900;color:#7c3aed;font-family:monospace;">${patient.vitals.hrv_rmssd} <span style="font-size:10px;color:#94a3b8;font-weight:600;">ms</span></span>
+                </div>
+                <div style="height:44px;position:relative;"><canvas id="modal-hrv-ch-rmssd"></canvas></div>
+              </div>
+              <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px 12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:#6366f1;display:inline-block;"></span><span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#4338ca;">SDNN</span><span style="font-size:9px;color:#94a3b8;">· Normal ≥ 50 ms</span></div>
+                  <span style="font-size:16px;font-weight:900;color:#4338ca;font-family:monospace;">${patient.vitals.hrv_sdnn} <span style="font-size:10px;color:#94a3b8;font-weight:600;">ms</span></span>
+                </div>
+                <div style="height:44px;position:relative;"><canvas id="modal-hrv-ch-sdnn"></canvas></div>
+              </div>
+              <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <div style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;display:inline-block;"></span><span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#6d28d9;">pNN50</span><span style="font-size:9px;color:#94a3b8;">· Normal ≥ 10 %</span></div>
+                  <span style="font-size:16px;font-weight:900;color:#6d28d9;font-family:monospace;">${patient.vitals.hrv_pnn50} <span style="font-size:10px;color:#94a3b8;font-weight:600;">%</span></span>
+                </div>
+                <div style="height:44px;position:relative;"><canvas id="modal-hrv-ch-pnn50"></canvas></div>
+              </div>
+            </div>
+          </div>
         </div>
     ` : `<div class="col-span-3 text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
         <i class="fas fa-power-off text-5xl text-slate-300 mb-3 block"></i>
@@ -1288,10 +1532,13 @@ function openPatientDetails(patient) {
         : ``;
 
     // ECG Tab
-    setEl('modal-ecg-hr', `${patient.vitals.heartRate} bpm`);
-    setEl('modal-hrv', patient.vitals.heartRateVariability || '—');
+    setEl('modal-ecg-hr', `${patient.liveHeartRate || patient.vitals.heartRate} bpm${patient.liveHeartRate ? '  ● live' : '  ○ median'}`);
+    setEl('modal-hrv-rmssd', patient.vitals.hrv_rmssd || '—');
+    setEl('modal-hrv-sdnn',  patient.vitals.hrv_sdnn  || '—');
+    setEl('modal-hrv-pnn50', patient.vitals.hrv_pnn50 || '—');
     setEl('modal-ecg-avg', patient.vitals.heartRate || '—');
     setEl('modal-rhythm', patient.status==='online' ? 'Normal Sinus' : 'Unavailable');
+    window._openModalPatientId = patient.id;  // track for live ECG HR refresh
 
     // History Tab
     const histDiv = document.getElementById('modal-history');
@@ -1303,12 +1550,12 @@ function openPatientDetails(patient) {
             </div>`).join('') + `
             <div class="p-4 bg-slate-50 border-l-4 border-teal-400 rounded-xl">
                 <p class="font-bold text-slate-900 text-sm">Vitals logged</p>
-                <p class="text-sm text-slate-600 font-medium">HR: ${patient.vitals.heartRate} bpm · SpO2: ${patient.vitals.spO2}% · Temp: ${patient.vitals.temperature}°C · HRV: ${patient.vitals.heartRateVariability}ms</p>
+                <p class="text-sm text-slate-600 font-medium">HR: ${patient.vitals.heartRate} bpm · SpO2: ${patient.vitals.spO2}% · Temp: ${patient.vitals.temperature}°C · RMSSD: ${patient.vitals.hrv_rmssd}ms · SDNN: ${patient.vitals.hrv_sdnn}ms · pNN50: ${patient.vitals.hrv_pnn50}%</p>
                 <p class="text-xs text-slate-400 mt-1 font-semibold">${getTimeAgo(patient.lastUpdate)}</p>
             </div>`
         : `<div class="p-4 bg-slate-50 border-l-4 border-teal-400 rounded-xl">
             <p class="font-bold text-slate-900 text-sm">Vitals logged</p>
-            <p class="text-sm text-slate-600 font-medium">HR: ${patient.vitals.heartRate} bpm · SpO2: ${patient.vitals.spO2}% · Temp: ${patient.vitals.temperature}°C</p>
+            <p class="text-sm text-slate-600 font-medium">HR: ${patient.vitals.heartRate} bpm · SpO2: ${patient.vitals.spO2}% · Temp: ${patient.vitals.temperature}°C · RMSSD: ${patient.vitals.hrv_rmssd}ms</p>
             <p class="text-xs text-slate-400 mt-1 font-semibold">${getTimeAgo(patient.lastUpdate)}</p>
         </div>`;
 
@@ -1318,16 +1565,25 @@ function openPatientDetails(patient) {
 
     // Start modal ECG animation after modal is shown
     setTimeout(() => {
-        if (patient.status === 'online') animateECG('modal-ecg-canvas', patient);
+        if (patient.status === 'online') {
+            animateECG('modal-ecg-canvas', patient);
+            // Init 3-channel HRV charts in modal
+            initDocHRVChannels(patient.id, patient.vitals, 'modal-hrv-ch');
+        }
     }, 100);
 }
 
 function closePatientModal() {
     document.getElementById('patientModal').classList.remove('active');
+    window._openModalPatientId = null;
+    window._openModalPatientNumericId = null;
+    onDoctorReportTabClose();
     if (ecgAnimFrames['modal-ecg-canvas']) {
         cancelAnimationFrame(ecgAnimFrames['modal-ecg-canvas']);
         delete ecgAnimFrames['modal-ecg-canvas'];
     }
+    if (window._modalHRVChart) { window._modalHRVChart.destroy(); window._modalHRVChart = null; }
+    stopDocHRVCanvas('modal-hrv-ch');
 }
 
 function openChat(patientId) {
@@ -1364,7 +1620,7 @@ function viewDeviceDetails(devId) {
     const p = patients.find(x => x.id === d.patientId);
     showInfo(
         '📡 Device Details',
-        `<strong>Device:</strong> ${d.id}\n<strong>Type:</strong> ${d.type}\n<strong>Status:</strong> ${d.status.toUpperCase()}\n<strong>Patient:</strong> ${d.patientName} (${d.patientId})\n<strong>Battery:</strong> ${d.batteryLevel}%\n<strong>Last Sync:</strong> ${getTimeAgo(d.lastSync)}\n\n<strong>Monitored Vitals</strong>\n• Heart Rate: ${p?.vitals.heartRate || '—'} bpm\n• SpO₂: ${p?.vitals.spO2 || '—'}%\n• HRV: ${p?.vitals.heartRateVariability || '—'} ms\n• Stress: ${getStressLabel(p?.vitals.stressLevel || 0)} (${p?.vitals.stressLevel || 0}%)\n• Fall Detected: ${p?.vitals.fallDetected ? 'YES ⚠️' : 'No'}`
+        `<strong>Device:</strong> ${d.id}\n<strong>Type:</strong> ${d.type}\n<strong>Status:</strong> ${d.status.toUpperCase()}\n<strong>Patient:</strong> ${d.patientName} (${d.patientId})\n<strong>Battery:</strong> ${d.batteryLevel}%\n<strong>Last Sync:</strong> ${getTimeAgo(d.lastSync)}\n\n<strong>Monitored Vitals</strong>\n• Heart Rate: ${p?.vitals.heartRate || '—'} bpm\n• SpO₂: ${p?.vitals.spO2 || '—'}%\n• HRV RMSSD: ${p?.vitals.hrv_rmssd || '—'} ms\n• HRV SDNN: ${p?.vitals.hrv_sdnn || '—'} ms\n• HRV pNN50: ${p?.vitals.hrv_pnn50 || '—'}%\n• Fall Detected: ${p?.vitals.fallDetected ? 'YES ⚠️' : 'No'}`
     );
 }
 function removeDevice(devId) {
@@ -1413,6 +1669,14 @@ function switchTab(tab, el) {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
     const t = document.getElementById(tab+'-tab');
     if (t) t.classList.remove('hidden');
+
+    // ── AI Report tab hook ──────────────────────────────────────────────────
+    if (tab === 'ai-report') {
+        const numId = window._openModalPatientNumericId || null;
+        onDoctorReportTabOpen(numId);
+    } else {
+        onDoctorReportTabClose();
+    }
 }
 
 /* ─── NAVIGATION ─── */
@@ -1463,7 +1727,7 @@ document.getElementById('addDeviceForm').addEventListener('submit', e => {
         age: 0,
         status: 'online',
         deviceId: deviceId,
-        vitals: { heartRate: 72, spO2: 98, temperature: 36.8, stressLevel: 25, heartRateVariability: 55, fallDetected: false },
+        vitals: { heartRate: 72, spO2: 98, temperature: 36.8, hrv_rmssd: 45, hrv_sdnn: 58, hrv_pnn50: 24.3, heartRateVariability: 55, fallDetected: false },
         ecgData: generateECGData(),
         lastUpdate: new Date(),
         alerts: [],
@@ -1484,24 +1748,7 @@ document.getElementById('addDeviceForm').addEventListener('submit', e => {
 });
 
 /* ─── VITAL SIMULATION ─── */
-function simulateVitalUpdates() {
-    patients.forEach(p => {
-        if (p.status !== 'online') return;
-        p.vitals.heartRate    = Math.floor(Math.random() * 30) + 65;
-        p.vitals.spO2         = Math.floor(Math.random() * 5) + 94;
-        p.vitals.temperature  = parseFloat((Math.random() * 1.5 + 36.4).toFixed(1));
-        p.vitals.stressLevel  = Math.floor(Math.random() * 80) + 10;
-        p.vitals.heartRateVariability = Math.floor(Math.random() * 60) + 20;
-        p.ecgData = generateECGData();
-        // Auto-generate alerts
-        p.alerts = [];
-        if (p.vitals.heartRate > 100) p.alerts.push(`Tachycardia: HR ${p.vitals.heartRate} bpm`);
-        if (p.vitals.spO2 < 95) p.alerts.push(`Low SpO2: ${p.vitals.spO2}%`);
-        if (p.vitals.stressLevel > 70) p.alerts.push(`High stress: ${p.vitals.stressLevel}%`);
-    });
-    renderPatients();
-    updateStatistics();
-}
+// simulateVitalUpdates removed — vitals driven by real DB polls only
 
 /* ─── TIME ─── */
 function updateTime() {
@@ -1509,7 +1756,382 @@ function updateTime() {
 }
 
 /* ─── MISC ─── */
-function refreshPatients() { renderPatients(); }
+
+// ─── STATUS BADGE BUILDER ─────────────────────────────────────────────────────
+function buildStatusBadge(status) {
+    return status === 'online'
+        ? `<div class="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200">
+               <div class="relative w-2 h-2"><div class="w-2 h-2 bg-green-500 rounded-full live-pulse"></div></div>
+               <span class="text-xs font-black">LIVE</span>
+           </div>`
+        : `<div class="flex items-center gap-1.5 bg-slate-100 text-slate-500 px-3 py-1.5 rounded-full">
+               <div class="w-2 h-2 bg-slate-400 rounded-full"></div>
+               <span class="text-xs font-black">OFFLINE</span>
+           </div>`;
+}
+
+// ─── IN-PLACE VITAL CARD UPDATER ─────────────────────────────────────────────
+// Updates vital values, badge, border and ECG directly in the DOM.
+// Never destroys the card — ECG canvas animation is always preserved.
+function updatePatientCardVitals(p) {
+    const sid = p.id;
+    const v   = p.vitals;
+
+    // If card doesn't exist in DOM yet, do a full render (first load edge case)
+    if (!document.getElementById(`vital-hr-${sid}`)) {
+        renderPatients();
+        return;
+    }
+
+    // Helpers
+    const setText  = (id, val)        => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setHTML  = (id, val)        => { const el = document.getElementById(id); if (el) el.innerHTML  = val; };
+    const fmt      = (val, dec)       => val > 0 ? (dec ? val.toFixed(dec) : String(val)) : '--';
+
+    // ── Core vital cells (3×2 grid) ─────────────────────────────────────────
+    // Rule: value > 0 → show it; value = 0 or null → show '--' (blank, not error)
+    setText(`vital-hr-${sid}`,    fmt(v.heartRate));
+    setText(`vital-spo2-${sid}`,  fmt(v.spO2));
+    setText(`vital-temp-${sid}`,  fmt(v.temperature, 1));
+    setText(`vital-rmssd-${sid}`, fmt(v.hrv_rmssd));
+    setText(`vital-sdnn-${sid}`,  fmt(v.hrv_sdnn));
+    setText(`vital-pnn50-${sid}`, fmt(v.hrv_pnn50, 1));
+
+    // ── HRV trend status label ───────────────────────────────────────────────
+    const hs = getHRVStatus(v.hrv_rmssd);
+    const hrvEl = document.getElementById(`vital-hrv-status-${sid}`);
+    if (hrvEl) {
+        if (v.hrv_rmssd > 0) { hrvEl.textContent = hs.label; hrvEl.style.color = hs.color; }
+        else                 { hrvEl.textContent = 'Awaiting…'; hrvEl.style.color = '#94a3b8'; }
+    }
+
+    // ── Chart bottom labels (current values) ────────────────────────────────
+    setText(`val-rmssd-${sid}`, v.hrv_rmssd > 0 ? `${v.hrv_rmssd}ms` : '--');
+    setText(`val-sdnn-${sid}`,  v.hrv_sdnn  > 0 ? `${v.hrv_sdnn}ms`  : '--');
+    setText(`val-pnn50-${sid}`, v.hrv_pnn50 > 0 ? `${v.hrv_pnn50.toFixed(1)}%` : '--');
+
+    // ── ECG BPM label ────────────────────────────────────────────────────────
+    const bpmLabel = p.liveHeartRate  ? `${p.liveHeartRate} bpm`
+                   : v.heartRate > 0  ? `${v.heartRate} bpm`
+                   : '— bpm';
+    setText(`vital-ecg-bpm-${sid}`, bpmLabel);
+
+    // ── Fall detection ───────────────────────────────────────────────────────
+    setHTML(`vital-fall-${sid}`, v.fallDetected
+        ? `<span class="fall-alert"><i class="fas fa-exclamation-triangle"></i>FALL DETECTED</span>`
+        : `<span class="fall-safe"><i class="fas fa-shield-alt"></i>No Fall</span>`);
+
+    // ── Status badge + card border (live flip without re-render) ─────────────
+    const badgeWrap = document.getElementById(`status-badge-${sid}`);
+    if (badgeWrap) badgeWrap.innerHTML = buildStatusBadge(p.status);
+
+    const cardWrap = document.getElementById(`card-wrap-${sid}`);
+    if (cardWrap) {
+        const isCritical = p.alerts.length > 0;
+        const isFall     = v.fallDetected;
+        const borderCls  = isFall       ? 'border-red-600'
+                         : isCritical   ? 'border-amber-500'
+                         : p.status === 'online' ? 'border-teal-400'
+                         : 'border-slate-300';
+        // Replace border colour class only
+        cardWrap.className = cardWrap.className
+            .replace(/border-(red-600|amber-500|teal-400|slate-300)/, borderCls);
+        if (isCritical) cardWrap.classList.add('critical-card');
+        else            cardWrap.classList.remove('critical-card');
+    }
+
+    // ── Last-seen timestamp ──────────────────────────────────────────────────
+    const lsEl = document.getElementById(`vital-lastseen-${sid}`);
+    if (lsEl) {
+        if (v.heartRate > 0 || v.spO2 > 0) {
+            lsEl.textContent = 'Updated ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            lsEl.style.color = '#94a3b8';
+            lsEl.style.animation = 'none';
+        } else {
+            lsEl.textContent = '⟳ Fetching vitals…';
+            lsEl.style.color = '#0d9488';
+            lsEl.style.animation = 'blinkRed 1.5s ease-in-out infinite';
+        }
+    }
+
+    // ── Flash animation on vital update ──────────────────────────────────────
+    const anyVital = v.heartRate > 0 || v.spO2 > 0 || v.temperature > 0 || v.hrv_rmssd > 0;
+    const vitalGrid = document.getElementById(`vital-grid-${sid}`);
+    if (vitalGrid && anyVital) {
+        vitalGrid.style.transition = 'opacity 0.18s';
+        vitalGrid.style.opacity = '0.45';
+        setTimeout(() => { vitalGrid.style.opacity = '1'; }, 180);
+    }
+}
+
+// Cursor: stores the last seen row id per patient.
+// On first call (id = 0) → fetch latest existing row to show immediately.
+// On subsequent calls → only fetch rows newer than last seen id.
+const _docMedianLastId = {};
+
+// ── Core helper: fetch one median row for patient p.
+// If lastId=0  → no after_id param  → backend returns the LATEST existing row.
+// If lastId>0  → after_id=lastId   → backend returns only a row newer than that id.
+async function _fetchMedianForPatient(p) {
+    const lastId = _docMedianLastId[p.id] || 0;
+    const url = lastId > 0
+        ? `/api/vitals-median?user_id=${p.numericId}&after_id=${lastId}`
+        : `/api/vitals-median?user_id=${p.numericId}`;          // latest row on first call
+
+    let json;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) { console.warn(`[Median] HTTP ${res.status} for ${p.name}`); return null; }
+        json = await res.json();
+    } catch(e) { console.warn(`[Median] Network error for ${p.name}:`, e); return null; }
+
+    if (json.status === 'error') {
+        console.error(`[Median] DB error for ${p.name} (user_id=${p.numericId}):`, json.detail);
+        return null;
+    }
+    if (json.status === 'no_data') return null;
+
+    const d = (json.status === 'ok' || json.status === 'success') ? json.data : null;
+    if (!d) return null;
+
+    // Advance cursor so the next call won't re-fetch this same row
+    if (d.id) _docMedianLastId[p.id] = d.id;
+
+    // Map DB columns → vitals. Rule: value > 0 → store; 0 / null → keep previous (show '--')
+    if (d.heart_rate  != null && d.heart_rate  > 0) p.vitals.heartRate    = d.heart_rate;
+    if (d.spo2        != null && d.spo2        > 0) p.vitals.spO2         = d.spo2;
+    if (d.temperature != null && parseFloat(d.temperature) > 0)
+        p.vitals.temperature = parseFloat(d.temperature);
+    if (d.rmssd != null && d.rmssd > 0) { p.vitals.hrv_rmssd = d.rmssd; p.vitals.heartRateVariability = d.rmssd; }
+    if (d.sdnn  != null && d.sdnn  > 0) p.vitals.hrv_sdnn  = d.sdnn;
+    if (d.pnn50 != null && d.pnn50 > 0) p.vitals.hrv_pnn50 = d.pnn50;
+    if (d.fall_detected !== undefined)  p.vitals.fallDetected = !!d.fall_detected;
+
+    // Mark online if any real reading exists
+    const anyReal = p.vitals.heartRate > 0 || p.vitals.spO2 > 0 || p.vitals.temperature > 0;
+    if (anyReal) {
+        p.status     = 'online';
+        p.lastUpdate = new Date(d.computed_at || Date.now());
+        const dev = devices.find(dv => dv.id === p.deviceId || dv.patientId === p.id);
+        if (dev) { dev.status = 'online'; dev.lastSync = p.lastUpdate; }
+    }
+
+    // Push to per-minute HRV trend chart
+    // On initial load (lastId was 0) we always push so the chart is pre-populated immediately.
+    const ts = d.computed_at
+        ? new Date(d.computed_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+        : new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    pushMedianHRVPoint(p.id, ts, d.rmssd ?? 0, d.sdnn ?? 0, d.pnn50 ?? 0);
+
+    console.log(`[Median] ${p.name} id=${d.id} HR=${d.heart_rate} SpO2=${d.spo2} Temp=${d.temperature} RMSSD=${d.rmssd} SDNN=${d.sdnn} pNN50=${d.pnn50}`);
+    return d;
+}
+
+// ── Initial load: fetch latest row for every patient so cards show real values immediately.
+// Called once after renderPatients(). Does NOT use after_id on the first call.
+// ── Last seen row id — skip update if no new row arrived ──
+let _lastSeenVitalsId = 0;
+
+// ── Apply latest vitals to patients[0] ONLY (first patient, whoever that is) ──
+async function fetchAndApplyLatestVitals() {
+    if (patients.length === 0) return false;
+
+    try {
+        const res = await fetch('/api/vitals-latest');
+        if (!res.ok) { console.warn('[Latest] HTTP', res.status); return false; }
+        const json = await res.json();
+        if (json.status !== 'ok' || !json.data) return false;
+
+        const d = json.data;
+
+        // Same row as last time — no new data, do nothing
+        if (d.id && d.id === _lastSeenVitalsId) return false;
+        _lastSeenVitalsId = d.id;
+
+        // Match vitals row to patient by user_id; fall back to last-entered patient
+        const p = patients.find(pt => pt.numericId === d.user_id)
+               ?? patients[patients.length - 1];
+
+        if (d.heart_rate  > 0) p.vitals.heartRate   = d.heart_rate;
+        if (d.spo2        > 0) p.vitals.spO2        = d.spo2;
+        if (d.temperature > 0) p.vitals.temperature = parseFloat(d.temperature);
+        if (d.rmssd != null && d.rmssd > 0) { p.vitals.hrv_rmssd = d.rmssd; p.vitals.heartRateVariability = d.rmssd; }
+        if (d.sdnn  != null && d.sdnn  > 0) p.vitals.hrv_sdnn  = d.sdnn;
+        if (d.pnn50 != null && d.pnn50 > 0) p.vitals.hrv_pnn50 = d.pnn50;
+
+        p.status     = 'online';
+        p.lastUpdate = new Date(d.computed_at || Date.now());
+        const dev = devices.find(dv => dv.id === p.deviceId || dv.patientId === p.id);
+        if (dev) { dev.status = 'online'; dev.lastSync = p.lastUpdate; }
+
+        updatePatientCardVitals(p);
+        if (!_cardHRVCharts[p.id]) createCardHRVChart(p.id);
+
+        const ts = d.computed_at
+            ? new Date(d.computed_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            : new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        pushMedianHRVPoint(p.id, ts, d.rmssd ?? 0, d.sdnn ?? 0, d.pnn50 ?? 0);
+
+        updateStats();
+        renderDevices();
+        console.log(`[Latest] NEW ROW id=${d.id} → ${p.name} | HR=${d.heart_rate} SpO2=${d.spo2} Temp=${d.temperature} RMSSD=${d.rmssd}`);
+        return true;
+
+    } catch(e) { console.warn('[Latest] Error:', e); return false; }
+}
+
+async function loadInitialMedianVitals() {
+    await fetchAndApplyLatestVitals();
+}
+
+// Poll every 2 s — only reacts when a new row id appears in the table
+async function pollDoctorMedianVitals() {
+    await fetchAndApplyLatestVitals();
+    pollDoctorLiveECG();
+}
+setInterval(pollDoctorMedianVitals, 2000);
+
+// === LIVE ECG POLL — updates ECG BPM + waveform speed only (every 3 s) ===
+// All vital-card values (HR, SpO2, Temp, RMSSD, SDNN, pNN50) stay owned by
+// pollDoctorMedianVitals. This function ONLY drives the ECG animation.
+async function pollDoctorLiveECG() {
+    let needsRender = false;
+    for (const p of patients) {
+        if (!p.deviceId) continue;
+        try {
+            const res = await fetch(`/api/get_latest?device_id=${encodeURIComponent(p.deviceId)}`);
+            if (!res.ok) { console.warn(`[LiveECG] HTTP ${res.status} for device ${p.deviceId}`); continue; }
+            const json = await res.json();
+            // Accept both 'success' and 'ok' status from backend
+            const d = (json.status === 'success' || json.status === 'ok') ? json.data : null;
+            if (d) {
+                // Mark online if ANY field has a value — not just HR
+                const hr      = d.heart_rate;
+                const spo2Val = d.spo2 ?? d.sp02 ?? null;
+                const tempVal = d.temperature != null ? parseFloat(d.temperature) : null;
+                const hasAnyData = (hr > 0) || (spo2Val > 0) || (tempVal > 0);
+
+                if (hasAnyData) {
+                    const wasOffline = p.status !== 'online';
+                    p.status     = 'online';
+                    p.lastUpdate = new Date();
+
+                    if (hr > 0) {
+                        p.liveHeartRate    = hr;
+                        p.vitals.heartRate = hr;
+                    }
+                    if (spo2Val != null && spo2Val > 0) p.vitals.spO2        = spo2Val;
+                    if (tempVal != null && tempVal > 0)  p.vitals.temperature = tempVal;
+                    if (d.fall_detected !== undefined)   p.vitals.fallDetected = !!d.fall_detected;
+
+                    // Start ECG animation first time device comes online
+                    if (wasOffline) {
+                        if (!p.ecgData || !p.ecgData.length) p.ecgData = generateECGData();
+                        animateECG(`ecg-mini-${p.id}`, p);
+                    }
+                    p._liveUpdated = true;
+                    needsRender    = true;
+
+                    // Update open modal ECG bpm label
+                    const modal = document.getElementById('patientModal');
+                    if (modal && modal.classList.contains('active')) {
+                        const ecgHrEl = document.getElementById('modal-ecg-hr');
+                        if (ecgHrEl && window._openModalPatientId === p.id && hr > 0)
+                            ecgHrEl.textContent = `${hr} bpm  ● live`;
+                    }
+                    console.log(`[LiveECG] ${p.name} HR=${hr} SpO2=${spo2Val} Temp=${tempVal}`);
+                }
+            } else {
+                console.warn(`[LiveECG] No data for device ${p.deviceId}:`, json);
+            }
+        } catch(e) { console.warn('[LiveECG] Error for device', p.deviceId, e); }
+    }
+    if (needsRender) {
+        patients.filter(p => p._liveUpdated).forEach(p => { updatePatientCardVitals(p); delete p._liveUpdated; });
+        updateStats();
+    }
+}
+setInterval(pollDoctorLiveECG, 3000);
+
+// Load real patients from the database and then start polling
+async function loadRealPatients() {
+    try {
+        const res = await fetch('/api/doctor/patients');
+        if (!res.ok) { console.warn('Could not load patients:', res.status); renderPatients(); updateStats(); return; }
+        const apiPts = await res.json();
+
+        if (!apiPts || apiPts.length === 0) {
+            patients = [];
+            devices  = [];
+            renderPatients();
+            renderDevices();
+            updateStats();
+            return;
+        }
+
+        // Preserve any live vitals/ECG already fetched (for refresh calls)
+        const prev = {};
+        patients.forEach(p => { prev[p.id] = p; });
+
+        // Rebuild patients list entirely from DB — no demo data
+        patients = apiPts.map(ap => {
+            const pid      = ap.patient_id || `PT-${ap.numeric_id}`;
+            const initials = (ap.full_name || pid || '??')
+                .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            const old = prev[pid];
+            return {
+                id:             pid,
+                numericId:      ap.numeric_id,
+                name:           ap.full_name  || pid,
+                initials,
+                age:            ap.age        || '—',
+                status:         old?.status   || 'offline',
+                deviceId:       ap.device_id  || '',
+                vitals: old?.vitals || {
+                    heartRate: 0, spO2: 0, temperature: 0,
+                    hrv: 0, hrv_rmssd: 0, hrv_sdnn: 0, hrv_pnn50: 0,
+                    heartRateVariability: 0, fallDetected: false
+                },
+                ecgData:        old?.ecgData        || [],
+                liveHeartRate:  old?.liveHeartRate   || null,
+                lastUpdate:     old?.lastUpdate      || new Date(),
+                alerts:         old?.alerts          || [],
+                unreadMessages: old?.unreadMessages  || 0,
+            };
+        });
+
+        // Rebuild devices list from real patient data
+        devices = patients
+            .filter(p => p.deviceId)
+            .map(p => ({
+                id:           p.deviceId,
+                type:         'MediTwin Device',
+                status:       p.status,
+                patientId:    p.id,
+                patientName:  p.name,
+                batteryLevel: null,
+                lastSync:     p.lastUpdate,
+            }));
+
+        renderPatients();
+        renderDevices();
+        updateStats();
+
+        // Load latest existing median values immediately (before any new row arrives)
+        await loadInitialMedianVitals();
+        // Then kick off ECG live stream
+        pollDoctorLiveECG();
+    } catch (e) {
+        console.warn('loadRealPatients error:', e);
+        renderPatients();
+        renderDevices();
+        updateStatistics();
+    }
+}
+
+function refreshPatients() {
+    loadRealPatients();   // re-fetch DB patients + poll latest medians
+}
 function openNotifications() {
     const cnt = alerts.filter(a=>!a.acknowledged).length;
     showInfo(
@@ -1570,6 +2192,262 @@ async function confirmDeleteAccount() {
     }
 }
 
+/* ─── HRV 3-CHANNEL CHARTS (doctor) ─── */
+const _docHRVInsts = {};
+const _docHRV_CFG = [
+    { key:'hrv_rmssd', bufKey:'rmssd', color:'#a78bfa', normalMin:20, unit:'ms', max:100 },
+    { key:'hrv_sdnn',  bufKey:'sdnn',  color:'#6366f1', normalMin:50, unit:'ms', max:120 },
+    { key:'hrv_pnn50', bufKey:'pnn50', color:'#8b5cf6', normalMin:10, unit:'%',  max:55  },
+];
+const _docHRV_BUFS = {};   // patientId → { labels:[], rmssd:[], sdnn:[], pnn50:[] }
+const _DOC_HRV_BUFLEN = 30;   // keep 30 one-minute points (~30 min window)
+
+// Per-card combined 3-line HRV mini chart (canvas id: card-hrv-combined-{pid})
+const _cardHRVCharts = {};
+
+function createCardHRVChart(pid) {
+    const canvas = document.getElementById(`card-hrv-combined-${pid}`);
+    if (!canvas) return;
+    if (_cardHRVCharts[pid]) { try{_cardHRVCharts[pid].destroy();}catch(e){} }
+    const buf = _docHRVGetBuf(pid);
+    _cardHRVCharts[pid] = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: [...buf.labels],
+            datasets: [
+                {
+                    label:'RMSSD', data:[...buf.rmssd],
+                    borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,0.10)',
+                    borderWidth:2, tension:0.4, fill:false,
+                    pointRadius: buf.labels.length > 1 ? 3 : 0,
+                    pointBackgroundColor:'#a78bfa', pointHoverRadius:5, spanGaps:true
+                },
+                {
+                    label:'SDNN', data:[...buf.sdnn],
+                    borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.10)',
+                    borderWidth:2, tension:0.4, fill:false,
+                    pointRadius: buf.labels.length > 1 ? 3 : 0,
+                    pointBackgroundColor:'#6366f1', pointHoverRadius:5, spanGaps:true
+                },
+                {
+                    label:'pNN50', data:[...buf.pnn50],
+                    borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,0.10)',
+                    borderWidth:2, tension:0.4, fill:false,
+                    pointRadius: buf.labels.length > 1 ? 3 : 0,
+                    pointBackgroundColor:'#8b5cf6', pointHoverRadius:5, spanGaps:true
+                },
+            ]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            animation: { duration: 400 },
+            interaction: { mode:'index', intersect:false },
+            plugins: {
+                legend: {
+                    display:true, position:'top',
+                    labels: {
+                        boxWidth:8, boxHeight:8, font:{size:8,weight:'700'}, padding:6,
+                        color:'#64748b', usePointStyle:true, pointStyle:'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor:'#ffffff', borderColor:'#e2e8f0', borderWidth:1,
+                    titleColor:'#0f172a', bodyColor:'#64748b',
+                    titleFont:{size:9,weight:'700'}, bodyFont:{size:9}, padding:6,
+                    callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y != null ? ctx.parsed.y : '--'}` }
+                }
+            },
+            scales: {
+                x: {
+                    display: buf.labels.length > 0,
+                    ticks:{ color:'#cbd5e1', font:{size:7}, maxTicksLimit:4, maxRotation:0 },
+                    grid:{ display:false },
+                    border:{ display:false }
+                },
+                y: {
+                    display:true, position:'right', min:0,
+                    grid:{ color:'rgba(0,0,0,0.04)', drawTicks:false },
+                    ticks:{ color:'#cbd5e1', font:{size:7}, maxTicksLimit:3, padding:2 },
+                    border:{ display:false }
+                }
+            }
+        }
+    });
+}
+
+function destroyCardHRVChart(pid) {
+    if (_cardHRVCharts[pid]) { try{_cardHRVCharts[pid].destroy();}catch(e){} delete _cardHRVCharts[pid]; }
+}
+
+function _docHRVGetBuf(pid) {
+    if (!_docHRV_BUFS[pid]) _docHRV_BUFS[pid] = { labels:[], rmssd:[], sdnn:[], pnn50:[] };
+    return _docHRV_BUFS[pid];
+}
+
+// _docHRVSeed intentionally does NOT pre-fill with fake data.
+// Charts start empty and grow one point per minute as real DB medians arrive.
+function _docHRVSeed(pid, vitals) { /* no-op: only real DB readings fill the buffer */ }
+
+// Called by _fetchMedianForPatient every time a row is received from vitals_raw_median.
+// Appends values that are > 0 — 0s are stored as null (chart gap).
+function pushMedianHRVPoint(pid, ts, rmssd, sdnn, pnn50) {
+    const buf = _docHRVGetBuf(pid);
+    // Need at least one non-zero value to be worth adding a point
+    const hasAny = (rmssd > 0) || (sdnn > 0) || (pnn50 > 0);
+    if (!hasAny) return;
+
+    buf.labels.push(ts);
+    buf.rmssd.push(rmssd > 0 ? +rmssd.toFixed(1) : null);   // null = gap in chart
+    buf.sdnn.push( sdnn  > 0 ? +sdnn.toFixed(1)  : null);
+    buf.pnn50.push(pnn50 > 0 ? +pnn50.toFixed(1) : null);
+
+    if (buf.labels.length > _DOC_HRV_BUFLEN) {
+        buf.labels.shift(); buf.rmssd.shift(); buf.sdnn.shift(); buf.pnn50.shift();
+    }
+
+    // Live-push into every channel chart instance that references this patient
+    _docHRV_CFG.forEach(cfg => {
+        ['modal-hrv-ch', `analytics-hrv-ch-${pid}`, `card-hrv-ch-${pid}`].forEach(prefix => {
+            const id   = `${prefix}-${cfg.bufKey}`;
+            const inst = _docHRVInsts[id];
+            if (!inst || !document.getElementById(id)) return;
+            inst.data.labels              = [...buf.labels];
+            inst.data.datasets[0].data    = [...buf[cfg.bufKey]];
+            inst.update('none');
+        });
+    });
+
+    // Update the combined 3-line card chart
+    const cardInst = _cardHRVCharts[pid];
+    if (cardInst && document.getElementById(`card-hrv-combined-${pid}`)) {
+        cardInst.data.labels = [...buf.labels];
+        cardInst.data.datasets[0].data = [...buf.rmssd];
+        cardInst.data.datasets[1].data = [...buf.sdnn];
+        cardInst.data.datasets[2].data = [...buf.pnn50];
+        cardInst.update('none');
+    }
+
+    // Update the bottom value labels on the card
+    const lastRmssd = [...buf.rmssd].reverse().find(v => v != null);
+    const lastSdnn  = [...buf.sdnn ].reverse().find(v => v != null);
+    const lastPnn50 = [...buf.pnn50].reverse().find(v => v != null);
+    const el_r = document.getElementById(`val-rmssd-${pid}`);
+    const el_s = document.getElementById(`val-sdnn-${pid}`);
+    const el_p = document.getElementById(`val-pnn50-${pid}`);
+    if (el_r) el_r.textContent = lastRmssd != null ? `${lastRmssd}ms` : '--';
+    if (el_s) el_s.textContent = lastSdnn  != null ? `${lastSdnn}ms`  : '--';
+    if (el_p) el_p.textContent = lastPnn50 != null ? `${lastPnn50}%`  : '--';
+
+    // Update HRV status label
+    const el_hs = document.getElementById(`vital-hrv-status-${pid}`);
+    if (el_hs && lastRmssd != null) {
+        const hs = getHRVStatus(lastRmssd);
+        el_hs.textContent = hs.label;
+        el_hs.style.color = hs.color;
+    }
+}
+
+function _buildDocHRVChart(canvas, cfg, buf) {
+    const color = cfg.color, normalMin = cfg.normalMin;
+    const r = parseInt(color.slice(1,3),16), g=parseInt(color.slice(3,5),16), b=parseInt(color.slice(5,7),16);
+    const rangeBandPlugin = {
+        id:'rangeBand',
+        beforeDatasetsDraw(chart) {
+            const {ctx,chartArea:{left,right,top,bottom},scales:{y}} = chart;
+            if (!y) return;
+            const yN = y.getPixelForValue(normalMin);
+            ctx.save();
+            // Below-normal red zone
+            ctx.fillStyle = 'rgba(244,63,94,0.06)';
+            ctx.fillRect(left, Math.max(yN, top), right-left, Math.max(0, bottom - Math.max(yN, top)));
+            // Normal zone
+            ctx.fillStyle = `rgba(${r},${g},${b},0.05)`;
+            ctx.fillRect(left, top, right-left, Math.max(0, Math.min(yN, bottom) - top));
+            // Threshold line
+            if (yN >= top && yN <= bottom) {
+                ctx.beginPath(); ctx.setLineDash([5,4]);
+                ctx.strokeStyle = `rgba(${r},${g},${b},0.4)`;
+                ctx.lineWidth = 1;
+                ctx.moveTo(left, yN); ctx.lineTo(right, yN); ctx.stroke();
+            }
+            ctx.setLineDash([]); ctx.restore();
+        }
+    };
+    return new Chart(canvas, {
+        type:'line', plugins:[rangeBandPlugin],
+        data: {
+            labels: [...buf.labels],
+            datasets:[{
+                data: [...buf[cfg.bufKey]],
+                borderColor: color,
+                backgroundColor: (ctx2) => {
+                    const {ctx, chartArea} = ctx2.chart;
+                    if (!chartArea) return `rgba(${r},${g},${b},0.08)`;
+                    const grad = ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+                    grad.addColorStop(0,`rgba(${r},${g},${b},0.15)`);
+                    grad.addColorStop(1,`rgba(${r},${g},${b},0.00)`);
+                    return grad;
+                },
+                borderWidth:2, fill:true, tension:0.4,
+                pointRadius:0, pointHoverRadius:5,
+                pointHoverBackgroundColor:color, pointHoverBorderColor:'#fff', pointHoverBorderWidth:2
+            }]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            interaction:{ mode:'index', intersect:false },
+            plugins:{
+                legend:{ display:false },
+                tooltip:{
+                    backgroundColor:'#ffffff', borderColor:'#e2e8f0', borderWidth:1,
+                    titleColor:'#0f172a', bodyColor:'#64748b',
+                    titleFont:{size:10,weight:'700',family:"'Plus Jakarta Sans',sans-serif"},
+                    bodyFont:{size:11,family:"'Plus Jakarta Sans',sans-serif"}, padding:8,
+                    callbacks:{ label: c => `  ${cfg.key.replace('hrv_','').toUpperCase()}: ${c.parsed.y} ${cfg.unit}` }
+                }
+            },
+            scales:{
+                x:{ display:false },
+                y:{
+                    position:'right', min:0, max:cfg.max,
+                    grid:{ color:'rgba(0,0,0,0.05)', drawTicks:false },
+                    ticks:{ color:'#94a3b8', font:{size:8,family:"'Plus Jakarta Sans',sans-serif"}, maxTicksLimit:4, padding:3 },
+                    border:{ color:'#e2e8f0', dash:[2,3] }
+                }
+            },
+            animation:false
+        }
+    });
+}
+
+function initDocHRVChannels(pid, vitals, canvasPrefix) {
+    // canvasPrefix: e.g. 'modal-hrv-ch' → canvases: modal-hrv-ch-rmssd etc.
+    _docHRVSeed(pid, vitals);
+    const buf = _docHRVGetBuf(pid);
+    _docHRV_CFG.forEach(cfg => {
+        const id = `${canvasPrefix}-${cfg.bufKey}`;
+        const canvas = document.getElementById(id); if (!canvas) return;
+        if (_docHRVInsts[id]) { try{_docHRVInsts[id].destroy();}catch(e){} }
+        _docHRVInsts[id] = _buildDocHRVChart(canvas, cfg, buf);
+    });
+}
+
+// updateDocHRVCharts is now a no-op stub.
+// All chart updates go through pushMedianHRVPoint (called by pollDoctorMedianVitals).
+function updateDocHRVCharts(pid, vitals) { /* replaced by pushMedianHRVPoint */ }
+
+// Stubs for old dark-canvas calls
+const _hrvDocState = {};
+function initDocHRVCanvas() {}
+function stopDocHRVCanvas(id) {
+    // Also destroy any Chart.js instances matching this prefix
+    Object.keys(_docHRVInsts).filter(k => k.startsWith(id)).forEach(k => {
+        try{_docHRVInsts[k].destroy();}catch(e){} delete _docHRVInsts[k];
+    });
+}
+
+/* ─── TOAST ─── */
+
 /* ─── TOAST ─── */
 function showToast(message, type = 'success', duration = 3500) {
     const icons = { success: 'fa-check', error: 'fa-times', info: 'fa-info', warning: 'fa-exclamation' };
@@ -1627,30 +2505,25 @@ function showInfo(title, message) {
 
 /* ─── INIT ─── */
 window.addEventListener('DOMContentLoaded', async () => {
-    const ls      = document.getElementById('loadScreen');
-    const stepEl  = document.getElementById('load-step');
-    const barEl   = document.getElementById('load-bar');
+    const ls     = document.getElementById('loadScreen');
+    const stepEl = document.getElementById('load-step');
+    const barEl  = document.getElementById('load-bar');
 
-    const steps = [
-        { label: 'Authenticating…',      pct: 20 },
-        { label: 'Loading profile…',     pct: 45 },
-        { label: 'Fetching patients…',   pct: 70 },
-        { label: 'Preparing dashboard…', pct: 88 },
-    ];
+    const step = (label, pct) => {
+        if (stepEl) stepEl.textContent = label;
+        if (barEl)  barEl.style.width  = pct + '%';
+    };
 
-    // Advance bar to each checkpoint with a small delay so the user sees movement
-    for (const s of steps) {
-        if (stepEl) stepEl.textContent = s.label;
-        if (barEl)  barEl.style.width  = s.pct + '%';
-        await new Promise(r => setTimeout(r, 220));
-    }
-
+    // Step 1 — authenticate / load profile
+    step('Authenticating…', 30);
     await loadDoctorProfile();
 
-    if (stepEl) stepEl.textContent = 'Rendering dashboard…';
-    if (barEl)  barEl.style.width  = '95%';
+    // Step 2 — fetch patient list from DB
+    step('Fetching patients from database…', 60);
+    await loadRealPatients();          // renders cards with -- vitals immediately
 
-    renderPatients();
+    // Step 3 — finish UI setup
+    step('Ready!', 100);
     renderDevices();
     renderAlerts();
     renderConversations();
@@ -1658,19 +2531,482 @@ window.addEventListener('DOMContentLoaded', async () => {
     updateStatistics();
     updateTime();
     setInterval(updateTime, 1000);
-    setInterval(simulateVitalUpdates, 6000);
 
-    // Complete bar to 100% then fade out
-    if (barEl)  barEl.style.width  = '100%';
-    if (stepEl) stepEl.textContent = 'Ready!';
-
+    // Dismiss loading screen
     setTimeout(() => {
-        if (ls) {
-            ls.classList.add('fade');
-            setTimeout(() => ls.remove(), 500);
+        if (ls) { ls.classList.add('fade'); setTimeout(() => ls.remove(), 500); }
+    }, 350);
+
+    // Pollers will fill in vitals and start ECG animation as data arrives
+    // initial load handled inside loadRealPatients via loadInitialMedianVitals()
+
+    // ── AUTO-GENERATE REPORT every 30 minutes ──────────────────────────────
+    // Only fires when a patient modal is open on the AI Report tab
+    setInterval(() => {
+        if (_docReportAutoActive && _docCurrentReportPatientId !== null) {
+            doctorGenerateReport(true); // silent auto-refresh
         }
-    }, 400);
+    }, 30 * 60 * 1000);
+
+    // Countdown ticker
+    setInterval(() => {
+        if (!_docReportAutoActive) return;
+        _docReportCountdown = Math.max(0, _docReportCountdown - 1);
+        const m = String(Math.floor(_docReportCountdown / 60)).padStart(2,'0');
+        const s = String(_docReportCountdown % 60).padStart(2,'0');
+        const el = document.getElementById('doc-report-countdown');
+        if (el) el.textContent = `${m}:${s}`;
+        if (_docReportCountdown === 0) _docReportCountdown = 1800;
+    }, 1000);
 });
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DOCTOR DASHBOARD — 30-MINUTE AI REPORT SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+let _docCurrentReportPatientId = null;   // numeric user_id of patient in modal
+let _docCurrentReportData      = null;   // last fetched report JSON
+let _docReportAutoActive       = false;
+let _docReportCountdown        = 1800;   // seconds until next auto-refresh
+
+/* ── Called when the AI Report tab becomes visible ── */
+function onDoctorReportTabOpen(patientNumericId) {
+    _docCurrentReportPatientId = patientNumericId || null;
+    _docReportAutoActive       = true;
+    _docReportCountdown        = 1800;
+
+    const badge = document.getElementById('doc-report-auto-badge');
+    if (badge) badge.style.display = '';
+
+    // Show previously cached report if available
+    if (_docCurrentReportData) {
+        _renderDocReport(_docCurrentReportData);
+    } else {
+        _showDocReportState('empty');
+    }
+}
+
+/* ── Called when modal closes ── */
+function onDoctorReportTabClose() {
+    _docReportAutoActive = false;
+    const badge = document.getElementById('doc-report-auto-badge');
+    if (badge) badge.style.display = 'none';
+}
+
+/* ── Main generate function ── */
+async function doctorGenerateReport(silent = false) {
+    const btn = document.getElementById('doc-gen-report-btn');
+    if (!silent) {
+        _showDocReportState('loading');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analysing…'; }
+    }
+
+    try {
+        const url = _docCurrentReportPatientId
+            ? `/api/report/30min?patient_id=${_docCurrentReportPatientId}`
+            : `/api/report/30min`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (data.status === 'no_data') {
+            _showDocReportState('empty');
+            showToast('No vitals data found for the first 30 minutes of this patient\'s session.', 'warning');
+            return;
+        }
+
+        _docCurrentReportData = data;
+        _docReportCountdown   = 1800;
+        _renderDocReport(data);
+        if (!silent) showToast('30-minute clinical report generated successfully.', 'success');
+
+    } catch (err) {
+        console.error('Report generation failed:', err);
+        _showDocReportState('empty');
+        if (!silent) showToast('Report generation failed: ' + err.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-brain"></i> Generate Report'; }
+    }
+}
+
+/* ── Chart instances for cleanup ── */
+let _docReportCharts = {};
+
+function _destroyDocReportCharts() {
+    Object.values(_docReportCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+    _docReportCharts = {};
+}
+
+function _showDocReportState(state) {
+    ['doc-report-loading','doc-report-output','doc-report-empty'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    if (state === 'loading') document.getElementById('doc-report-loading').style.display = '';
+    else if (state === 'output') document.getElementById('doc-report-output').style.display = '';
+    else { _destroyDocReportCharts(); document.getElementById('doc-report-empty').style.display = ''; }
+}
+
+function _showDocReportStateIfVisible(state) {
+    const tab = document.getElementById('ai-report-tab');
+    if (tab && !tab.classList.contains('hidden')) _showDocReportState(state);
+}
+
+function _renderDocReport(data) {
+    _destroyDocReportCharts();
+
+    /* ── Stats strip ── */
+    const statsDiv = document.getElementById('doc-report-stats');
+    if (statsDiv && data.stats) {
+        const s = data.stats;
+        const cards = [
+            { label:'HR Mean',    val: s.heart_rate?.mean  ?? '—', unit:'bpm',  color:'#ef4444' },
+            { label:'HR Range',   val: s.heart_rate?.min && s.heart_rate?.max ? `${s.heart_rate.min}–${s.heart_rate.max}` : '—', unit:'bpm', color:'#f97316' },
+            { label:'SpO₂ Mean',  val: s.spo2?.mean        ?? '—', unit:'%',    color:'#3b82f6' },
+            { label:'SpO₂ Min',   val: s.spo2?.min         ?? '—', unit:'%',    color:'#6366f1' },
+            { label:'Temp Mean',  val: s.temperature?.mean ?? '—', unit:'°C',   color:'#f59e0b' },
+            { label:'HRV Mean',   val: s.hrv?.mean         ?? '—', unit:'',     color:'#8b5cf6' },
+            { label:'RMSSD',      val: s.rmssd?.mean       ?? '—', unit:'ms',   color:'#a78bfa' },
+            { label:'Readings',   val: data.total_readings  ?? '—', unit:'pts', color:'#10b981' },
+        ];
+        statsDiv.innerHTML = cards.map(c => `
+            <div class="bg-white border border-slate-200 rounded-xl p-2 text-center shadow-sm">
+                <p class="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-0.5">${c.label}</p>
+                <p class="text-sm font-black leading-tight" style="color:${c.color}">${c.val}</p>
+                <p class="text-[8px] text-slate-400 font-semibold">${c.unit}</p>
+            </div>`).join('');
+    }
+
+    /* ── ECG / Heart Rate waveform (Canvas) ── */
+    const ecgCanvas = document.getElementById('doc-report-ecg-canvas');
+    if (ecgCanvas && data.raw_rows && data.raw_rows.length) {
+        const rows = data.raw_rows;
+        const hrVals = rows.map(r => r.heart_rate > 0 ? r.heart_rate : null);
+        const labels = rows.map(r => r.timestamp ? r.timestamp.substring(11,19) : '');
+        // Draw synthetic ECG using heart rate data as envelope
+        _drawReportECG(ecgCanvas, hrVals, labels);
+        const latestHR = hrVals.filter(v=>v).slice(-1)[0];
+        const lbl = document.getElementById('doc-ecg-bpm-label');
+        if (lbl) lbl.textContent = latestHR ? `${latestHR} bpm` : '— bpm';
+    }
+
+    /* ── Activity state bars ── */
+    const actDiv = document.getElementById('doc-activity-bars');
+    if (actDiv && data.activity_summary) {
+        const colors = { REST:'#10b981', WALKING:'#3b82f6', RUNNING:'#f59e0b', UNKNOWN:'#94a3b8' };
+        const entries = Object.entries(data.activity_summary);
+        const maxPct  = Math.max(...entries.map(([,v]) => v.pct), 1);
+        actDiv.innerHTML = entries.map(([state, info]) => `
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-600 w-16 flex-shrink-0">${state}</span>
+                <div class="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div class="h-full rounded-full transition-all" style="width:${(info.pct/maxPct*100).toFixed(1)}%;background:${colors[state]||'#6366f1'}"></div>
+                </div>
+                <span class="text-[10px] font-bold text-slate-500 w-10 text-right">${info.pct}%</span>
+            </div>`).join('');
+    }
+
+    /* ── Chart.js helper ── */
+    function _makeChart(canvasId, label, color, dataPoints, unit='') {
+        const el = document.getElementById(canvasId);
+        if (!el) return;
+        const ctx = el.getContext('2d');
+        // Filter out nulls/zeros for display, keep timestamps for labels
+        const pts  = dataPoints.filter(p => p.y !== null && p.y > 0);
+        const lbls = pts.map(p => p.x);
+        const vals = pts.map(p => p.y);
+        _docReportCharts[canvasId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: lbls,
+                datasets: [{
+                    label: label,
+                    data: vals,
+                    borderColor: color,
+                    backgroundColor: color + '18',
+                    borderWidth: 1.5,
+                    pointRadius: pts.length > 100 ? 0 : 1.5,
+                    pointHoverRadius: 3,
+                    tension: 0.3,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.parsed.y} ${unit}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { maxTicksLimit: 6, font: { size: 7 }, color: '#94a3b8' },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    y: {
+                        ticks: { maxTicksLimit: 5, font: { size: 7 }, color: '#94a3b8' },
+                        grid: { color: '#f1f5f9' }
+                    }
+                }
+            }
+        });
+    }
+
+    /* ── Build chart data from raw_rows ── */
+    if (data.raw_rows && data.raw_rows.length) {
+        const rows = data.raw_rows;
+        const ts   = r => (r.timestamp || '').substring(11,19); // HH:MM:SS
+
+        _makeChart('doc-chart-rmssd', 'RMSSD',  '#a78bfa',
+            rows.map(r => ({ x: ts(r), y: r.rmssd > 0 ? r.rmssd : null })), 'ms');
+        _makeChart('doc-chart-sdnn',  'SDNN',   '#6366f1',
+            rows.map(r => ({ x: ts(r), y: r.sdnn  > 0 ? r.sdnn  : null })), 'ms');
+        _makeChart('doc-chart-pnn50', 'pNN50',  '#8b5cf6',
+            rows.map(r => ({ x: ts(r), y: r.pnn50 > 0 ? r.pnn50 : null })), '%');
+        _makeChart('doc-chart-spo2',  'SpO₂',   '#3b82f6',
+            rows.map(r => ({ x: ts(r), y: r.spo2  > 0 ? r.spo2  : null })), '%');
+        _makeChart('doc-chart-temp',  'Temp',   '#f59e0b',
+            rows.map(r => ({ x: ts(r), y: r.temperature > 0 ? r.temperature : null })), '°C');
+    }
+
+    /* ── Report text ── */
+    const pre = document.getElementById('doc-report-text');
+    if (pre) pre.textContent = data.report || '(No report text returned)';
+
+    /* ── Metadata ── */
+    const genAt = document.getElementById('doc-report-generated-at');
+    if (genAt) genAt.textContent = new Date().toLocaleString();
+    const rdgs = document.getElementById('doc-report-readings');
+    if (rdgs) rdgs.textContent = data.total_readings ?? '—';
+
+    /* ── Show export button ── */
+    const expBtn = document.getElementById('doc-export-report-btn');
+    if (expBtn) expBtn.style.display = '';
+
+    _showDocReportState('output');
+}
+
+/* ── ECG waveform renderer (Canvas, dark background, green line) ── */
+function _drawReportECG(canvas, hrVals, labels) {
+    const W = canvas.offsetWidth || 500;
+    const H = canvas.height = 80;
+    canvas.width = W;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(0,255,136,0.06)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 4; i++) { ctx.beginPath(); ctx.moveTo(0,i*H/4); ctx.lineTo(W,i*H/4); ctx.stroke(); }
+    for (let i = 0; i <= 10; i++) { ctx.beginPath(); ctx.moveTo(i*W/10,0); ctx.lineTo(i*W/10,H); ctx.stroke(); }
+
+    // Build synthetic ECG from HR values
+    const validHR = hrVals.filter(v => v && v > 0);
+    if (!validHR.length) {
+        ctx.fillStyle = 'rgba(0,255,136,0.25)';
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('No valid heart rate readings', W/2, H/2);
+        return;
+    }
+
+    // Generate QRS-style waveform modulated by HR values
+    const pts = [];
+    const n   = Math.min(hrVals.length, 600);
+    const step = Math.max(1, Math.floor(hrVals.length / n));
+    const sampled = hrVals.filter((v,i) => i % step === 0).slice(0, n);
+
+    for (let idx = 0; idx < sampled.length; idx++) {
+        const hr   = sampled[idx] && sampled[idx] > 0 ? sampled[idx] : null;
+        const base = H / 2;
+        if (hr === null) { pts.push({ x: idx * (W / sampled.length), y: base }); continue; }
+        const norm = (hr - 40) / (200 - 40); // normalise 40–200bpm
+        const amp  = 28 * norm + 8;
+        const phase = (idx / sampled.length) % 1;
+        // QRS complex
+        let y = base;
+        const p = phase % (1 / (sampled.length * 0.02));
+        y = base + Math.sin(idx * 0.3) * 3;        // baseline wander
+        // Spike every ~HR/60 * rate
+        const beatInterval = Math.round(60 / (hr || 70) * (sampled.length / 30));
+        const beatPhase    = idx % Math.max(1, beatInterval);
+        const rel          = beatPhase / Math.max(1, beatInterval);
+        if      (rel < 0.05)  y = base - amp * 0.3;
+        else if (rel < 0.08)  y = base + amp * 0.15;
+        else if (rel < 0.12)  y = base - amp;
+        else if (rel < 0.16)  y = base + amp * 1.4;
+        else if (rel < 0.20)  y = base - amp * 0.5;
+        else if (rel < 0.35)  y = base + amp * 0.12;
+        else                  y = base + Math.sin(idx * 0.08) * 2.5;
+        pts.push({ x: idx * (W / sampled.length), y });
+    }
+
+    // Draw ECG line
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth   = 1.5;
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur  = 4;
+    ctx.beginPath();
+    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+}
+
+/* ── PDF Export for doctor dashboard ── *//* ── PDF Export for doctor dashboard ── */
+function doctorExportReportPDF() {
+    if (!_docCurrentReportData) { showToast('Generate a report first.', 'warning'); return; }
+    _exportReportAsPDF(_docCurrentReportData, 'NEXORA_ClinicalReport_Doctor.pdf');
+}
+
+/* ── Shared PDF exporter (used by both dashboards) ── */
+function _exportReportAsPDF(data, filename) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const PW=210, PH=297, ML=14, MR=196;
+
+    const C = {
+        teal:[13,148,136], tealLight:[20,184,166], navy:[10,15,40],
+        dark:[21,32,56],   gray:[100,116,139],      white:[255,255,255],
+        light:[241,245,249], border:[214,221,231],   red:[239,68,68],
+        amber:[245,158,11], green:[34,197,94],
+    };
+
+    const sf  = (st,sz,col) => { doc.setFont('helvetica',st); doc.setFontSize(sz); doc.setTextColor(...col); };
+    const fr  = (x,y,w,h,col,r=0) => { doc.setFillColor(...col); r ? doc.roundedRect(x,y,w,h,r,r,'F') : doc.rect(x,y,w,h,'F'); };
+    const ln  = (x1,y1,x2,y2,col,lw=0.3) => { doc.setDrawColor(...col); doc.setLineWidth(lw); doc.line(x1,y1,x2,y2); };
+    const tx  = (t,x,y,o={}) => doc.text(String(t===null||t===undefined?'—':t),x,y,o);
+
+    // ── COVER PAGE ──────────────────────────────────────────────────────────
+    fr(0,0,PW,PH,C.navy);
+    fr(0,0,PW,4,C.teal);
+
+    // Logo placeholder
+    fr(ML,30,26,26,C.teal,4);
+    sf('bold',11,C.white); tx('N',ML+13,46,{align:'center'});
+
+    sf('bold',22,C.white); tx('NEXORA MEDITWIN',ML+34,40);
+    sf('normal',9,C.tealLight); tx('AI-Powered Remote Patient Monitoring Platform',ML+34,48);
+
+    // Report title band
+    fr(0,70,PW,28,C.teal);
+    sf('bold',16,C.white); tx('30-MINUTE CLINICAL VITALS REPORT',PW/2,82,{align:'center'});
+    sf('normal',8,C.white); tx('Automated AI Analysis · Powered by Ollama llama3',PW/2,90,{align:'center'});
+
+    // Patient info
+    let cy = 112;
+    sf('bold',10,C.tealLight); tx('PATIENT INFORMATION',ML,cy); cy+=8;
+    const pi = data.patient_info || {};
+    const fields = [
+        ['Patient Name',  pi.full_name    || '—'],
+        ['Patient ID',    pi.patient_id   || '—'],
+        ['Age',           pi.age          || '—'],
+        ['Gender',        pi.gender       || '—'],
+        ['Blood Group',   pi.blood_group  || '—'],
+        ['Hospital',      pi.hospital     || '—'],
+        ['Assigned Doctor', pi.doctor     || '—'],
+        ['Condition',     pi.condition    || '—'],
+    ];
+    fields.forEach(([label, val]) => {
+        sf('bold',8,C.gray);  tx(label+':', ML, cy);
+        sf('normal',8,C.white); tx(val, ML+50, cy);
+        cy += 7;
+    });
+
+    cy += 6;
+    sf('bold',10,C.tealLight); tx('SESSION DETAILS',ML,cy); cy+=8;
+    sf('bold',8,C.gray);   tx('Session Start:',  ML,   cy);
+    sf('normal',8,C.white); tx(String(data.session_start||'—'), ML+50, cy); cy+=7;
+    sf('bold',8,C.gray);   tx('Session End:',    ML,   cy);
+    sf('normal',8,C.white); tx(String(data.session_end||'—'), ML+50, cy); cy+=7;
+    sf('bold',8,C.gray);   tx('Total Readings:', ML,   cy);
+    sf('normal',8,C.white); tx(String(data.total_readings||'—'), ML+50, cy); cy+=7;
+    sf('bold',8,C.gray);   tx('Generated At:',   ML,   cy);
+    sf('normal',8,C.white); tx(new Date().toLocaleString(), ML+50, cy);
+
+    // Footer
+    sf('normal',7,C.gray); tx('NEXORA MediTwin  ·  Confidential  ·  For Clinical Use Only', PW/2, PH-10, {align:'center'});
+
+    // ── STATS PAGE ──────────────────────────────────────────────────────────
+    doc.addPage();
+    fr(0,0,PW,18,C.navy);
+    sf('bold',11,C.white); tx('NEXORA MEDITWIN — CLINICAL REPORT',ML,12);
+    sf('normal',7,C.gray); tx('30-Minute Vitals Summary',MR,12,{align:'right'});
+    ln(0,18,PW,18,C.border,0.5);
+
+    cy = 30;
+    sf('bold',12,C.dark); tx('VITAL STATISTICS SUMMARY',ML,cy); cy+=3;
+    ln(ML,cy,MR,cy,C.teal,0.5); cy+=8;
+
+    const stats = data.stats || {};
+    const sRows = [
+        { label:'Heart Rate',       key:'heart_rate',  unit:'bpm', color:C.red },
+        { label:'SpO₂',             key:'spo2',        unit:'%',   color:[59,130,246] },
+        { label:'Body Temperature', key:'temperature', unit:'°C',  color:C.amber },
+        { label:'HRV RMSSD',        key:'rmssd',       unit:'ms',  color:[124,58,237] },
+        { label:'HRV SDNN',         key:'sdnn',        unit:'ms',  color:[99,102,241] },
+        { label:'HRV pNN50',        key:'pnn50',       unit:'%',   color:[139,92,246] },
+    ];
+    sRows.forEach(row => {
+        const st = stats[row.key] || {};
+        fr(ML,cy-4,182,12,[248,250,252],2);
+        doc.setDrawColor(...C.border); doc.setLineWidth(0.2);
+        doc.roundedRect(ML,cy-4,182,12,2,2,'S');
+        // Colour strip
+        fr(ML,cy-4,3,12,row.color,1);
+        sf('bold',8,C.dark); tx(row.label, ML+7, cy+3);
+        sf('normal',7,C.gray);
+        tx(`Min: ${st.min??'—'} ${row.unit}`, ML+55, cy+3);
+        tx(`Max: ${st.max??'—'} ${row.unit}`, ML+90, cy+3);
+        tx(`Mean: ${st.mean??'—'} ${row.unit}`, ML+125, cy+3);
+        tx(`Trend: ${st.trend??'—'}`, ML+162, cy+3);
+        cy += 14;
+    });
+
+    // ── REPORT TEXT PAGES ───────────────────────────────────────────────────
+    const reportLines = doc.splitTextToSize(data.report || '(No report text)', 180);
+    const linesPerPage = 44;
+    let lineIdx = 0;
+    while (lineIdx < reportLines.length) {
+        doc.addPage();
+        fr(0,0,PW,18,C.navy);
+        sf('bold',11,C.white); tx('NEXORA MEDITWIN — CLINICAL REPORT',ML,12);
+        sf('normal',7,C.gray); tx(`Page ${doc.internal.getCurrentPageInfo().pageNumber} of ${doc.internal.getNumberOfPages()}`,MR,12,{align:'right'});
+        ln(0,18,PW,18,C.border,0.5);
+        ln(0,18.5,PW,18.5,C.teal,0.3);
+
+        let ly = 30;
+        const chunk = reportLines.slice(lineIdx, lineIdx + linesPerPage);
+        sf('normal',7.5,C.dark);
+        chunk.forEach(line => {
+            // Section headings in bold teal
+            if (/^\d+\./.test(line.trim()) || /^═+/.test(line.trim())) {
+                sf('bold',8,C.teal);
+                tx(line, ML, ly);
+                sf('normal',7.5,C.dark);
+            } else {
+                tx(line, ML, ly);
+            }
+            ly += 5;
+        });
+
+        ln(0,PH-12,PW,PH-12,C.border,0.4);
+        fr(0,PH-12,PW,12,C.light);
+        sf('normal',6.5,C.gray);
+        tx('NEXORA MediTwin  ·  Confidential  ·  For Clinical Use Only', ML, PH-5);
+        tx(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`, MR, PH-5, {align:'right'});
+
+        lineIdx += linesPerPage;
+    }
+
+    doc.save(filename || 'NEXORA_ClinicalReport.pdf');
+}
 </script>
 <!-- ── DELETE ACCOUNT MODAL ── -->
 <div id="deleteAccountModal" class="modal">
@@ -1720,6 +3056,18 @@ window.addEventListener('DOMContentLoaded', async () => {
                 Cancel
             </button>
         </div>
+    </div>
+</div>
+
+<!-- ── MINI CONFIRM / INFO MODAL ──
+     Placed last in <body> so its z-index:9998 is never blocked
+     by sidebar (z-50) or any other stacking context. ── -->
+<div id="miniModal">
+    <div class="mm-box">
+        <div class="mm-icon" id="mm-icon"></div>
+        <h3 id="mm-title"></h3>
+        <p id="mm-body"></p>
+        <div class="mm-btns" id="mm-btns"></div>
     </div>
 </div>
 

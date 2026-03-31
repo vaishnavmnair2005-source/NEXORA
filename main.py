@@ -20,6 +20,8 @@ import uvicorn
 import smtplib
 import bcrypt
 import re
+import httpx
+import statistics
 
 
 # =============================================================================
@@ -1223,6 +1225,7 @@ async def get_caregiver_patient_data(
 
     dob_val = sv(personal, "dob")
     return {
+        "numeric_id": patient.id,
         "profile": {
             "patient_id":     patient.patient_id or cg.patient_id,  # live from users table
             "full_name":      build_full_name(personal, patient),
@@ -1447,6 +1450,746 @@ async def local_inquiry(
 @app.get("/api/regulatory/download")
 async def regulatory_download():
     return RedirectResponse("/static/NEXORA MediTwin Documentation.pdf", 303)
+
+
+# =============================================================================
+#  HEALTH MONITORING — PostgreSQL (vitals_raw_median)
+#
+#  This database is separate from the Aiven MySQL databases above.
+#  It stores 1-minute median windows computed from raw IoT sensor readings.
+#
+#  Table: vitals_raw_median
+#    id, user_id, window_start, window_end, computed_at,
+#    heart_rate, spo2, temperature
+#
+#  Update _HM_HOST / _HM_USER / _HM_PASS below to match your PostgreSQL
+#  credentials if they differ from the Aiven MySQL setup.
+# =============================================================================
+
+_HM_HOST = "100.94.230.117"   # PostgreSQL host (Tailscale IP)
+_HM_PORT = "5432"
+_HM_USER = "postgres"
+_HM_PASS = "amma"
+_HM_DB   = "health_monitoring"
+
+_hm_available = False
+SessionHM     = None
+engine_hm     = None
+
+# Try connecting with progressively relaxed SSL modes.
+# Many self-hosted / Tailscale PostgreSQL instances do not have SSL enabled,
+# so sslmode=require fails even though the host is reachable.
+for _ssl_mode in ("prefer", "disable", "allow"):
+    try:
+        _test_engine = create_engine(
+            f"postgresql+psycopg2://{_HM_USER}:{_HM_PASS}@{_HM_HOST}:{_HM_PORT}/{_HM_DB}",
+            pool_pre_ping=True,
+            connect_args={"sslmode": _ssl_mode},
+            pool_size=5,
+            max_overflow=10,
+        )
+        # Eagerly test so _hm_available is accurate at startup
+        with _test_engine.connect() as _conn:
+            _conn.execute(text("SELECT 1"))
+        engine_hm     = _test_engine
+        SessionHM     = sessionmaker(autocommit=False, autoflush=False, bind=engine_hm)
+        _hm_available = True
+        print(f"[HM-DB] Connected to health_monitoring (sslmode={_ssl_mode})")
+        break
+    except Exception as _e:
+        print(f"[HM-DB] sslmode={_ssl_mode} failed: {_e}")
+        try: _test_engine.dispose()
+        except Exception: pass
+
+if not _hm_available:
+    print("[HM-DB] WARNING: Could not connect to health_monitoring PostgreSQL. "
+          "Vitals endpoints will return error until the DB is reachable.")
+
+
+def _hm_session():
+    """Yield a health_monitoring DB session, or raise 503 if unavailable."""
+    if not _hm_available or SessionHM is None:
+        raise HTTPException(503, "Health monitoring database not configured")
+    s = SessionHM()
+    try:
+        yield s
+    finally:
+        s.close()
+
+
+@app.get("/api/vitals-median")
+async def get_vitals_median():
+    """
+    Return the single globally latest row from vitals_raw_median.
+    No user_id filter — always shows the most recent data from any patient.
+
+    Response shape:
+      { status: "ok",  data: { heart_rate, spo2, temperature,
+                                rmssd, sdnn, pnn50, computed_at } }
+      { status: "no_data" }
+      { status: "error", detail: "..." }
+    """
+    if not _hm_available or SessionHM is None:
+        return {"status": "error", "detail": "Health monitoring database not available"}
+
+    s = SessionHM()
+    try:
+        row = None
+        has_hrv = True
+
+        # Attempt 1: full query with HRV columns
+        try:
+            row = s.execute(
+                text(
+                    "SELECT id, user_id, heart_rate, spo2, temperature, "
+                    "       rmssd, sdnn, pnn50, "
+                    "       window_start, window_end, computed_at "
+                    "FROM   vitals_raw_median "
+                    "ORDER  BY id DESC LIMIT 1"
+                )
+            ).fetchone()
+        except Exception:
+            # HRV columns absent — fall back to basic vitals
+            s.rollback()
+            has_hrv = False
+            row = s.execute(
+                text(
+                    "SELECT id, user_id, heart_rate, spo2, temperature, "
+                    "       NULL AS rmssd, NULL AS sdnn, NULL AS pnn50, "
+                    "       window_start, window_end, computed_at "
+                    "FROM   vitals_raw_median "
+                    "ORDER  BY id DESC LIMIT 1"
+                )
+            ).fetchone()
+
+        if row is None:
+            return {"status": "no_data"}
+
+        return {
+            "status": "ok",
+            "has_hrv": has_hrv,
+            "data": {
+                "heart_rate":  row[2],
+                "spo2":        row[3],
+                "temperature": float(row[4]) if row[4] is not None else None,
+                "rmssd":       float(row[5]) if row[5] is not None else None,
+                "sdnn":        float(row[6]) if row[6] is not None else None,
+                "pnn50":       float(row[7]) if row[7] is not None else None,
+                "computed_at": str(row[10]) if row[10] else None,
+            },
+        }
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+    finally:
+        s.close()
+
+
+@app.get("/api/vitals-latest")
+async def get_vitals_latest():
+    """
+    Returns the single most recent row from vitals_raw_median,
+    ignoring user_id — used by doctor dashboard to show live data.
+    """
+    if not _hm_available or SessionHM is None:
+        return {"status": "error", "detail": "Health monitoring database not available"}
+    s = SessionHM()
+    try:
+        row = None
+        has_hrv = True
+        try:
+            row = s.execute(text(
+                "SELECT id, user_id, heart_rate, spo2, temperature, "
+                "       rmssd, sdnn, pnn50, window_start, window_end, computed_at "
+                "FROM   vitals_raw_median "
+                "ORDER  BY id DESC LIMIT 1"
+            )).fetchone()
+        except Exception:
+            s.rollback()
+            has_hrv = False
+            row = s.execute(text(
+                "SELECT id, user_id, heart_rate, spo2, temperature, "
+                "       NULL, NULL, NULL, "
+                "       window_start, window_end, computed_at "
+                "FROM   vitals_raw_median "
+                "ORDER  BY id DESC LIMIT 1"
+            )).fetchone()
+        if row is None:
+            return {"status": "no_data"}
+        return {
+            "status": "ok",
+            "has_hrv": has_hrv,
+            "data": {
+                "id":          row[0],
+                "user_id":     row[1],
+                "heart_rate":  row[2],
+                "spo2":        row[3],
+                "temperature": float(row[4]) if row[4] is not None else None,
+                "rmssd":       float(row[5]) if row[5] is not None else None,
+                "sdnn":        float(row[6]) if row[6] is not None else None,
+                "pnn50":       float(row[7]) if row[7] is not None else None,
+                "computed_at": str(row[10]) if row[10] else None,
+            },
+        }
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
+    finally:
+        s.close()
+
+
+@app.get("/api/debug/hm-status")
+async def debug_hm_status():
+    """
+    Health-check for the health_monitoring PostgreSQL database.
+    Open in browser to verify connectivity and table columns.
+    """
+    if not _hm_available or SessionHM is None:
+        return {"available": False, "detail": "Engine not initialised at startup"}
+    s = SessionHM()
+    try:
+        cols = s.execute(text(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name='vitals_raw_median' ORDER BY ordinal_position"
+        )).fetchall()
+        count = s.execute(text("SELECT COUNT(*) FROM vitals_raw_median")).scalar()
+        latest = s.execute(text(
+            "SELECT id, user_id, heart_rate, spo2, temperature, computed_at "
+            "FROM vitals_raw_median ORDER BY id DESC LIMIT 5"
+        )).fetchall()
+        return {
+            "available":      True,
+            "columns":        [c[0] for c in cols],
+            "total_rows":     count,
+            "latest_5_rows":  [dict(zip(["id","user_id","heart_rate","spo2","temperature","computed_at"], r)) for r in latest],
+        }
+    except Exception as e:
+        return {"available": False, "detail": str(e)}
+    finally:
+        s.close()
+
+
+@app.get("/api/doctor/patients")
+async def doctor_get_patients(
+    request: Request,
+    dbs: DBSessions = Depends(get_dbs),
+):
+    """
+    Return a list of all patients for the doctor dashboard.
+    Each entry includes the patient's numeric id (users.id) so the frontend
+    can poll /api/vitals-median using that id.
+    """
+    if not check_auth(request):
+        raise HTTPException(401)
+    if request.session.get("role") != "doctor":
+        raise HTTPException(403, "Doctor access only")
+
+    patients = dbs.patient.query(PatientUser).all()
+    results = []
+    for pt in patients:
+        personal = dbs.patient.query(PersonalInformation).filter(
+            PersonalInformation.user_id == pt.id
+        ).first()
+        medical = dbs.patient.query(MedicalInformation).filter(
+            MedicalInformation.user_id == pt.id
+        ).first()
+        results.append({
+            "numeric_id":   pt.id,
+            "patient_id":   pt.patient_id or "",
+            "device_id":    pt.device_id  or "",
+            "mrd_number":   pt.mrd_number or "",
+            "email":        pt.email      or "",
+            "full_name":    build_full_name(personal, pt),
+            "gender":       (personal.gender if personal else "") or "",
+            "age":          calc_age(personal.dob) if personal and personal.dob else None,
+            "dob":          (personal.dob    if personal else "") or "",
+            "blood_group":  (medical.blood_group   if medical else "") or "",
+            "hospital":     (medical.hospital      if medical else "") or "",
+            "doctor":       (medical.doctor        if medical else "") or "",
+            "condition":    (medical.current_status if medical else "") or "",
+        })
+    return results
+
+
+# =============================================================================
+#  30-MINUTE AI HEALTH REPORT — Ollama llama3 (local)
+#
+#  vitals_raw confirmed schema (DBeaver verified):
+#    id, user_id, timestamp, heart_rate, hrv, spo2, temperature,
+#    accel_x, accel_y, accel_z, activity_state, rmssd, sdnn, pnn50
+#
+#  GET /api/report/30min?patient_id=<numeric_id>
+#  GET /api/report/30min/status
+# =============================================================================
+
+import httpx
+import statistics
+import math
+
+_OLLAMA_URL   = "http://localhost:11434/api/generate"
+_OLLAMA_MODEL = "llama3"
+
+
+async def _call_ollama(prompt: str) -> str:
+    """POST to local Ollama llama3 with a 5-minute timeout."""
+    async with httpx.AsyncClient(timeout=300) as client:
+        resp = await client.post(_OLLAMA_URL, json={
+            "model":  _OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+        })
+        resp.raise_for_status()
+        return resp.json().get("response", "").strip()
+
+
+# ─── FETCH ───────────────────────────────────────────────────────────────────
+
+def _fetch_30min_vitals(user_id: int | None) -> list[dict]:
+    """
+    Fetch every row from vitals_raw whose timestamp falls within the first
+    30 minutes of that patient's recording session.
+
+    Exact vitals_raw columns used:
+      id, user_id, timestamp, heart_rate, hrv, spo2, temperature,
+      accel_x, accel_y, accel_z, activity_state, rmssd, sdnn, pnn50
+    """
+    if not _hm_available or SessionHM is None:
+        raise HTTPException(503, "Health monitoring database not available")
+
+    s = SessionHM()
+    try:
+        # Build WHERE clause — filter by user_id when provided
+        uid_where = f"WHERE user_id = {int(user_id)}" if user_id else ""
+
+        # Find the very first timestamp in this patient's session
+        anchor = s.execute(text(
+            f"SELECT MIN(timestamp) FROM vitals_raw {uid_where}"
+        )).scalar()
+
+        if anchor is None:
+            # No vitals_raw data → try vitals_raw_median as fallback
+            fallback_where = f"WHERE user_id = {int(user_id)}" if user_id else ""
+            anchor = s.execute(text(
+                f"SELECT MIN(computed_at) FROM vitals_raw_median {fallback_where}"
+            )).scalar()
+            if anchor is None:
+                return []
+
+            rows = s.execute(text(
+                f"SELECT id, user_id, computed_at AS timestamp, heart_rate, "
+                f"       NULL AS hrv, spo2, temperature, "
+                f"       NULL AS accel_x, NULL AS accel_y, NULL AS accel_z, "
+                f"       'REST' AS activity_state, rmssd, sdnn, pnn50 "
+                f"FROM vitals_raw_median {fallback_where} "
+                f"{'AND' if fallback_where else 'WHERE'} "
+                f"computed_at >= :s AND computed_at <= :e "
+                f"ORDER BY computed_at ASC"
+            ), {"s": anchor, "e": anchor + timedelta(minutes=30)}).fetchall()
+        else:
+            rows = s.execute(text(
+                f"SELECT id, user_id, timestamp, heart_rate, hrv, spo2, temperature, "
+                f"       accel_x, accel_y, accel_z, activity_state, rmssd, sdnn, pnn50 "
+                f"FROM vitals_raw {uid_where} "
+                f"{'AND' if uid_where else 'WHERE'} "
+                f"timestamp >= :s AND timestamp <= :e "
+                f"ORDER BY timestamp ASC"
+            ), {"s": anchor, "e": anchor + timedelta(minutes=30)}).fetchall()
+
+        result = []
+        for r in rows:
+            result.append({
+                "id":             r[0],
+                "user_id":        r[1],
+                "timestamp":      str(r[2]) if r[2] is not None else None,
+                # heart_rate=0 means sensor gap — keep raw value, filter in stats
+                "heart_rate":     int(r[3])   if r[3] is not None else 0,
+                "hrv":            float(r[4]) if r[4] is not None else 0.0,
+                # spo2=0 means sensor gap
+                "spo2":           int(r[5])   if r[5] is not None else 0,
+                "temperature":    float(r[6]) if r[6] is not None and float(r[6]) > 0 else None,
+                "accel_x":        float(r[7]) if r[7] is not None else None,
+                "accel_y":        float(r[8]) if r[8] is not None else None,
+                "accel_z":        float(r[9]) if r[9] is not None else None,
+                "activity_state": str(r[10])  if r[10] is not None else "UNKNOWN",
+                "rmssd":          float(r[11]) if r[11] is not None else 0.0,
+                "sdnn":           float(r[12]) if r[12] is not None else 0.0,
+                "pnn50":          float(r[13]) if r[13] is not None else 0.0,
+            })
+        return result
+    finally:
+        s.close()
+
+
+# ─── STATS ───────────────────────────────────────────────────────────────────
+
+def _build_stats(rows: list[dict], key: str, exclude_zero: bool = True) -> dict:
+    """
+    Compute min/max/mean/std/trend for a numeric vital.
+    By default excludes zero values (sensor gap markers).
+    """
+    raw_vals = [r.get(key) for r in rows if r.get(key) is not None]
+    if exclude_zero:
+        vals = [v for v in raw_vals if v > 0]
+    else:
+        vals = [v for v in raw_vals if v is not None]
+
+    zero_count = len(raw_vals) - len(vals)
+
+    if not vals:
+        return {
+            "min": None, "max": None, "mean": None, "std": None,
+            "count": 0, "gap_count": zero_count, "trend": "no valid readings"
+        }
+
+    mn   = round(min(vals), 2)
+    mx   = round(max(vals), 2)
+    avg  = round(statistics.mean(vals), 2)
+    std  = round(statistics.stdev(vals), 2) if len(vals) > 1 else 0.0
+
+    # Linear trend: compare mean of first-third vs last-third
+    third = max(1, len(vals) // 3)
+    early = statistics.mean(vals[:third])
+    late  = statistics.mean(vals[-third:])
+    delta = late - early
+    if abs(delta) < 0.5:
+        trend = "stable"
+    elif delta > 0:
+        trend = f"rising (+{round(delta, 1)})"
+    else:
+        trend = f"falling ({round(delta, 1)})"
+
+    return {
+        "min": mn, "max": mx, "mean": avg, "std": std,
+        "count": len(vals), "gap_count": zero_count, "trend": trend
+    }
+
+
+def _accel_magnitude(r: dict) -> float | None:
+    """Compute accelerometer vector magnitude for a single row."""
+    ax, ay, az = r.get("accel_x"), r.get("accel_y"), r.get("accel_z")
+    if ax is None or ay is None or az is None:
+        return None
+    return round(math.sqrt(ax**2 + ay**2 + az**2), 4)
+
+
+def _activity_summary(rows: list[dict]) -> dict:
+    """Count occurrences of each activity_state label."""
+    counts: dict[str, int] = {}
+    for r in rows:
+        state = (r.get("activity_state") or "UNKNOWN").strip().upper()
+        counts[state] = counts.get(state, 0) + 1
+    total = len(rows)
+    return {
+        state: {"count": cnt, "pct": round(cnt / total * 100, 1)}
+        for state, cnt in sorted(counts.items(), key=lambda x: -x[1])
+    }
+
+
+# ─── PROMPT BUILDER ──────────────────────────────────────────────────────────
+
+def _build_report_prompt(rows: list[dict], patient_info: dict) -> str:
+    """
+    Build the full clinical LLM prompt from 30 minutes of vitals_raw data.
+    Includes: heart_rate, hrv, spo2, temperature, rmssd, sdnn, pnn50,
+              activity_state, and accelerometer movement analysis.
+    """
+    if not rows:
+        return ""
+
+    n          = len(rows)
+    ts_start   = rows[0]["timestamp"] or "unknown"
+    ts_end     = rows[-1]["timestamp"] or "unknown"
+
+    # ── Per-vital statistics (exclude sensor-gap zeros) ──────────────────────
+    hr_s    = _build_stats(rows, "heart_rate",   exclude_zero=True)
+    spo2_s  = _build_stats(rows, "spo2",         exclude_zero=True)
+    hrv_s   = _build_stats(rows, "hrv",          exclude_zero=True)
+    temp_s  = _build_stats(rows, "temperature",  exclude_zero=True)
+    rms_s   = _build_stats(rows, "rmssd",        exclude_zero=True)
+    sdnn_s  = _build_stats(rows, "sdnn",         exclude_zero=True)
+    pnn_s   = _build_stats(rows, "pnn50",        exclude_zero=True)
+
+    # ── Activity state distribution ───────────────────────────────────────────
+    act_summary = _activity_summary(rows)
+    act_lines = "  " + "\n  ".join(
+        f"{state}: {v['count']} readings ({v['pct']}%)"
+        for state, v in act_summary.items()
+    )
+
+    # ── Accelerometer movement stats ──────────────────────────────────────────
+    mags = [m for r in rows if (m := _accel_magnitude(r)) is not None]
+    if mags:
+        accel_mean = round(statistics.mean(mags), 4)
+        accel_max  = round(max(mags), 4)
+        accel_min  = round(min(mags), 4)
+        # Readings significantly different from 1g (gravity) = movement events
+        movement_events = sum(1 for m in mags if abs(m - 1.0) > 0.15)
+        accel_info = (
+            f"Mean magnitude: {accel_mean}g | Max: {accel_max}g | Min: {accel_min}g | "
+            f"Movement events (|mag-1g|>0.15): {movement_events} of {len(mags)} readings"
+        )
+    else:
+        accel_info = "Accelerometer data not available"
+
+    # ── Sampled time-series table (up to 60 rows for LLM context) ────────────
+    step = max(1, n // 60)
+    ts_lines = []
+    for i, r in enumerate(rows[::step]):
+        ts  = (r["timestamp"] or f"T+{i}")[:22]
+        hr  = str(r["heart_rate"]) if r["heart_rate"] > 0 else "GAP"
+        sp  = str(r["spo2"])       if r["spo2"] > 0       else "GAP"
+        tp  = f'{r["temperature"]:.1f}' if r["temperature"] else "—"
+        hv  = f'{r["hrv"]:.1f}'         if r["hrv"] > 0     else "—"
+        rms = f'{r["rmssd"]:.1f}'       if r["rmssd"] > 0   else "—"
+        sdn = f'{r["sdnn"]:.1f}'        if r["sdnn"] > 0    else "—"
+        pnn = f'{r["pnn50"]:.1f}'       if r["pnn50"] > 0   else "—"
+        act = (r.get("activity_state") or "?")[:8]
+        ts_lines.append(
+            f"  {ts:<24} HR={hr:<6} SpO2={sp:<5} Temp={tp:<6} "
+            f"HRV={hv:<8} RMSSD={rms:<7} SDNN={sdn:<7} pNN50={pnn:<6} Act={act}"
+        )
+    ts_table = "\n".join(ts_lines)
+
+    # ── Patient demographics ──────────────────────────────────────────────────
+    name     = patient_info.get("full_name",       "Unknown Patient")
+    pid      = patient_info.get("patient_id",      "—")
+    age      = patient_info.get("age",             "—")
+    gender   = patient_info.get("gender",          "—")
+    bg       = patient_info.get("blood_group",     "—")
+    hospital = patient_info.get("hospital",        "—")
+    doctor   = patient_info.get("doctor",          "—")
+    cond     = patient_info.get("condition",       "—")
+    mhx      = patient_info.get("medical_history", "—")
+
+    # ── Sensor gap note ───────────────────────────────────────────────────────
+    hr_gaps   = hr_s.get("gap_count", 0)
+    spo2_gaps = spo2_s.get("gap_count", 0)
+    gap_note  = (
+        f"NOTE: Heart Rate had {hr_gaps} sensor-gap readings (value=0, excluded from stats). "
+        f"SpO₂ had {spo2_gaps} sensor-gap readings (value=0, excluded). "
+        f"Zeros do NOT indicate clinical events; they are IoT sensor polling gaps."
+    )
+
+    prompt = f"""You are a senior consultant physician and AI clinical analyst reviewing 30 minutes of continuous wearable biosensor data from a hospitalised patient. Your task is to produce a DETAILED, PROFESSIONAL, HOSPITAL-GRADE CLINICAL REPORT with full reasoning and clinical interpretation for each vital sign.
+
+IMPORTANT SENSOR NOTES:
+{gap_note}
+The sensor pushes data at irregular intervals. The HRV column is the primary real-time HRV metric. RMSSD, SDNN, and pNN50 are windowed computations and may read 0 between computation windows — interpret non-zero values only.
+
+═══════════════════════════════════════════════════════════════════════
+PATIENT DEMOGRAPHICS
+═══════════════════════════════════════════════════════════════════════
+Name              : {name}
+Patient ID        : {pid}
+Age               : {age}
+Gender            : {gender}
+Blood Group       : {bg}
+Hospital          : {hospital}
+Assigned Doctor   : {doctor}
+Current Condition : {cond}
+Medical History   : {mhx}
+
+═══════════════════════════════════════════════════════════════════════
+MONITORING SESSION DETAILS
+═══════════════════════════════════════════════════════════════════════
+Session Start     : {ts_start}
+Session End       : {ts_end}
+Total Readings    : {n} raw sensor readings
+Monitoring Period : First 30 minutes of wearable session
+
+═══════════════════════════════════════════════════════════════════════
+COMPUTED VITAL STATISTICS  (zeros excluded — sensor gap, not clinical)
+═══════════════════════════════════════════════════════════════════════
+HEART RATE (bpm)
+  Valid readings : {hr_s['count']}  |  Sensor gaps : {hr_s['gap_count']}
+  Min: {hr_s['min']} | Max: {hr_s['max']} | Mean: {hr_s['mean']} | Std Dev: {hr_s['std']}
+  Trend: {hr_s['trend']}
+
+SpO₂ — OXYGEN SATURATION (%)
+  Valid readings : {spo2_s['count']}  |  Sensor gaps : {spo2_s['gap_count']}
+  Min: {spo2_s['min']} | Max: {spo2_s['max']} | Mean: {spo2_s['mean']} | Std Dev: {spo2_s['std']}
+  Trend: {spo2_s['trend']}
+
+BODY TEMPERATURE (°C)
+  Valid readings : {temp_s['count']}
+  Min: {temp_s['min']} | Max: {temp_s['max']} | Mean: {temp_s['mean']} | Std Dev: {temp_s['std']}
+  Trend: {temp_s['trend']}
+
+HRV — REAL-TIME (primary HRV metric from sensor)
+  Valid readings : {hrv_s['count']}
+  Min: {hrv_s['min']} | Max: {hrv_s['max']} | Mean: {hrv_s['mean']} | Std Dev: {hrv_s['std']}
+  Trend: {hrv_s['trend']}
+
+HRV — RMSSD (ms)  [windowed — non-zero readings only]
+  Valid readings : {rms_s['count']}
+  Min: {rms_s['min']} | Max: {rms_s['max']} | Mean: {rms_s['mean']} | Trend: {rms_s['trend']}
+
+HRV — SDNN (ms)  [windowed — non-zero readings only]
+  Valid readings : {sdnn_s['count']}
+  Min: {sdnn_s['min']} | Max: {sdnn_s['max']} | Mean: {sdnn_s['mean']} | Trend: {sdnn_s['trend']}
+
+HRV — pNN50 (%)  [windowed — non-zero readings only]
+  Valid readings : {pnn_s['count']}
+  Min: {pnn_s['min']} | Max: {pnn_s['max']} | Mean: {pnn_s['mean']} | Trend: {pnn_s['trend']}
+
+ACTIVITY STATE DISTRIBUTION
+{act_lines}
+
+ACCELEROMETER / MOVEMENT ANALYSIS
+  {accel_info}
+
+═══════════════════════════════════════════════════════════════════════
+TIME-SERIES DATA  (sampled — up to 60 rows from {n} total readings)
+GAP = sensor polling gap (value=0), not a clinical zero
+═══════════════════════════════════════════════════════════════════════
+  Timestamp                 HR     SpO2  Temp   HRV      RMSSD   SDNN    pNN50  Activity
+{ts_table}
+
+═══════════════════════════════════════════════════════════════════════
+YOUR CLINICAL REPORT — INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════════
+Write a COMPLETE, DETAILED hospital clinical report. Use each section below.
+For every section, cite specific numerical values from the data above.
+Explain your clinical reasoning step by step. Be thorough — this will be read by a physician.
+Write in formal clinical English. Do NOT use markdown or bullet points.
+Use numbered sections with UPPERCASE headings.
+
+1. EXECUTIVE SUMMARY
+   Provide a 4–6 sentence clinical overview summarising the patient's physiological status across the full 30-minute window. State the overall risk level clearly.
+
+2. HEART RATE ANALYSIS AND ECG INFERENCE
+   Analyse the heart rate pattern in detail. State the mean, range, and standard deviation. Classify the dominant rhythm (normal sinus / bradycardia / tachycardia). Identify any significant spikes, drops, or rate variability. Discuss what the HR pattern and variability suggest about the underlying cardiac rhythm and autonomic state. Note any periods of concern and their timing.
+
+3. OXYGEN SATURATION (SpO₂) ASSESSMENT
+   Interpret all SpO₂ readings. Classify saturation levels using clinical thresholds: Normal ≥95%, Mild hypoxia 90–94%, Moderate hypoxia 85–89%, Severe <85%. Note any desaturation events. Discuss clinical significance and whether supplemental oxygen or intervention may be warranted.
+
+4. BODY TEMPERATURE AND THERMOREGULATION
+   Evaluate temperature readings. Apply clinical thresholds: Hypothermia <35°C, Low-grade fever 37.3–38°C, Fever 38–39°C, High fever >39°C, Hyperpyrexia >41°C. Comment on the trend — is the patient warming, cooling, or stable? Discuss clinical implications.
+
+5. HEART RATE VARIABILITY (HRV) — AUTONOMIC NERVOUS SYSTEM ANALYSIS
+   Provide a detailed interpretation of all four HRV metrics: the real-time HRV, RMSSD, SDNN, and pNN50. Apply standard clinical reference ranges:
+   — RMSSD: <20ms = very low (high sympathetic dominance), 20–50ms = low-normal, >50ms = good parasympathetic tone
+   — SDNN: <50ms = poor, 50–100ms = moderate, >100ms = good
+   — pNN50: <5% = very low, 5–20% = low, >20% = adequate
+   Explain what the combined HRV picture suggests about the patient's autonomic balance, stress response, cardiac vagal tone, and prognosis.
+
+6. ACTIVITY STATE AND MOVEMENT ANALYSIS
+   Analyse the activity_state data and accelerometer readings. Describe the patient's physical state during monitoring. Discuss whether the accelerometer magnitude is consistent with the labelled activity state. Note any unexpected movement events. Explain clinical implications of the patient's activity level relative to their condition.
+
+7. TREND ANALYSIS AND PATTERN RECOGNITION
+   Describe the temporal evolution of each vital across the 30-minute window. Were any vitals deteriorating, improving, or compensating? Identify any correlations between vitals (e.g., HR rising while HRV falling). Note any sudden changes and their possible causes.
+
+8. CLINICAL RISK STRATIFICATION
+   Classify overall patient risk as: LOW / MODERATE / HIGH / CRITICAL.
+   Provide individual risk flags for each vital sign with your reasoning.
+   State any immediate red flags that require urgent clinical attention.
+
+9. DIFFERENTIAL CLINICAL CONSIDERATIONS
+   Based on the vital pattern, the patient's known condition, and their history, list the clinical conditions that may explain these findings. Reason through each possibility.
+
+10. CLINICAL RECOMMENDATIONS
+    Provide specific, actionable recommendations. Include:
+    — Immediate actions (if any red flags)
+    — Monitoring frequency adjustments
+    — Investigations to consider (labs, imaging, cardiology review)
+    — Medication or intervention considerations
+    — Threshold values that should trigger escalation
+
+11. OVERALL CLINICAL IMPRESSION
+    Write a final authoritative 4–6 sentence summary. State the patient's current clinical status, the most important findings, and the recommended clinical pathway.
+
+Begin the report now. Be thorough and precise."""
+
+    return prompt
+
+
+# ─── API ENDPOINT ─────────────────────────────────────────────────────────────
+
+@app.get("/api/report/30min")
+async def generate_30min_report(
+    request:    Request,
+    patient_id: int | None = Query(None, description="Numeric user_id from users table"),
+    dbs: DBSessions = Depends(get_dbs),
+):
+    """
+    Generate a professional 30-minute clinical AI report using Ollama llama3.
+    Pass ?patient_id=<numeric_id> (users.id, not PT-XXXX string).
+    """
+    if not check_auth(request):
+        raise HTTPException(401, "Not authenticated")
+
+    # 1 — Fetch raw vitals
+    rows = _fetch_30min_vitals(patient_id)
+    if not rows:
+        return {"status": "no_data", "detail": "No vitals found in vitals_raw for this patient/period"}
+
+    # 2 — Resolve patient demographics from patient DB
+    patient_info: dict = {}
+    if patient_id:
+        pt = dbs.patient.query(PatientUser).filter(PatientUser.id == patient_id).first()
+        if pt:
+            personal = dbs.patient.query(PersonalInformation).filter(
+                PersonalInformation.user_id == pt.id).first()
+            medical  = dbs.patient.query(MedicalInformation).filter(
+                MedicalInformation.user_id == pt.id).first()
+            patient_info = {
+                "full_name":       build_full_name(personal, pt),
+                "patient_id":      pt.patient_id or "—",
+                "age":             calc_age(personal.dob) if personal and personal.dob else "—",
+                "gender":          (personal.gender        if personal else "") or "—",
+                "blood_group":     (medical.blood_group    if medical  else "") or "—",
+                "hospital":        (medical.hospital       if medical  else "") or "—",
+                "doctor":          (medical.doctor         if medical  else "") or "—",
+                "condition":       (medical.current_status if medical  else "") or "—",
+                "medical_history": (medical.medical_history if medical else "") or "—",
+            }
+
+    # 3 — Build stats for API response (used by frontend for graphs)
+    stats = {
+        "heart_rate":  _build_stats(rows, "heart_rate",  exclude_zero=True),
+        "spo2":        _build_stats(rows, "spo2",        exclude_zero=True),
+        "temperature": _build_stats(rows, "temperature", exclude_zero=True),
+        "hrv":         _build_stats(rows, "hrv",         exclude_zero=True),
+        "rmssd":       _build_stats(rows, "rmssd",       exclude_zero=True),
+        "sdnn":        _build_stats(rows, "sdnn",        exclude_zero=True),
+        "pnn50":       _build_stats(rows, "pnn50",       exclude_zero=True),
+    }
+    activity_summary = _activity_summary(rows)
+
+    # 4 — Build prompt and call Ollama
+    prompt = _build_report_prompt(rows, patient_info)
+    try:
+        report_text = await _call_ollama(prompt)
+    except Exception as exc:
+        raise HTTPException(503, f"Ollama llama3 error: {exc}")
+
+    # 5 — Return full structured response including raw_rows for frontend graphs
+    return {
+        "status":           "ok",
+        "patient_info":     patient_info,
+        "session_start":    rows[0]["timestamp"],
+        "session_end":      rows[-1]["timestamp"],
+        "total_readings":   len(rows),
+        "stats":            stats,
+        "activity_summary": activity_summary,
+        "report":           report_text,
+        # raw_rows for ECG / HRV chart rendering in the browser
+        "raw_rows":         rows,
+    }
+
+
+@app.get("/api/report/30min/status")
+async def report_status():
+    """Check Ollama connectivity and model availability."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get("http://localhost:11434/api/tags")
+            models = [m["name"] for m in r.json().get("models", [])]
+        return {
+            "ollama": "ok",
+            "models": models,
+            "llama3_available": any("llama3" in m for m in models),
+        }
+    except Exception as exc:
+        return {"ollama": "error", "detail": str(exc)}
 
 
 # =============================================================================

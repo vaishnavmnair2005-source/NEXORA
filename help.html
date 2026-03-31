@@ -250,15 +250,22 @@
                                 <p id="emailError" class="text-red-500 text-xs mt-1 ml-1 hidden"></p>
                             </div>
                         </div>
-                        <select class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50">
-                            <option>Technical Issue (Hardware)</option>
-                            <option>Software/Dashboard Issue</option>
-                            <option>Clinical Partnership</option>
-                            <option>Account Management</option>
-                            <option>Privacy & Data Governance</option>
-                            <option>Other</option>
-                        </select>
-                        <textarea rows="4" placeholder="How can our engineering team assist you today?" required class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50"></textarea>
+                        <div>
+                            <select id="ticketCategory" class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50">
+                                <option value="">-- Select Issue Category --</option>
+                                <option>Technical Issue (Hardware)</option>
+                                <option>Software/Dashboard Issue</option>
+                                <option>Clinical Partnership</option>
+                                <option>Account Management</option>
+                                <option>Privacy & Data Governance</option>
+                                <option>Other</option>
+                            </select>
+                            <p id="categoryError" class="text-red-500 text-xs mt-1 ml-1 hidden"></p>
+                        </div>
+                        <div>
+                            <textarea id="ticketMessage" rows="4" placeholder="How can our engineering team assist you today?" class="w-full p-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-sky-500 bg-white/50"></textarea>
+                            <p id="messageError" class="text-red-500 text-xs mt-1 ml-1 hidden"></p>
+                        </div>
                         <button type="submit" class="w-full py-5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition transform active:scale-95 shadow-xl">
                             Submit Support Request
                         </button>
@@ -380,45 +387,105 @@
             if (!isActive) item.classList.add('active');
         }
 
+        // ── Helper: show/clear error ──────────────────────────────────────────────
+        function showError(inputEl, errorEl, msg) {
+            errorEl.innerText = '❌ ' + msg;
+            errorEl.classList.remove('hidden');
+            inputEl.classList.add('border-red-500');
+            inputEl.classList.remove('border-green-500');
+        }
+        function clearError(inputEl, errorEl) {
+            errorEl.classList.add('hidden');
+            inputEl.classList.remove('border-red-500');
+        }
+        function showSuccess(inputEl) {
+            inputEl.classList.remove('border-red-500');
+            inputEl.classList.add('border-green-500');
+        }
+
+        // ── Grab elements ─────────────────────────────────────────────────────────
+        const nameInput      = document.getElementById('ticketName');
+        const emailInput     = document.getElementById('ticketEmail');
+        const categoryInput  = document.getElementById('ticketCategory');
+        const messageInput   = document.getElementById('ticketMessage');
+
+        const nameError      = document.getElementById('nameError');
+        const emailError     = document.getElementById('emailError');
+        const categoryError  = document.getElementById('categoryError');
+        const messageError   = document.getElementById('messageError');
+
+        // ── Inline validators ─────────────────────────────────────────────────────
+        function validateName() {
+            const v = nameInput.value.trim();
+            if (v === '') {
+                showError(nameInput, nameError, 'Name is required.'); return false;
+            }
+            if (v.length < 2) {
+                showError(nameInput, nameError, 'Name must be at least 2 characters.'); return false;
+            }
+            if (!/^[A-Za-z\s]+$/.test(v)) {
+                showError(nameInput, nameError, 'Name must contain letters only.'); return false;
+            }
+            clearError(nameInput, nameError);
+            showSuccess(nameInput);
+            return true;
+        }
+
+        function validateEmail() {
+            const v = emailInput.value.trim();
+            if (v === '') {
+                showError(emailInput, emailError, 'Email is required.'); return false;
+            }
+            if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(v)) {
+                showError(emailInput, emailError, 'Only @gmail.com addresses are accepted.'); return false;
+            }
+            clearError(emailInput, emailError);
+            showSuccess(emailInput);
+            return true;
+        }
+
+        function validateCategory() {
+            if (categoryInput.value === '') {
+                showError(categoryInput, categoryError, 'Please select an issue category.'); return false;
+            }
+            clearError(categoryInput, categoryError);
+            showSuccess(categoryInput);
+            return true;
+        }
+
+        function validateMessage() {
+            const v = messageInput.value.trim();
+            if (v === '') {
+                showError(messageInput, messageError, 'Message is required.'); return false;
+            }
+            if (v.length < 10) {
+                showError(messageInput, messageError, 'Please provide at least 10 characters.'); return false;
+            }
+            if (v.length > 1000) {
+                showError(messageInput, messageError, 'Message must be under 1000 characters.'); return false;
+            }
+            clearError(messageInput, messageError);
+            showSuccess(messageInput);
+            return true;
+        }
+
+        // ── Live (blur) listeners ─────────────────────────────────────────────────
+        nameInput.addEventListener('blur', validateName);
+        nameInput.addEventListener('input', () => { if (!nameError.classList.contains('hidden')) validateName(); });
+
+        emailInput.addEventListener('blur', validateEmail);
+        emailInput.addEventListener('input', () => { if (!emailError.classList.contains('hidden')) validateEmail(); });
+
+        categoryInput.addEventListener('change', validateCategory);
+
+        messageInput.addEventListener('blur', validateMessage);
+        messageInput.addEventListener('input', () => { if (!messageError.classList.contains('hidden')) validateMessage(); });
+
+        // ── Submit ────────────────────────────────────────────────────────────────
         document.getElementById('helpTicket').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // 1. Setup variables
-            const nameInput = document.getElementById('ticketName');
-            const emailInput = document.getElementById('ticketEmail');
-            const nameError = document.getElementById('nameError');
-            const emailError = document.getElementById('emailError');
-            
-            // 2. Reset Errors
-            nameError.classList.add('hidden');
-            emailError.classList.add('hidden');
-            nameInput.classList.remove('border-red-500');
-            emailInput.classList.remove('border-red-500');
-            
-            let isValid = true;
-
-            // 3. Name Validation (Letters & Spaces only)
-            const nameRegex = /^[A-Za-z\s]+$/;
-            if (!nameRegex.test(nameInput.value.trim())) {
-                nameError.innerText = "❌ Name must contain only letters.";
-                nameError.classList.remove('hidden');
-                nameInput.classList.add('border-red-500'); // Optional: Highlights box red
-                isValid = false;
-            }
-
-            // 4. Email Validation (Gmail Only)
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-            if (!emailRegex.test(emailInput.value.trim())) {
-                emailError.innerText = "❌ Only @gmail.com addresses are accepted.";
-                emailError.classList.remove('hidden');
-                emailInput.classList.add('border-red-500');
-                isValid = false;
-            }
-
-            // 5. Stop if invalid
-            if (!isValid) return;
-
-            // 6. Success: Show confirmation
+            const ok = validateName() & validateEmail() & validateCategory() & validateMessage();
+            if (!ok) return;
             this.classList.add('hidden');
             document.getElementById('ticketResponse').classList.remove('hidden');
         });
