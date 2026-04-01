@@ -947,5 +947,331 @@
             }
         });
     </script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NEXORA Nexi AI Chatbot Widget
+     ═══════════════════════════════════════════════════════════ -->
+<style>
+:root{
+  --nx1:#7c3aed;--nx2:#6d28d9;--nx3:#4c1d95;
+  --nxbg:#0d0a1a;--nxbg2:#130d2a;--nxbg3:#1a1035;
+  --nxborder:rgba(124,58,237,.22);
+  --nxtext:#c4b5fd;--nxdim:#6b6a8a;
+  --nxbbl:rgba(124,58,237,.08);
+  --nxr:1.2rem;--nxfont:'Inter',sans-serif;
+}
+#nx-fab{
+  position:fixed;bottom:26px;right:26px;z-index:9999;
+  width:62px;height:62px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--nx1),var(--nx2));
+  box-shadow:0 6px 30px rgba(124,58,237,.55);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;
+  outline:none;overflow:hidden;padding:0;
+}
+#nx-fab:hover{transform:scale(1.12);box-shadow:0 10px 40px rgba(124,58,237,.7);}
+#nx-fab::after{
+  content:'';position:absolute;inset:-6px;border-radius:50%;
+  border:2px solid rgba(124,58,237,.4);
+  animation:nx-ring 2.5s ease-out infinite;
+}
+@keyframes nx-ring{0%{transform:scale(1);opacity:.9;}100%{transform:scale(1.6);opacity:0;}}
+#nx-fab .ic-chat{display:flex;align-items:center;justify-content:center;}
+#nx-fab .ic-close{display:none;align-items:center;justify-content:center;}
+#nx-fab.open .ic-chat{display:none;}
+#nx-fab.open .ic-close{display:flex;}
+#nx-fab-logo{width:38px;height:38px;border-radius:50%;object-fit:contain;background:white;padding:4px;}
+#nx-panel{
+  position:fixed;bottom:102px;right:26px;z-index:9998;
+  width:390px;max-width:calc(100vw - 32px);
+  height:570px;max-height:calc(100vh - 136px);
+  background:linear-gradient(165deg,var(--nxbg) 0%,var(--nxbg2) 55%,var(--nxbg3) 100%);
+  border-radius:22px;border:1px solid var(--nxborder);
+  box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 0 1px rgba(124,58,237,.1),0 0 40px rgba(124,58,237,.12);
+  display:flex;flex-direction:column;overflow:hidden;font-family:var(--nxfont);
+  transform:translateY(18px) scale(.96);opacity:0;pointer-events:none;
+  transition:transform .4s cubic-bezier(.34,1.2,.64,1),opacity .3s ease;
+}
+#nx-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:all;}
+#nx-head{
+  background:linear-gradient(135deg,#0a0518,#120a2e);
+  padding:14px 16px;border-bottom:1px solid var(--nxborder);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.nx-av{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  background:white;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 3px rgba(124,58,237,.35);padding:3px;
+}
+.nx-av img{width:100%;height:100%;border-radius:50%;object-fit:contain;}
+.nx-hi{flex:1;min-width:0;}
+.nx-hi h4{color:#ede9fe;font-size:.93rem;font-weight:700;margin:0 0 2px;}
+.nx-hi p{color:#a78bfa;font-size:.7rem;display:flex;align-items:center;gap:5px;margin:0;}
+.nx-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;
+        box-shadow:0 0 6px #22c55e;animation:nx-blink 2s infinite;}
+@keyframes nx-blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.nx-clr{
+  background:none;border:none;cursor:pointer;padding:4px;border-radius:8px;
+  color:#6b6a8a;transition:color .2s,background .2s;
+}
+.nx-clr:hover{color:#f87171;background:rgba(248,113,113,.1);}
+#nx-msgs{
+  flex:1;overflow-y:auto;padding:14px 12px;
+  display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;
+}
+#nx-msgs::-webkit-scrollbar{width:3px;}
+#nx-msgs::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3);border-radius:3px;}
+.nx-row{display:flex;gap:8px;align-items:flex-end;animation:nx-in .28s ease;}
+@keyframes nx-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.nx-row.user{flex-direction:row-reverse;}
+.nx-ico{width:28px;height:28px;border-radius:50%;flex-shrink:0;overflow:hidden;
+        background:white;display:flex;align-items:center;justify-content:center;padding:2px;}
+.nx-ico img{width:100%;height:100%;border-radius:50%;object-fit:contain;}
+.nx-bbl{
+  max-width:80%;padding:10px 13px;border-radius:16px;
+  font-size:.84rem;line-height:1.6;word-break:break-word;
+}
+.nx-row.bot .nx-bbl{
+  background:var(--nxbbl);border:1px solid var(--nxborder);
+  color:var(--nxtext);border-bottom-left-radius:4px;
+}
+.nx-row.user .nx-bbl{
+  background:linear-gradient(135deg,var(--nx1),var(--nx2));
+  color:#fff;border-bottom-right-radius:4px;
+}
+.nx-bbl strong{color:#c4b5fd;font-weight:600;}
+.nx-bbl ul{padding-left:18px;margin:4px 0 0;}
+.nx-bbl li{margin-bottom:3px;}
+.nx-bbl p{margin:3px 0;}
+.nx-ts{font-size:.62rem;color:var(--nxdim);margin-top:4px;}
+.nx-row.user .nx-ts{text-align:right;}
+.nx-typing{
+  display:flex;gap:5px;align-items:center;
+  padding:12px 14px;background:var(--nxbbl);
+  border:1px solid var(--nxborder);border-radius:16px;border-bottom-left-radius:4px;
+}
+.nx-typing span{width:6px;height:6px;background:#a78bfa;border-radius:50%;
+                animation:nx-boun 1.3s infinite ease-in-out;}
+.nx-typing span:nth-child(2){animation-delay:.18s;}
+.nx-typing span:nth-child(3){animation-delay:.36s;}
+@keyframes nx-boun{0%,80%,100%{transform:translateY(0);opacity:.35;}
+                   40%{transform:translateY(-7px);opacity:1;}}
+#nx-chips{
+  padding:8px 12px 6px;display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,.04);
+}
+.nx-chip{
+  background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);
+  color:#a78bfa;font-size:.7rem;padding:4px 10px;border-radius:999px;
+  cursor:pointer;white-space:nowrap;font-family:var(--nxfont);transition:all .18s;
+}
+.nx-chip:hover{background:rgba(124,58,237,.28);border-color:var(--nx1);color:#fff;}
+#nx-bar{
+  padding:10px 12px 13px;display:flex;gap:8px;align-items:center;flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+#nx-inp{
+  flex:1;background:rgba(124,58,237,.08);
+  border:1px solid rgba(124,58,237,.25);border-radius:999px;
+  color:#ede9fe;font-size:.85rem;padding:9px 15px;outline:none;
+  font-family:var(--nxfont);transition:border-color .2s,box-shadow .2s;
+}
+#nx-inp::placeholder{color:var(--nxdim);}
+#nx-inp:focus{border-color:var(--nx1);box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+#nx-btn{
+  width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--nx1),var(--nx2));
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 4px 16px rgba(124,58,237,.42);
+  transition:transform .2s,opacity .2s;
+}
+#nx-btn:hover{transform:scale(1.08);}
+#nx-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.nx-foot{text-align:center;font-size:.63rem;color:var(--nxdim);padding:0 12px 9px;}
+</style>
+
+<button id="nx-fab" aria-label="Open Nexi">
+  <span class="ic-chat">
+    <img id="nx-fab-logo" src="/static/images/company_logo.png" alt="Nexi"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <svg style="display:none" width="26" height="26" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+    </svg>
+  </span>
+  <span class="ic-close">
+    <svg width="22" height="22" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </span>
+</button>
+
+<div id="nx-panel" role="dialog" aria-label="Nexi Chatbot">
+  <div id="nx-head">
+    <div class="nx-av">
+      <img src="/static/images/company_logo.png" alt="Nexi"
+           onerror="this.outerHTML='<span style=&quot;font-size:22px&quot;>🤖</span>'">
+    </div>
+    <div class="nx-hi">
+      <h4>Nexi</h4>
+      <p><span class="nx-dot"></span>&nbsp;Online · NEXORA AI Assistant</p>
+    </div>
+    <button class="nx-clr" id="nx-reset" title="Clear chat" aria-label="Clear chat">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+    </button>
+  </div>
+  <div id="nx-msgs"></div>
+  <div id="nx-chips">
+    <button class="nx-chip">What is diabetes?</button>
+    <button class="nx-chip">Symptoms of fever</button>
+    <button class="nx-chip">Normal BP range?</button>
+    <button class="nx-chip">Paracetamol uses</button>
+    <button class="nx-chip">Heart attack signs</button>
+    <button class="nx-chip">What is SpO2?</button>
+    <button class="nx-chip">Cold vs flu?</button>
+    <button class="nx-chip">Vitamin D benefits</button>
+  </div>
+  <div id="nx-bar">
+    <input id="nx-inp" type="text" placeholder="Ask Nexi anything about health…"
+           autocomplete="off" maxlength="500"/>
+    <button id="nx-btn" aria-label="Send">
+      <svg width="17" height="17" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nx-foot">&#x2695;&#xFE0F; For information only &middot; Always consult a qualified doctor</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var fab=document.getElementById('nx-fab'),
+      panel=document.getElementById('nx-panel'),
+      inp=document.getElementById('nx-inp'),
+      btn=document.getElementById('nx-btn'),
+      msgs=document.getElementById('nx-msgs'),
+      chips=document.getElementById('nx-chips'),
+      reset=document.getElementById('nx-reset');
+
+  var history=[];
+  var GREETING="Hi! I'm **Nexi**, your NEXORA health assistant \uD83D\uDC4B\n\nI can answer questions about **diseases, medicines, symptoms, and general health** — ask me anything!";
+
+  pushBot(GREETING);
+
+  fab.addEventListener('click',function(){
+    var open=panel.classList.toggle('open');
+    fab.classList.toggle('open',open);
+    if(open) setTimeout(function(){inp.focus();},320);
+  });
+
+  reset.addEventListener('click',function(){
+    history=[];
+    msgs.innerHTML='';
+    chips.style.display='flex';
+    pushBot(GREETING);
+  });
+
+  chips.querySelectorAll('.nx-chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      inp.value=c.textContent;
+      chips.style.display='none';
+      send();
+    });
+  });
+
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}
+  });
+  btn.addEventListener('click',send);
+
+  async function send(){
+    var text=inp.value.trim();
+    if(!text||btn.disabled) return;
+    inp.value='';
+    chips.style.display='none';
+    pushUser(text);
+    btn.disabled=true;
+    var typer=pushTyping();
+    try{
+      var res=await fetch('/api/medical-chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:text,history:history})
+      });
+      typer.remove();
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      var data=await res.json();
+      var reply=data.reply||'Sorry, I could not generate a response.';
+      pushBot(reply);
+      history.push({role:'user',text:text});
+      history.push({role:'assistant',text:reply});
+      if(history.length>20) history=history.slice(-20);
+    }catch(e){
+      typer.remove();
+      pushBot('\u26A0\uFE0F Could not connect to Nexi. Please check your connection and try again.');
+    }
+    btn.disabled=false;
+    inp.focus();
+  }
+
+  function pushUser(text){
+    var row=document.createElement('div');
+    row.className='nx-row user';
+    row.innerHTML='<div class="nx-bbl">'+esc(text)+'<div class="nx-ts">'+now()+'</div></div>';
+    msgs.appendChild(row);
+    scrollDown();
+  }
+
+  function pushBot(md){
+    var row=document.createElement('div');
+    row.className='nx-row bot';
+    var logoImg='<img src="/static/images/company_logo.png" alt="Nexi" style="width:100%;height:100%;border-radius:50%;object-fit:contain;" onerror="this.outerHTML=\'&#129302;\'">';
+    row.innerHTML='<div class="nx-ico">'+logoImg+'</div><div class="nx-bbl">'+fmt(md)+'<div class="nx-ts">'+now()+'</div></div>';
+    msgs.appendChild(row);
+    scrollDown();
+    return row;
+  }
+
+  function pushTyping(){
+    var row=document.createElement('div');
+    row.className='nx-row bot';
+    var logoImg='<img src="/static/images/company_logo.png" alt="Nexi" style="width:100%;height:100%;border-radius:50%;object-fit:contain;" onerror="this.outerHTML=\'&#129302;\'">';
+    row.innerHTML='<div class="nx-ico">'+logoImg+'</div><div class="nx-typing"><span></span><span></span><span></span></div>';
+    msgs.appendChild(row);
+    scrollDown();
+    return row;
+  }
+
+  function scrollDown(){
+    msgs.scrollTo({top:msgs.scrollHeight,behavior:'smooth'});
+  }
+
+  function now(){
+    return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  }
+
+  function esc(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function fmt(md){
+    return md
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/`(.+?)`/g,'<code style="background:rgba(124,58,237,.15);padding:1px 5px;border-radius:4px;font-size:.8em">$1</code>')
+      .replace(/^### (.+)$/gm,'<strong style="font-size:.9em;display:block;margin-top:6px">$1</strong>')
+      .replace(/^## (.+)$/gm,'<strong style="display:block;margin-top:8px">$1</strong>')
+      .replace(/^[-•]\s+(.+)$/gm,'<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/gs,'<ul style="padding-left:16px;margin:4px 0">$1</ul>')
+      .replace(/\n/g,'<br>');
+  }
+})();
+</script>
+
 </body>
 </html>
