@@ -189,6 +189,7 @@ class _PatientRegistrationFlowState extends State<PatientRegistrationFlow> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
+  // 🔥 UPDATED FUNCTION WITH REAL ERROR HANDLING
   Future<void> _processStep1Account() async {
     setState(() => _isLoading = true);
     try {
@@ -197,28 +198,46 @@ class _PatientRegistrationFlowState extends State<PatientRegistrationFlow> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text.trim(),
-          'password': _passController.text,
+          'password': _passController.text, // Not trimmed so spaces aren't lost if used intentionally
           'mrd_number': _mrdController.text.trim(),
         }),
-      );
+      ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         _savedUserId = data['user_id'];
         _registeredEmail = _emailController.text.trim();
         
-        // ✅ Key must match SplashRouter in main.dart
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('logged_in_user_id', _savedUserId!);
         
         _moveToNext();
       } else {
-        _showError("Email already registered or invalid");
+        // 🔥 Ask the Python backend what ACTUALLY went wrong!
+        String realErrorMessage = "Signup failed (Error ${response.statusCode})";
+        try {
+          final errorData = jsonDecode(response.body);
+          
+          // FastAPI usually puts errors inside 'detail'
+          if (errorData['detail'] is String) {
+            realErrorMessage = errorData['detail'];
+          } 
+          // If it's a Pydantic Validation Error (like extra fields or wrong data types)
+          else if (errorData['detail'] is List) {
+            realErrorMessage = "Format Error: ${errorData['detail'][0]['loc'].last} - ${errorData['detail'][0]['msg']}";
+          } 
+          else if (errorData['message'] != null) {
+            realErrorMessage = errorData['message'];
+          }
+        } catch (_) {}
+
+        // Show the REAL error on the screen
+        _showError(realErrorMessage);
       }
     } catch (e) {
-      _showError("Connection Error");
+      _showError("Connection Error: Check if server is running");
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

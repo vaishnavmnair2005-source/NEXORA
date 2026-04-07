@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async'; // 🚨 Required for the live radar timer
 import 'dart:math' as math;
 import 'dart:ui';
 import '../utils/constants.dart';
@@ -17,10 +20,12 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
   late AnimationController _backgroundController;
   late AnimationController _shimmerController;
   late Animation<double> _shimmerAnim;
+  
+  Timer? _dataTimer; // 🚨 The invisible 2-second radar
   int _selectedTab = 0;
+  bool _isLoading = true;
 
-  // --- SIMULATED 7-DAY HISTORY DATA ---
-  // In production, replace with API call: GET /app/vitals-history/{userId}
+  // --- REAL DATA STORAGE ---
   final Map<String, List<FlSpot>> _historyData = {};
   final Map<String, List<String>> _timeLabels = {};
 
@@ -49,37 +54,70 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
     _shimmerAnim = Tween<double>(begin: -1.5, end: 1.5).animate(
         CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut));
 
-    _generateSimulatedHistory();
+    // Fetch immediately when the screen opens
+    _fetchRealTrendData();
+
+    // 🚨 START THE LIVE RADAR: Refreshes the graph every 2 seconds
+    _dataTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (mounted) _fetchRealTrendData();
+    });
   }
 
-  void _generateSimulatedHistory() {
-    final rand = math.Random(42);
-    final now = DateTime.now();
+  // ── API: FETCH REAL HISTORY ──────────────────────────────────
+  Future<void> _fetchRealTrendData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/vitals/history/${widget.userId}'),
+      ).timeout(const Duration(seconds: 5));
 
-    // Generate 24 data points (last 7 days, ~3 per day)
-    final baselines = [72.0, 98.0, 36.6, 58.0];
-    final variances = [8.0, 2.0, 0.4, 10.0];
-    final keys = ["Heart Rate", "SpO₂", "Temperature", "HRV"];
+      if (response.statusCode == 200 && mounted) {
+        final data = jsonDecode(response.body);
+        final List dynamicList = data['data'] ?? [];
 
-    for (int k = 0; k < keys.length; k++) {
-      List<FlSpot> spots = [];
-      List<String> labels = [];
-      for (int i = 0; i < 24; i++) {
-        double val =
-            baselines[k] + (rand.nextDouble() - 0.5) * variances[k] * 2;
-        spots.add(FlSpot(i.toDouble(), double.parse(val.toStringAsFixed(1))));
-        final dt = now.subtract(Duration(hours: (23 - i) * 7));
-        labels.add(i % 4 == 0
-            ? "${dt.day}/${dt.month}"
-            : "");
+        List<FlSpot> bpmSpots = [];
+        List<FlSpot> spo2Spots = [];
+        List<FlSpot> tempSpots = [];
+        List<FlSpot> hrvSpots = [];
+        List<String> labels = [];
+
+        for (int i = 0; i < dynamicList.length; i++) {
+          final item = dynamicList[i];
+          
+          double bpm = double.tryParse(item['bpm'].toString()) ?? 0;
+          double spo2 = double.tryParse(item['spo2'].toString()) ?? 0;
+          double temp = double.tryParse(item['temp'].toString()) ?? 0;
+          double hrv = double.tryParse(item['hrv'].toString()) ?? 0;
+
+          bpmSpots.add(FlSpot(i.toDouble(), bpm));
+          spo2Spots.add(FlSpot(i.toDouble(), spo2));
+          tempSpots.add(FlSpot(i.toDouble(), temp));
+          hrvSpots.add(FlSpot(i.toDouble(), hrv));
+          
+          labels.add(item['timestamp'].toString());
+        }
+
+        setState(() {
+          _historyData["Heart Rate"] = bpmSpots;
+          _historyData["SpO₂"] = spo2Spots;
+          _historyData["Temperature"] = tempSpots;
+          _historyData["HRV"] = hrvSpots;
+
+          _timeLabels["Heart Rate"] = labels;
+          _timeLabels["SpO₂"] = labels;
+          _timeLabels["Temperature"] = labels;
+          _timeLabels["HRV"] = labels;
+
+          _isLoading = false;
+        });
       }
-      _historyData[keys[k]] = spots;
-      _timeLabels[keys[k]] = labels;
+    } catch (e) {
+      if (mounted && _isLoading) setState(() => _isLoading = false);
     }
   }
 
   @override
   void dispose() {
+    _dataTimer?.cancel(); // 🚨 Kill the timer so it doesn't crash in the background
     _backgroundController.dispose();
     _shimmerController.dispose();
     super.dispose();
@@ -101,18 +139,20 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
                 _buildTabRow(),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-                    child: Column(
-                      children: [
-                        _buildMainChart(),
-                        const SizedBox(height: 20),
-                        _buildStatsRow(),
-                        const SizedBox(height: 20),
-                        _buildAllVitalsMiniCharts(),
-                      ],
-                    ),
-                  ),
+                  child: _isLoading 
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
+                          child: Column(
+                            children: [
+                              _buildMainChart(),
+                              const SizedBox(height: 20),
+                              _buildStatsRow(),
+                              const SizedBox(height: 20),
+                              _buildAllVitalsMiniCharts(),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -164,15 +204,14 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: AppColors.primary.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today,
-                    color: AppColors.primary, size: 12),
+                const Icon(Icons.satellite_alt_rounded,
+                    color: AppColors.primary, size: 14),
                 const SizedBox(width: 6),
-                const Text("Last 7 Days",
+                const Text("Live Sync",
                     style: TextStyle(
                         color: AppColors.primary,
                         fontSize: 11,
@@ -200,8 +239,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
             onTap: () => setState(() => _selectedTab = i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 gradient: selected
                     ? LinearGradient(
@@ -223,9 +261,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
               child: Row(
                 children: [
                   Icon(_trends[i].icon,
-                      color: selected
-                          ? _trends[i].color
-                          : Colors.white38,
+                      color: selected ? _trends[i].color : Colors.white38,
                       size: 14),
                   const SizedBox(width: 6),
                   Text(
@@ -233,9 +269,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
                     style: TextStyle(
                       color: selected ? Colors.white : Colors.white38,
                       fontSize: 12,
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -253,12 +287,16 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
     final spots = _historyData[trend.label] ?? [];
     final labels = _timeLabels[trend.label] ?? [];
 
-    // Calculate min/max for Y axis
-    final vals = spots.map((s) => s.y).toList();
-    final minY =
-        (vals.isEmpty ? trend.minY : vals.reduce(math.min)) - 2;
-    final maxY =
-        (vals.isEmpty ? trend.maxY : vals.reduce(math.max)) + 2;
+    // 🚨 ZERO FILTERING: This ignores 0 values so the graph never plunges down
+    final validSpots = spots.where((s) => s.y > 0).toList();
+
+    final vals = validSpots.map((s) => s.y).toList();
+    final minY = (vals.isEmpty ? trend.minY : vals.reduce(math.min)) - 2;
+    final maxY = (vals.isEmpty ? trend.maxY : vals.reduce(math.max)) + 2;
+
+    double range = maxY - minY;
+    double yInterval = range > 0 ? (range / 4).ceilToDouble() : 10;
+    if (yInterval == 0) yInterval = 1;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
@@ -269,8 +307,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.5),
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-                color: trend.color.withOpacity(0.2), width: 1),
+            border: Border.all(color: trend.color.withOpacity(0.2), width: 1),
             boxShadow: [
               BoxShadow(
                   color: trend.color.withOpacity(0.06),
@@ -281,7 +318,6 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Chart title row
               Row(
                 children: [
                   Container(
@@ -290,8 +326,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
                       color: trend.color.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child:
-                        Icon(trend.icon, color: trend.color, size: 16),
+                    child: Icon(trend.icon, color: trend.color, size: 16),
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -302,26 +337,24 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 15)),
-                      Text("7-day trend",
+                      Text("Live Data Trend",
                           style: TextStyle(
                               color: Colors.white.withOpacity(0.4),
                               fontSize: 11)),
                     ],
                   ),
                   const Spacer(),
-                  // Current value badge
-                  if (spots.isNotEmpty)
+                  if (validSpots.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: trend.color.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: trend.color.withOpacity(0.3)),
+                        border: Border.all(color: trend.color.withOpacity(0.3)),
                       ),
                       child: Text(
-                        "${spots.last.y} ${trend.unit}",
+                        "${validSpots.last.y} ${trend.unit}",
                         style: TextStyle(
                             color: trend.color,
                             fontWeight: FontWeight.w900,
@@ -333,107 +366,109 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
               const SizedBox(height: 24),
               SizedBox(
                 height: 180,
-                child: LineChart(
-                  LineChartData(
-                    minY: minY,
-                    maxY: maxY,
-                    gridData: FlGridData(
-                      show: true,
-                      drawVerticalLine: false,
-                      getDrawingHorizontalLine: (_) => FlLine(
-                        color: Colors.white.withOpacity(0.05),
-                        strokeWidth: 1,
-                      ),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 36,
-                          getTitlesWidget: (val, _) => Text(
-                            val.toStringAsFixed(
-                                trend.label == "Temperature" ? 1 : 0),
-                            style: const TextStyle(
-                                color: Colors.white38, fontSize: 10),
+                child: validSpots.isEmpty 
+                    ? const Center(child: Text("Waiting for valid sensor data...", style: TextStyle(color: Colors.white38)))
+                    : LineChart(
+                        LineChartData(
+                          minY: minY < 0 ? 0 : minY,
+                          maxY: maxY,
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                            horizontalInterval: yInterval, 
+                            getDrawingHorizontalLine: (_) => FlLine(
+                              color: Colors.white.withOpacity(0.05),
+                              strokeWidth: 1,
+                            ),
                           ),
-                        ),
-                      ),
-                      rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false)),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          reservedSize: 28,
-                          getTitlesWidget: (val, _) {
-                            final i = val.toInt();
-                            if (i < labels.length &&
-                                labels[i].isNotEmpty) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 6),
-                                child: Text(labels[i],
-                                    style: const TextStyle(
-                                        color: Colors.white38,
-                                        fontSize: 10)),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                      ),
-                    ),
-                    lineTouchData: LineTouchData(
-                      touchTooltipData: LineTouchTooltipData(
-                        tooltipBgColor:
-                            const Color(0xFF0A0A1A).withOpacity(0.95),
-                        getTooltipItems: (spots) => spots
-                            .map((s) => LineTooltipItem(
-                                  "${s.y} ${trend.unit}",
-                                  TextStyle(
-                                      color: trend.color,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13),
-                                ))
-                            .toList(),
-                      ),
-                    ),
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: spots,
-                        isCurved: true,
-                        curveSmoothness: 0.35,
-                        color: trend.color,
-                        barWidth: 2.5,
-                        isStrokeCapRound: true,
-                        dotData: FlDotData(
-                          show: true,
-                          getDotPainter: (spot, _, __, ___) =>
-                              FlDotCirclePainter(
-                            radius: 3,
-                            color: trend.color,
-                            strokeWidth: 1.5,
-                            strokeColor: Colors.black,
+                          borderData: FlBorderData(show: false),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 42, 
+                                interval: yInterval, 
+                                getTitlesWidget: (val, _) => Text(
+                                  val.toStringAsFixed(
+                                      trend.label == "Temperature" ? 1 : 0),
+                                  style: const TextStyle(
+                                      color: Colors.white38, fontSize: 10),
+                                ),
+                              ),
+                            ),
+                            rightTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false)),
+                            topTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false)),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 28,
+                                interval: 4, 
+                                getTitlesWidget: (val, _) {
+                                  final i = val.toInt();
+                                  if (i >= 0 && i < labels.length && labels[i].isNotEmpty) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 6),
+                                      child: Text(labels[i],
+                                          style: const TextStyle(
+                                              color: Colors.white38,
+                                              fontSize: 10)),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                            ),
                           ),
-                        ),
-                        belowBarData: BarAreaData(
-                          show: true,
-                          gradient: LinearGradient(
-                            colors: [
-                              trend.color.withOpacity(0.18),
-                              trend.color.withOpacity(0.0),
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
+                          lineTouchData: LineTouchData(
+                            touchTooltipData: LineTouchTooltipData(
+                              tooltipBgColor: const Color(0xFF0A0A1A).withOpacity(0.95),
+                              getTooltipItems: (spots) => spots
+                                  .map((s) => LineTooltipItem(
+                                      "${s.y} ${trend.unit}\n${labels.length > s.x.toInt() ? labels[s.x.toInt()] : ''}",
+                                      TextStyle(
+                                          color: trend.color,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12),
+                                    ))
+                                  .toList(),
+                            ),
                           ),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: validSpots, // 🚨 Plots only valid, non-zero dots
+                              isCurved: true,
+                              curveSmoothness: 0.35,
+                              color: trend.color,
+                              barWidth: 2.5,
+                              isStrokeCapRound: true,
+                              dotData: FlDotData(
+                                show: true,
+                                getDotPainter: (spot, _, __, ___) =>
+                                    FlDotCirclePainter(
+                                  radius: 3,
+                                  color: trend.color,
+                                  strokeWidth: 1.5,
+                                  strokeColor: Colors.black,
+                                ),
+                              ),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    trend.color.withOpacity(0.18),
+                                    trend.color.withOpacity(0.0),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        duration: const Duration(milliseconds: 200),
                       ),
-                    ],
-                  ),
-                  duration: const Duration(milliseconds: 400),
-                ),
               ),
             ],
           ),
@@ -446,9 +481,10 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
   Widget _buildStatsRow() {
     final trend = _trends[_selectedTab];
     final spots = _historyData[trend.label] ?? [];
-    if (spots.isEmpty) return const SizedBox.shrink();
+    
+    final vals = spots.where((s) => s.y > 0).map((s) => s.y).toList();
+    if (vals.isEmpty) return const SizedBox.shrink();
 
-    final vals = spots.map((s) => s.y).toList();
     final avg = vals.reduce((a, b) => a + b) / vals.length;
     final min = vals.reduce(math.min);
     final max = vals.reduce(math.max);
@@ -481,8 +517,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
           decoration: BoxDecoration(
             color: color.withOpacity(0.06),
             borderRadius: BorderRadius.circular(16),
-            border:
-                Border.all(color: color.withOpacity(0.2), width: 1),
+            border: Border.all(color: color.withOpacity(0.2), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -520,8 +555,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          Icon(Icons.grid_view_rounded,
-              color: AppColors.primary, size: 16),
+          Icon(Icons.grid_view_rounded, color: AppColors.primary, size: 16),
           const SizedBox(width: 8),
           const Text("ALL VITALS OVERVIEW",
               style: TextStyle(
@@ -535,8 +569,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _trends.length,
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
@@ -550,11 +583,12 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
 
   Widget _buildMiniChart(_TrendConfig trend) {
     final spots = _historyData[trend.label] ?? [];
+    
+    final validSpots = spots.where((s) => s.y > 0).toList();
     final isSelected = _trends[_selectedTab].label == trend.label;
 
     return GestureDetector(
-      onTap: () => setState(
-          () => _selectedTab = _trends.indexOf(trend)),
+      onTap: () => setState(() => _selectedTab = _trends.indexOf(trend)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
         child: BackdropFilter(
@@ -568,8 +602,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
               ], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                  color: trend.color
-                      .withOpacity(isSelected ? 0.5 : 0.2),
+                  color: trend.color.withOpacity(isSelected ? 0.5 : 0.2),
                   width: isSelected ? 1.5 : 1),
             ),
             child: Padding(
@@ -589,9 +622,9 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
                             overflow: TextOverflow.ellipsis)),
                   ]),
                   const Spacer(),
-                  if (spots.isNotEmpty)
+                  if (validSpots.isNotEmpty)
                     Text(
-                      "${spots.last.y}",
+                      "${validSpots.last.y}",
                       style: TextStyle(
                           color: trend.color,
                           fontSize: 22,
@@ -599,53 +632,38 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
                           height: 1),
                     ),
                   Text(trend.unit,
-                      style: const TextStyle(
-                          color: Colors.white38, fontSize: 10)),
+                      style: const TextStyle(color: Colors.white38, fontSize: 10)),
                   const SizedBox(height: 8),
                   SizedBox(
                     height: 35,
-                    child: spots.isEmpty
+                    child: validSpots.isEmpty
                         ? const SizedBox.shrink()
                         : LineChart(
                             LineChartData(
-                              gridData:
-                                  const FlGridData(show: false),
-                              borderData:
-                                  FlBorderData(show: false),
+                              gridData: const FlGridData(show: false),
+                              borderData: FlBorderData(show: false),
                               titlesData: const FlTitlesData(
-                                bottomTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                        showTitles: false)),
-                                leftTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                        showTitles: false)),
-                                topTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                        showTitles: false)),
-                                rightTitles: AxisTitles(
-                                    sideTitles: SideTitles(
-                                        showTitles: false)),
+                                bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                               ),
-                              lineTouchData: const LineTouchData(
-                                  enabled: false),
+                              lineTouchData: const LineTouchData(enabled: false),
                               lineBarsData: [
                                 LineChartBarData(
-                                  spots: spots,
+                                  spots: validSpots, 
                                   isCurved: true,
                                   color: trend.color,
                                   barWidth: 1.5,
-                                  dotData: const FlDotData(
-                                      show: false),
+                                  dotData: const FlDotData(show: false),
                                   belowBarData: BarAreaData(
                                     show: true,
-                                    color: trend.color
-                                        .withOpacity(0.1),
+                                    color: trend.color.withOpacity(0.1),
                                   ),
                                 ),
                               ],
                             ),
-                            duration: const Duration(
-                                milliseconds: 300),
+                            duration: const Duration(milliseconds: 300),
                           ),
                   ),
                 ],
@@ -662,8 +680,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen>
     return AnimatedBuilder(
       animation: _backgroundController,
       builder: (_, __) => CustomPaint(
-        painter:
-            _TrendsBgPainter(_backgroundController.value),
+        painter: _TrendsBgPainter(_backgroundController.value),
         size: Size.infinite,
       ),
     );
@@ -693,10 +710,8 @@ class _TrendsBgPainter extends CustomPainter {
               radius: 1.4,
               colors: [Color(0xFF050D1F), Color(0xFF000000)],
               stops: [0.0, 0.9])
-          .createShader(
-              Rect.fromLTWH(0, 0, size.width, size.height));
-    canvas.drawRect(
-        Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+          .createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     final orb1 = Paint()
       ..shader = RadialGradient(colors: [

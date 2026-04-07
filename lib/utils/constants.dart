@@ -6,10 +6,10 @@ class ApiConstants {
   //static const String baseUrl = "http://192.168.0.101:8000"; 
   
   // Keep these here so you can easily switch them by commenting/uncommenting:
-  //static const String baseUrl = "http://10.22.203.142:8000"; // College IP Vaishnav 
+  //static const String baseUrl = "http://10.151.185.142:8000"; // College IP Vaishnav 
   //static const String baseUrl = "http://10.190.202.142:8000"; // College IP Vaishali
   static const String baseUrl = "http://192.168.0.101:8000"; //Home IP
-  // static const String baseUrl = "http://10.0.2.2:8000";     // Android Emulator IP
+  //static const String baseUrl = "http://10.0.2.2:8000";     // Android Emulator IP
 }
 
 class AppColors {
