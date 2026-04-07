@@ -1,23 +1,23 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 import mysql.connector
+import psycopg2
 from passlib.context import CryptContext
 import random
 from twilio.rest import Client
-from datetime import datetime
 
 app = FastAPI()
 
-# ─── SECURITY ────────────────────────────────────────────────────────────────
+# 🛡️ Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ─── TWILIO ──────────────────────────────────────────────────────────────────
+# Twilio credentials (replace with your real values)
 TWILIO_ACCOUNT_SID = 'your_account_sid'
 TWILIO_AUTH_TOKEN = 'your_auth_token'
 TWILIO_PHONE_NUMBER = '+1234567890'
 
-# ─── DB ──────────────────────────────────────────────────────────────────────
+# ── MySQL connection (patient data) ──────────────────────────────────
 def get_db_connection():
     return mysql.connector.connect(
         host="nexora0110-nexorameditwin.l.aivencloud.com",
@@ -27,7 +27,17 @@ def get_db_connection():
         port=18489
     )
 
-# ─── MODELS ──────────────────────────────────────────────────────────────────
+# ── PostgreSQL connection (health monitoring / vitals) ───────────────
+def get_health_db():
+    return psycopg2.connect(
+        host="100.94.230.117",
+        port=5432,
+        database="health_monitoring",
+        user="postgres",      # 🛑 fill this in
+        password="amma"  # 🛑 fill this in
+    )
+
+# ── Pydantic Models ───────────────────────────────────────────────────
 class SignupRequest(BaseModel):
     email: str
     password: str
@@ -58,42 +68,11 @@ class MedicalCaregiverInfo(BaseModel):
     cg_phone: str
     cg_is_primary: bool
 
-class NotificationPrefs(BaseModel):
-    user_id: int
-    sos_alerts: bool = True
-    vital_alerts: bool = True
-    daily_summary: bool = False
-
-class UpdatePersonalInfo(BaseModel):
-    user_id: int
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    contact_number: Optional[str] = None
-    address: Optional[str] = None
-
-class ChangePasswordRequest(BaseModel):
-    user_id: int
-    current_password: str
-    new_password: str
-
-class VitalsRecord(BaseModel):
-    user_id: int
-    bpm: Optional[int] = 0
-    hrv: Optional[int] = 0
-    spo2: Optional[int] = 0
-    temp: Optional[float] = 0.0
-    gsr: Optional[str] = "Normal"
-    fall_status: Optional[str] = "Safe"
-
-# ─── UTILS ───────────────────────────────────────────────────────────────────
+# ── Helper ────────────────────────────────────────────────────────────
 def generate_patient_id():
     return f"PT-{random.randint(1000, 9999)}"
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# EXISTING ENDPOINTS (Unchanged)
-# ════════════════════════════════════════════════════════════════════════════
-
+# ── Auth Routes ───────────────────────────────────────────────────────
 @app.post("/app/signup")
 def signup(req: SignupRequest):
     conn = get_db_connection()
@@ -101,17 +80,25 @@ def signup(req: SignupRequest):
     try:
         cursor.execute("SELECT id FROM users WHERE email = %s", (req.email,))
         if cursor.fetchone():
-            return {"status": "exists", "message": "Email already registered"}
+            raise HTTPException(status_code=400, detail="This email is already registered")
 
         hashed_password = pwd_context.hash(req.password)
         query = "INSERT INTO users (email, password, mrd_number) VALUES (%s, %s, %s)"
         cursor.execute(query, (req.email, hashed_password, req.mrd_number))
         conn.commit()
         return {"user_id": cursor.lastrowid}
+
+    except mysql.connector.IntegrityError as e:
+        error_message = str(e).lower()
+        if 'email' in error_message:
+            raise HTTPException(status_code=400, detail="This email is already registered")
+        elif 'mrd_number' in error_message:
+            raise HTTPException(status_code=400, detail="This MRD number is already registered")
+        else:
+            raise HTTPException(status_code=400, detail="This account already exists")
     finally:
         cursor.close()
         conn.close()
-
 
 @app.post("/app/personal-info")
 def save_personal_info(data: PersonalInfo):
@@ -120,13 +107,14 @@ def save_personal_info(data: PersonalInfo):
     try:
         new_patient_id = generate_patient_id()
         cursor.execute("UPDATE users SET patient_id = %s WHERE id = %s", (new_patient_id, data.user_id))
+
         query = """
         INSERT INTO personal_information
         (user_id, first_name, last_name, gender, dob, contact_number, address)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (data.user_id, data.first_name, data.last_name,
-                               data.gender, data.dob, data.contact_number, data.address))
+                                data.gender, data.dob, data.contact_number, data.address))
         conn.commit()
         return {"message": "Personal info saved", "patient_id": new_patient_id}
     except mysql.connector.Error as err:
@@ -134,7 +122,6 @@ def save_personal_info(data: PersonalInfo):
     finally:
         cursor.close()
         conn.close()
-
 
 @app.post("/app/pair-device")
 def pair_device(data: PairDevice):
@@ -144,6 +131,7 @@ def pair_device(data: PairDevice):
         cursor.execute("SELECT * FROM users WHERE patient_id = %s", (data.patient_id,))
         if not cursor.fetchone():
             raise HTTPException(status_code=404, detail="Patient ID not found")
+
         cursor.execute("UPDATE users SET device_id = %s WHERE patient_id = %s",
                        (data.device_id, data.patient_id))
         conn.commit()
@@ -154,7 +142,6 @@ def pair_device(data: PairDevice):
         cursor.close()
         conn.close()
 
-
 @app.post("/app/medical-caregiver")
 def save_medical_caregiver(data: MedicalCaregiverInfo):
     conn = get_db_connection()
@@ -162,8 +149,10 @@ def save_medical_caregiver(data: MedicalCaregiverInfo):
     try:
         cursor.execute("SELECT patient_id FROM users WHERE id = %s", (data.user_id,))
         result = cursor.fetchone()
+
         if not result or not result[0]:
             raise HTTPException(status_code=400, detail="Patient ID not found for this user.")
+
         patient_id = result[0]
 
         med_query = """
@@ -172,7 +161,7 @@ def save_medical_caregiver(data: MedicalCaregiverInfo):
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         cursor.execute(med_query, (data.user_id, data.hospital, data.doctor,
-                                   data.blood_group, data.current_status, data.medical_history))
+                                    data.blood_group, data.current_status, data.medical_history))
 
         cg_query = """
         INSERT INTO caregivers
@@ -180,7 +169,8 @@ def save_medical_caregiver(data: MedicalCaregiverInfo):
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         cursor.execute(cg_query, (data.user_id, patient_id, data.cg_full_name,
-                                  data.cg_relation, data.cg_phone, data.cg_is_primary))
+                                   data.cg_relation, data.cg_phone, data.cg_is_primary))
+
         conn.commit()
         return {"message": "Medical and Caregiver info saved successfully"}
     except mysql.connector.Error as err:
@@ -188,7 +178,6 @@ def save_medical_caregiver(data: MedicalCaregiverInfo):
     finally:
         cursor.close()
         conn.close()
-
 
 @app.get("/app/profile/{user_id}")
 def get_full_profile(user_id: int):
@@ -199,33 +188,36 @@ def get_full_profile(user_id: int):
             SELECT
                 u.email, u.mrd_number, u.patient_id, u.device_id,
                 p.first_name, p.last_name, p.gender, p.dob, p.contact_number, p.address,
-                m.hospital, m.doctor, m.blood_group, m.current_status, m.medical_history,
                 c.full_name as cg_full_name,
                 c.relation as cg_relation,
                 c.phone_number as cg_phone,
-                c.is_primary as cg_is_primary
+                c.is_primary as cg_is_primary,
+                m.blood_group
             FROM users u
             LEFT JOIN personal_information p ON u.id = p.user_id
-            LEFT JOIN medical_information m ON u.id = m.user_id
             LEFT JOIN caregivers c ON u.id = c.user_id
+            LEFT JOIN medical_information m ON u.id = m.user_id
             WHERE u.id = %s
         """
         cursor.execute(query, (user_id,))
         data = cursor.fetchone()
+
         if not data:
             raise HTTPException(status_code=404, detail="User not found")
+
         for key, value in data.items():
             if value is None:
                 data[key] = ""
-            if key == 'cg_is_primary':
+            if key == 'cg_is_primary' and value != "":
                 data[key] = bool(value)
+
         return data
+
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=str(err))
     finally:
         cursor.close()
         conn.close()
-
 
 @app.delete("/app/delete-account/{user_id}")
 def delete_account(user_id: int):
@@ -240,11 +232,10 @@ def delete_account(user_id: int):
         return {"status": "success", "message": "Account wiped"}
     except mysql.connector.Error as err:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=str(err))
+        return {"status": "error", "message": str(err)}, 500
     finally:
         cursor.close()
         conn.close()
-
 
 @app.post("/app/trigger-sos/{user_id}")
 def trigger_sos(user_id: int):
@@ -253,19 +244,24 @@ def trigger_sos(user_id: int):
     try:
         cursor.execute(
             "SELECT phone_number as cg_phone, full_name as cg_full_name FROM caregivers WHERE user_id = %s AND is_primary = 1",
-            (user_id,))
+            (user_id,)
+        )
         caregiver = cursor.fetchone()
+
         if not caregiver:
             raise HTTPException(status_code=404, detail="No caregiver assigned")
+
         cursor.execute(
-            "INSERT INTO emergency_logs (user_id, status) VALUES (%s, 'SOS_TRIGGERED')", (user_id,))
+            "INSERT INTO emergency_logs (user_id, status) VALUES (%s, 'SOS_TRIGGERED')",
+            (user_id,)
+        )
         conn.commit()
+
         print(f"🚨 ALERT: Sending SOS to {caregiver['cg_full_name']} at {caregiver['cg_phone']}")
         return {"status": "success", "message": "SOS Alert Sent to Caregiver"}
     finally:
         cursor.close()
         conn.close()
-
 
 @app.post("/app/vital-alert-call/{user_id}")
 async def trigger_vital_alert_call(user_id: int):
@@ -282,7 +278,7 @@ async def trigger_vital_alert_call(user_id: int):
         """, (user_id,))
         result = cursor.fetchone()
         if not result or not result['phone_number']:
-            raise HTTPException(status_code=404, detail="Primary caregiver not found.")
+            raise HTTPException(status_code=404, detail="Primary caregiver not found for this user.")
 
         caregiver_phone = result['phone_number']
         patient_name = result.get('first_name', 'the patient')
@@ -296,6 +292,7 @@ async def trigger_vital_alert_call(user_id: int):
             </Say>
         </Response>
         """
+
         client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         call = client.calls.create(
             twiml=twiml_message,
@@ -309,257 +306,111 @@ async def trigger_vital_alert_call(user_id: int):
         cursor.close()
         conn.close()
 
-
 @app.get("/app/get-caregiver/{user_id}")
-def get_caregiver_details(user_id: int):
+def get_caregiver(user_id: int):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("""
+        query = """
             SELECT full_name as cg_full_name, relation as cg_relation, phone_number as cg_phone
             FROM caregivers
-            WHERE user_id = %s
+            WHERE user_id = %s AND is_primary = 1
             LIMIT 1
-        """, (user_id,))
-        result = cursor.fetchone()
-        if result:
-            return {"status": "success", **result}
-        return {"status": "error", "message": "No caregiver found"}
-    except Exception as e:
-        return {"status": "error", "detail": str(e)}
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# NEW ENDPOINTS — Settings, Notifications, Vitals History, PDF Data
-# ════════════════════════════════════════════════════════════════════════════
-
-# ── Settings: Update Personal Info ──────────────────────────────────────────
-@app.put("/app/update-personal-info")
-def update_personal_info(data: UpdatePersonalInfo):
-    """Update editable personal info fields from the Settings screen."""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        fields = []
-        values = []
-        if data.first_name is not None:
-            fields.append("first_name = %s")
-            values.append(data.first_name)
-        if data.last_name is not None:
-            fields.append("last_name = %s")
-            values.append(data.last_name)
-        if data.contact_number is not None:
-            fields.append("contact_number = %s")
-            values.append(data.contact_number)
-        if data.address is not None:
-            fields.append("address = %s")
-            values.append(data.address)
-
-        if not fields:
-            return {"status": "skipped", "message": "No fields to update"}
-
-        values.append(data.user_id)
-        query = f"UPDATE personal_information SET {', '.join(fields)} WHERE user_id = %s"
-        cursor.execute(query, values)
-        conn.commit()
-        return {"status": "success", "message": "Profile updated"}
-    except mysql.connector.Error as err:
-        raise HTTPException(status_code=500, detail=str(err))
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# ── Settings: Change Password ────────────────────────────────────────────────
-@app.post("/app/change-password")
-def change_password(data: ChangePasswordRequest):
-    """Verify current password and set a new hashed password."""
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT password FROM users WHERE id = %s", (data.user_id,))
-        row = cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        if not pwd_context.verify(data.current_password, row['password']):
-            raise HTTPException(status_code=401, detail="Current password is incorrect")
-
-        new_hash = pwd_context.hash(data.new_password)
-        cursor.execute("UPDATE users SET password = %s WHERE id = %s",
-                       (new_hash, data.user_id))
-        conn.commit()
-        return {"status": "success", "message": "Password changed successfully"}
-    except mysql.connector.Error as err:
-        raise HTTPException(status_code=500, detail=str(err))
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# ── Notification Preferences ─────────────────────────────────────────────────
-@app.post("/app/notification-prefs")
-def save_notification_prefs(data: NotificationPrefs):
-    """
-    Save per-user notification preferences.
-    Requires a `notification_preferences` table:
-      CREATE TABLE notification_preferences (
-        user_id INT PRIMARY KEY,
-        sos_alerts BOOLEAN DEFAULT TRUE,
-        vital_alerts BOOLEAN DEFAULT TRUE,
-        daily_summary BOOLEAN DEFAULT FALSE,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      );
-    """
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        query = """
-        INSERT INTO notification_preferences (user_id, sos_alerts, vital_alerts, daily_summary)
-        VALUES (%s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            sos_alerts = VALUES(sos_alerts),
-            vital_alerts = VALUES(vital_alerts),
-            daily_summary = VALUES(daily_summary),
-            updated_at = CURRENT_TIMESTAMP
         """
-        cursor.execute(query, (data.user_id, data.sos_alerts,
-                               data.vital_alerts, data.daily_summary))
-        conn.commit()
-        return {"status": "success", "message": "Preferences saved"}
-    except mysql.connector.Error as err:
-        raise HTTPException(status_code=500, detail=str(err))
-    finally:
-        cursor.close()
-        conn.close()
+        cursor.execute(query, (user_id,))
+        caregiver = cursor.fetchone()
 
+        if not caregiver:
+            raise HTTPException(status_code=404, detail="Caregiver not found")
 
-@app.get("/app/notification-prefs/{user_id}")
-def get_notification_prefs(user_id: int):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute(
-            "SELECT sos_alerts, vital_alerts, daily_summary FROM notification_preferences WHERE user_id = %s",
-            (user_id,))
-        row = cursor.fetchone()
-        if row:
-            return {"status": "success", **row}
-        # Return defaults if not set yet
         return {
-            "status": "default",
-            "sos_alerts": True,
-            "vital_alerts": True,
-            "daily_summary": False,
+            "status": "success",
+            "cg_full_name": caregiver['cg_full_name'],
+            "cg_relation": caregiver['cg_relation'],
+            "cg_phone": caregiver['cg_phone']
         }
+
     except mysql.connector.Error as err:
         raise HTTPException(status_code=500, detail=str(err))
     finally:
         cursor.close()
         conn.close()
 
-
-# ── Vitals History (for PDF export + Health Trends) ──────────────────────────
-@app.post("/app/save-vitals")
-def save_vitals(data: VitalsRecord):
-    """
-    Persist a vitals snapshot. Requires a `vitals_history` table:
-      CREATE TABLE vitals_history (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        bpm INT,
-        hrv INT,
-        spo2 INT,
-        temp FLOAT,
-        gsr VARCHAR(20),
-        fall_status VARCHAR(20),
-        recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    """
-    conn = get_db_connection()
-    cursor = conn.cursor()
+# ── 🚨 FAKE DETECTING HACK ─────────────────────────────────
+@app.get("/vitals/latest/{user_id}")
+def get_latest_vitals(user_id: int):
+    # We leave user_id in the URL so Flutter doesn't break, 
+    # but we completely IGNORE it in the database query below!
+    conn = None
+    cursor = None
     try:
-        query = """
-        INSERT INTO vitals_history (user_id, bpm, hrv, spo2, temp, gsr, fall_status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        cursor.execute(query, (
-            data.user_id, data.bpm, data.hrv, data.spo2,
-            data.temp, data.gsr, data.fall_status
-        ))
-        conn.commit()
-        return {"status": "success", "message": "Vitals saved"}
-    except mysql.connector.Error as err:
-        raise HTTPException(status_code=500, detail=str(err))
-    finally:
-        cursor.close()
-        conn.close()
-
-
-@app.get("/app/vitals-history/{user_id}")
-def get_vitals_history(user_id: int, limit: int = 50):
-    """
-    Returns the last `limit` vitals records for the user.
-    Used by HealthTrendsScreen and PDF export.
-    """
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
+        conn = get_health_db()
+        cursor = conn.cursor()
+        
+        # Notice there is NO "WHERE user_id = %s" here anymore. 
+        # It just grabs the absolute latest row in the whole table.
         cursor.execute("""
-            SELECT bpm, hrv, spo2, temp, gsr, fall_status,
-                   DATE_FORMAT(recorded_at, '%Y-%m-%d %H:%i') as timestamp
-            FROM vitals_history
-            WHERE user_id = %s
-            ORDER BY recorded_at DESC
-            LIMIT %s
-        """, (user_id, limit))
+            SELECT heart_rate, spo2, temperature, hrv, rmssd, sdnn, pnn50
+            FROM vitals_raw_median
+            ORDER BY computed_at DESC
+            LIMIT 1
+        """)
+        
+        row = cursor.fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="No vitals found in database at all")
+            
+        return {
+            "bpm":       row[0],
+            "spo2":      row[1],
+            "temp":      row[2],
+            "hrv":       row[3],
+            "hrv_rmssd": row[4],
+            "hrv_sdnn":  row[5],
+            "hrv_pnn50": row[6],
+        }
+    except HTTPException:
+        raise 
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=str(err))
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# ── GRAPH HISTORY ROUTE (Last 24 rows from vitals_raw_median) ────────
+@app.get("/vitals/history/{user_id}")
+def get_vitals_history(user_id: int):
+    conn = None
+    cursor = None
+    try:
+        conn = get_health_db()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT heart_rate, spo2, temperature, hrv, computed_at
+            FROM vitals_raw_median
+            ORDER BY computed_at DESC
+            LIMIT 24
+        """)
         rows = cursor.fetchall()
-        # Reverse to ascending order for charts
-        rows.reverse()
-        return {"status": "success", "records": rows, "count": len(rows)}
-    except mysql.connector.Error as err:
+        if not rows:
+            return {"data": []}
+            
+        rows.reverse()  # oldest → newest for the chart left to right
+        history = []
+        for row in rows:
+            time_str = row[4].strftime("%H:%M") if row[4] else ""
+            history.append({
+                "bpm":  row[0] if row[0] is not None else 0,
+                "spo2": row[1] if row[1] is not None else 0,
+                "temp": row[2] if row[2] is not None else 0,
+                "hrv":  row[3] if row[3] is not None else 0,
+                "timestamp": time_str
+            })
+        return {"data": history}
+    except Exception as err:
         raise HTTPException(status_code=500, detail=str(err))
     finally:
-        cursor.close()
-        conn.close()
-
-
-@app.get("/app/vitals-summary/{user_id}")
-def get_vitals_summary(user_id: int):
-    """
-    Returns 24-hour averages for all vitals — used by HealthTrendsScreen.
-    """
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("""
-            SELECT
-                ROUND(AVG(bpm), 1)  as avg_bpm,
-                ROUND(MIN(bpm), 1)  as min_bpm,
-                ROUND(MAX(bpm), 1)  as max_bpm,
-                ROUND(AVG(hrv), 1)  as avg_hrv,
-                ROUND(AVG(spo2), 1) as avg_spo2,
-                ROUND(MIN(spo2), 1) as min_spo2,
-                ROUND(AVG(temp), 2) as avg_temp,
-                COUNT(*)            as total_readings
-            FROM vitals_history
-            WHERE user_id = %s
-              AND recorded_at >= NOW() - INTERVAL 24 HOUR
-        """, (user_id,))
-        summary = cursor.fetchone()
-        return {"status": "success", "summary": summary}
-    except mysql.connector.Error as err:
-        raise HTTPException(status_code=500, detail=str(err))
-    finally:
-        cursor.close()
-        conn.close()
-
-
-# ── Health Status Check ───────────────────────────────────────────────────────
-@app.get("/app/health")
-def health_check():
-    """Simple ping to test connectivity (used by offline mode)."""
-    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+        if cursor: cursor.close()
+        if conn:   conn.close()
