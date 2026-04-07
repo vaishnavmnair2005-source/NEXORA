@@ -84,6 +84,9 @@
         /* ECG Canvas */
         .ecg-canvas { width: 100%; height: 80px; display: block; }
         .ecg-wrapper { background: #0a1628; border-radius: 12px; padding: 8px 12px; overflow: hidden; }
+        #docEcgIpInput:focus { border-color: rgba(0,255,136,.5) !important; background: rgba(0,255,136,.08) !important; box-shadow: 0 0 0 2px rgba(0,255,136,.12); }
+        #docEcgIpInput:disabled { opacity: .45; cursor: not-allowed; }
+        #docEcgIpInput::placeholder { color: rgba(0,255,136,.35); }
 
         /* HRV gauge bars */
         .hrv-bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; }
@@ -541,40 +544,38 @@
         </div>
 
         <div id="ecg-tab" class="tab-content hidden">
-            <div class="ecg-wrapper mb-4">
-                <div class="flex items-center justify-between mb-2 px-1">
-                    <span class="text-xs text-teal-400 font-bold uppercase tracking-widest">ECG — Lead II</span>
-                    <span class="text-xs text-teal-400 font-mono font-bold" id="modal-ecg-hr">— bpm</span>
-                </div>
+            <!-- Header row -->
+            <div class="ecg-wrapper mb-0" style="border-radius:12px 12px 0 0;">
+              <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-xs text-teal-400 font-bold uppercase tracking-widest">ECG — AD8232 Live</span>
+                <span class="text-xs font-mono font-bold" id="docEcgStatusDot" style="color:#f59e0b;">● No signal — connect ESP32</span>
+              </div>
+              <!-- Connect bar -->
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 4px 8px;">
+                <i class="fas fa-wifi" style="color:#00ff88;font-size:11px;flex-shrink:0;"></i>
+                <input id="docEcgIpInput" type="text" placeholder="ESP32 IP  e.g. 192.168.1.42"
+                  style="flex:1;padding:5px 10px;border-radius:8px;border:1px solid rgba(0,255,136,.2);font-family:monospace;font-size:11px;color:#00ff88;background:rgba(0,255,136,.05);outline:none;"
+                  onkeydown="if(event.key==='Enter') onDocECGConnectClick()">
+                <button id="docEcgConnectBtn" onclick="onDocECGConnectClick()"
+                  style="padding:5px 14px;border-radius:8px;border:1px solid rgba(0,255,136,.3);background:rgba(0,255,136,.1);color:#00ff88;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:monospace;transition:all .2s;">
+                  Connect
+                </button>
+              </div>
+              <!-- Canvas + overlays -->
+              <div style="position:relative;">
                 <canvas id="modal-ecg-canvas" class="ecg-canvas" height="100"></canvas>
+                <div class="flex items-center justify-between mb-0 px-1" style="position:absolute;top:6px;right:8px;">
+                  <span class="text-xs text-teal-400 font-mono font-bold" id="modal-ecg-hr">— bpm</span>
+                </div>
+                <!-- Leads-off warning -->
+                <div id="docEcgLeadsWarn" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(10,22,40,0.75);border-radius:8px;">
+                  <span style="background:rgba(244,63,94,.15);border:1px solid #f43f5e;border-radius:8px;padding:6px 16px;font-family:monospace;font-size:11px;color:#f43f5e;">
+                    ⚠ Leads off — check electrodes
+                  </span>
+                </div>
+              </div>
             </div>
-            <div class="grid grid-cols-3 gap-4">
-                <div class="glass p-4 text-center">
-                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">RMSSD</p>
-                    <p class="text-2xl font-black text-violet-700" id="modal-hrv-rmssd">—</p>
-                    <p class="text-xs text-slate-400 mt-1 font-semibold">ms</p>
-                </div>
-                <div class="glass p-4 text-center">
-                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">SDNN</p>
-                    <p class="text-2xl font-black text-indigo-700" id="modal-hrv-sdnn">—</p>
-                    <p class="text-xs text-slate-400 mt-1 font-semibold">ms</p>
-                </div>
-                <div class="glass p-4 text-center">
-                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">pNN50</p>
-                    <p class="text-2xl font-black text-purple-700" id="modal-hrv-pnn50">—</p>
-                    <p class="text-xs text-slate-400 mt-1 font-semibold">%</p>
-                </div>
-                <div class="glass p-4 text-center">
-                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">HR Avg</p>
-                    <p class="text-2xl font-black text-slate-900" id="modal-ecg-avg">—</p>
-                    <p class="text-xs text-slate-400 mt-1 font-semibold">bpm</p>
-                </div>
-                <div class="glass p-4 text-center col-span-2">
-                    <p class="text-xs text-slate-500 font-bold uppercase mb-1 tracking-wider">Rhythm</p>
-                    <p class="text-lg font-black text-green-600" id="modal-rhythm">—</p>
-                    <p class="text-xs text-slate-400 mt-1 font-semibold">classification</p>
-                </div>
-            </div>
+            <!-- HRV stats removed -->
         </div>
 
         <div id="history-tab" class="tab-content hidden">
@@ -830,6 +831,166 @@ let currentChatPatient = null;
 let currentPatientForModal = null;
 let activeFilter = 'all';
 let ecgAnimFrames = {};
+
+/* ─── AD8232 LIVE ECG WEBSOCKET ─── */
+let docEcgWS = null, docEcgWSConnected = false;
+const DOC_ECG_BUF_LEN = 500;
+let docEcgRealBuf = new Array(DOC_ECG_BUF_LEN).fill(2048);
+let docEcgBufPtr = 0;
+let docEcgUseReal = false;
+let docEcgLeadsOff = false;
+let docEcgAnimId = null;
+
+function docConnectECGWebSocket(ip) {
+  if (!ip || !ip.trim()) { docShowECGStatus('Enter ESP32 IP', 'warn'); return; }
+  ip = ip.trim();
+  if (docEcgWS) { docEcgWS.close(); }
+  const url = `ws://${ip}:81`;
+  docShowECGStatus('Connecting…', 'info');
+  docUpdateECGConnectBtn(true);
+  docEcgWS = new WebSocket(url);
+  docEcgWS.onopen = () => {
+    docEcgWSConnected = true;
+    docEcgUseReal = true;
+    docEcgLeadsOff = false;
+    localStorage.setItem('nexora_ecg_ip', ip);
+    docShowECGStatus('● AD8232 Live', 'live');
+    docUpdateECGConnectBtn(false);
+  };
+  docEcgWS.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      if (d.type === 'ecg') {
+        docEcgLeadsOff = (d.leads_ok === false);
+        docEcgRealBuf[docEcgBufPtr] = d.value ?? 2048;
+        docEcgBufPtr = (docEcgBufPtr + 1) % DOC_ECG_BUF_LEN;
+        const lw = document.getElementById('docEcgLeadsWarn');
+        if (lw) lw.style.display = docEcgLeadsOff ? 'flex' : 'none';
+      }
+    } catch(_) {}
+  };
+  docEcgWS.onerror = () => { docShowECGStatus('Connection error', 'error'); };
+  docEcgWS.onclose = () => {
+    docEcgWSConnected = false;
+    docEcgUseReal = false;
+    docShowECGStatus('● Disconnected', 'warn');
+    docUpdateECGConnectBtn(false);
+  };
+}
+
+function docDisconnectECGWebSocket() {
+  if (docEcgWS) { docEcgWS.close(); docEcgWS = null; }
+  docEcgWSConnected = false;
+  docEcgUseReal = false;
+  docShowECGStatus('● No signal', 'warn');
+  docUpdateECGConnectBtn(false);
+}
+
+function docShowECGStatus(msg, type) {
+  const el = document.getElementById('docEcgStatusDot');
+  if (!el) return;
+  const colors = { live:'#10b981', warn:'#f59e0b', error:'#f43f5e', info:'#0ea5e9' };
+  el.style.color = colors[type] || colors.info;
+  el.textContent = msg;
+}
+
+function docUpdateECGConnectBtn(connecting) {
+  const btn = document.getElementById('docEcgConnectBtn');
+  const inp = document.getElementById('docEcgIpInput');
+  if (!btn) return;
+  if (docEcgWSConnected) {
+    btn.textContent = 'Disconnect';
+    btn.style.background = 'rgba(244,63,94,.15)';
+    btn.style.color = '#f43f5e';
+    btn.style.borderColor = 'rgba(244,63,94,.4)';
+  } else {
+    btn.textContent = connecting ? 'Connecting…' : 'Connect';
+    btn.style.background = 'rgba(0,255,136,.1)';
+    btn.style.color = '#00ff88';
+    btn.style.borderColor = 'rgba(0,255,136,.3)';
+  }
+  if (inp) inp.disabled = docEcgWSConnected;
+}
+
+function onDocECGConnectClick() {
+  if (docEcgWSConnected) {
+    docDisconnectECGWebSocket();
+  } else {
+    const ip = document.getElementById('docEcgIpInput')?.value || '';
+    docConnectECGWebSocket(ip);
+  }
+}
+
+function initDocLiveECG() {
+  const canvas = document.getElementById('modal-ecg-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600;
+  const H = canvas.height || 100;
+  canvas.width = W;
+
+  // Restore saved IP
+  const savedIP = localStorage.getItem('nexora_ecg_ip');
+  const ipEl = document.getElementById('docEcgIpInput');
+  if (savedIP && ipEl && !ipEl.value) ipEl.value = savedIP;
+  docUpdateECGConnectBtn(false);
+  docShowECGStatus(docEcgWSConnected ? '● AD8232 Live' : '● No signal — connect ESP32', docEcgWSConnected ? 'live' : 'warn');
+
+  if (docEcgAnimId) { cancelAnimationFrame(docEcgAnimId); docEcgAnimId = null; }
+
+  function drawGrid() {
+    ctx.strokeStyle = 'rgba(0,255,136,0.08)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 5; i++) { ctx.beginPath(); ctx.moveTo(0, i*(H/5)); ctx.lineTo(W, i*(H/5)); ctx.stroke(); }
+    for (let i = 0; i <= 10; i++) { ctx.beginPath(); ctx.moveTo(i*(W/10), 0); ctx.lineTo(i*(W/10), H); ctx.stroke(); }
+  }
+
+  function draw() {
+    if (!document.getElementById('modal-ecg-canvas')) { cancelAnimationFrame(docEcgAnimId); return; }
+    ctx.clearRect(0, 0, W, H);
+    drawGrid();
+
+    if (docEcgUseReal && docEcgWSConnected) {
+      // Real AD8232 waveform
+      ctx.beginPath();
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(0,255,136,0.5)';
+      ctx.shadowBlur = 6;
+      const step = W / DOC_ECG_BUF_LEN;
+      for (let i = 0; i < DOC_ECG_BUF_LEN; i++) {
+        const idx = (docEcgBufPtr + i) % DOC_ECG_BUF_LEN;
+        const val = docEcgRealBuf[idx];
+        const x = i * step;
+        const y = H - (val / 4095) * H;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Cursor line
+      ctx.strokeStyle = 'rgba(0,255,136,0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(W - 2, 0); ctx.lineTo(W - 2, H); ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      // Flat line — no signal
+      ctx.strokeStyle = 'rgba(0,255,136,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.moveTo(0, H / 2);
+      ctx.lineTo(W, H / 2);
+      ctx.stroke();
+    }
+    docEcgAnimId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopDocLiveECG() {
+  if (docEcgAnimId) { cancelAnimationFrame(docEcgAnimId); docEcgAnimId = null; }
+}
 
 /* ─── ECG GENERATION ─── */
 function generateECGData() {
@@ -1578,6 +1739,7 @@ function closePatientModal() {
     window._openModalPatientId = null;
     window._openModalPatientNumericId = null;
     onDoctorReportTabClose();
+    stopDocLiveECG();
     if (ecgAnimFrames['modal-ecg-canvas']) {
         cancelAnimationFrame(ecgAnimFrames['modal-ecg-canvas']);
         delete ecgAnimFrames['modal-ecg-canvas'];
@@ -1669,6 +1831,13 @@ function switchTab(tab, el) {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
     const t = document.getElementById(tab+'-tab');
     if (t) t.classList.remove('hidden');
+
+    // ── ECG tab hook ────────────────────────────────────────────────────────
+    if (tab === 'ecg') {
+        setTimeout(() => initDocLiveECG(), 60);
+    } else {
+        stopDocLiveECG();
+    }
 
     // ── AI Report tab hook ──────────────────────────────────────────────────
     if (tab === 'ai-report') {

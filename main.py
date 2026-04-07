@@ -4,7 +4,7 @@
 # =============================================================================
 
 from fastapi import FastAPI, Form, Request, BackgroundTasks, Depends, HTTPException, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -15,14 +15,14 @@ from pathlib import Path
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Text, text
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 import uvicorn
 import smtplib
 import bcrypt
 import re
 import httpx
 import statistics
-import math
+import time
 import os
 from groq import Groq
 from dotenv import load_dotenv
@@ -866,7 +866,7 @@ class VitalsPayload(BaseModel):
 
 @app.post("/api/upload_vitals")
 async def upload_vitals(payload: VitalsPayload):
-    cloud_storage.append({**payload.model_dump(), "timestamp": datetime.now().strftime("%H:%M:%S")})
+    cloud_storage.append({**payload.dict(), "timestamp": datetime.now().strftime("%H:%M:%S")})
     return {"status": "success"}
 
 
@@ -1726,6 +1726,10 @@ async def doctor_get_patients(
 #  GET /api/report/30min/status
 # =============================================================================
 
+import httpx
+import statistics
+import math
+
 _OLLAMA_URL   = "http://localhost:11434/api/generate"
 _OLLAMA_MODEL = "llama3"
 
@@ -2203,20 +2207,19 @@ async def report_status():
 #  Get a free key at: https://console.groq.com
 # =============================================================================
 
-class ChatHistoryItem(BaseModel):
-    role: str       # "user" or "assistant"
-    content: str
-
 class ChatRequest(BaseModel):
     message: str
-    history: list[ChatHistoryItem] = []   # up to 20 prior turns for context
+    # Accept history as a plain list of dicts so both legacy {role,text}
+    # and the updated {role,content} formats are handled without 422 errors.
+    history: list[dict] = []
+
 
 @app.post("/api/medical-chat")
 async def medical_chat_endpoint(payload: ChatRequest):
     """
     Nexi AI Medical Chatbot — powered by Groq (llama-3.3-70b-versatile).
     Supports multi-turn conversation via the `history` field.
-    Each history item: { role: "user"|"assistant", content: "..." }
+    Accepts both legacy {role, text} and standard {role, content} history items.
     """
     try:
         client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -2224,23 +2227,26 @@ async def medical_chat_endpoint(payload: ChatRequest):
         SYSTEM_PROMPT = (
             "You are Nexi, a friendly and knowledgeable medical AI assistant for the NEXORA MediTwin "
             "health monitoring platform. Your role is to:\n"
-            "- Answer questions about diseases, symptoms, medicines, health metrics (heart rate, SpO2, HRV, temperature), and general wellness\n"
+            "- Answer questions about diseases, symptoms, medicines, health metrics "
+            "(heart rate, SpO2, HRV, temperature), and general wellness\n"
             "- Explain medical terms and lab values in simple language\n"
             "- Provide helpful context about wearable health monitoring data\n"
-            "- Always recommend consulting a qualified doctor for personal diagnosis or treatment decisions\n"
-            "- Keep responses clear, structured, and concise — use bullet points and bold headers where helpful\n"
+            "- Always recommend consulting a qualified doctor for personal diagnosis or treatment\n"
+            "- Keep responses clear and concise — use bullet points and bold headers where helpful\n"
             "- Never diagnose or prescribe; you are an information assistant only\n"
             "Be warm, empathetic, and professional."
         )
 
-        # Build message chain: system + history (capped at last 18 turns) + new user message
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+        messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-        # Only keep the last 18 history items to stay within token limits
-        recent_history = payload.history[-18:] if len(payload.history) > 18 else payload.history
-        for item in recent_history:
-            role = item.role if item.role in ("user", "assistant") else "user"
-            messages.append({"role": role, "content": item.content})
+        # Normalise history — support both {text} (legacy) and {content} (new) keys
+        for item in payload.history[-18:]:
+            role    = item.get("role", "user")
+            role    = role if role in ("user", "assistant") else "user"
+            # prefer 'content', fall back to 'text', then empty string
+            content = item.get("content") or item.get("text") or ""
+            if content:
+                messages.append({"role": role, "content": content})
 
         messages.append({"role": "user", "content": payload.message})
 
@@ -2334,7 +2340,7 @@ async def serve_casual_signin():
 _PUBLIC_PAGES = [
     "index", "about", "help", "privacy", "terms",
     "security", "success", "local-success", "regulatory",
-    "quality",
+    "quality", "incident",
 ]
 
 for _page in _PUBLIC_PAGES:

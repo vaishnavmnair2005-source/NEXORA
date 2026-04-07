@@ -37,6 +37,15 @@ body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: rgba(100,116,139,.25); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,.45); }
 
+#ecgIpInput:focus {
+  border-color: var(--accent) !important;
+  background: #f0fdf9 !important;
+  box-shadow: 0 0 0 2px rgba(20,184,166,.12);
+}
+#ecgIpInput:disabled {
+  opacity: .5; cursor: not-allowed;
+}
+
 /* ── LOADING SCREEN ── */
 #loadScreen {
   position: fixed; inset: 0; z-index: 1000;
@@ -822,6 +831,97 @@ let patients = [], activePatientId = null;
 let miniCharts = {}, historyChartInst = null, historyChart2Inst = null;
 let ecgAnimId = null, activeChart = 'heart_rate', simInterval = null;
 let ecgPhase = 0;
+
+// AD8232 WebSocket state
+let ecgWS = null, ecgWSConnected = false, ecgWSReconnectTimer = null;
+const ECG_BUF_LEN = 500;
+let ecgRealBuf = new Array(ECG_BUF_LEN).fill(2048);
+let ecgBufPtr = 0;
+let ecgUseReal = false;
+let ecgLeadsOff = false;
+
+function connectECGWebSocket(ip) {
+  if (!ip || !ip.trim()) { showECGStatus('Enter ESP32 IP', 'warn'); return; }
+  ip = ip.trim();
+  if (ecgWS) { ecgWS.close(); }
+  const url = `ws://${ip}:81`;
+  showECGStatus('Connecting…', 'info');
+  updateECGConnectBtn(true);
+  ecgWS = new WebSocket(url);
+  ecgWS.onopen = () => {
+    ecgWSConnected = true;
+    ecgUseReal = true;
+    ecgLeadsOff = false;
+    localStorage.setItem('nexora_ecg_ip', ip);
+    showECGStatus('● AD8232 Live', 'live');
+    updateECGConnectBtn(false);
+    console.log('[ECG WS] Connected to', url);
+  };
+  ecgWS.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      if (d.type === 'ecg') {
+        ecgLeadsOff = (d.leads_ok === false);
+        ecgRealBuf[ecgBufPtr] = d.value ?? 2048;
+        ecgBufPtr = (ecgBufPtr + 1) % ECG_BUF_LEN;
+        const lw = document.getElementById('ecgLeadsWarn');
+        if (lw) lw.style.display = ecgLeadsOff ? 'flex' : 'none';
+      }
+    } catch(_) {}
+  };
+  ecgWS.onerror = () => { showECGStatus('Connection error', 'error'); };
+  ecgWS.onclose = () => {
+    ecgWSConnected = false;
+    ecgUseReal = false;
+    showECGStatus('● Disconnected — simulated', 'warn');
+    updateECGConnectBtn(false);
+    console.log('[ECG WS] Disconnected');
+  };
+}
+
+function disconnectECGWebSocket() {
+  if (ecgWS) { ecgWS.close(); ecgWS = null; }
+  ecgWSConnected = false;
+  ecgUseReal = false;
+  showECGStatus('● Simulated', 'warn');
+  updateECGConnectBtn(false);
+}
+
+function showECGStatus(msg, type) {
+  const el = document.getElementById('ecgStatusDot');
+  if (!el) return;
+  const colors = { live:'#10b981', warn:'#f59e0b', error:'#f43f5e', info:'#0ea5e9' };
+  el.style.color = colors[type] || colors.info;
+  el.textContent = msg;
+}
+
+function updateECGConnectBtn(connecting) {
+  const btn = document.getElementById('ecgConnectBtn');
+  const inp = document.getElementById('ecgIpInput');
+  if (!btn) return;
+  if (ecgWSConnected) {
+    btn.textContent = 'Disconnect';
+    btn.style.background = 'rgba(244,63,94,.1)';
+    btn.style.color = '#f43f5e';
+    btn.style.borderColor = 'rgba(244,63,94,.3)';
+  } else {
+    btn.textContent = connecting ? 'Connecting…' : 'Connect';
+    btn.style.background = 'rgba(20,184,166,.1)';
+    btn.style.color = '#14b8a6';
+    btn.style.borderColor = 'rgba(20,184,166,.3)';
+  }
+  if (inp) inp.disabled = ecgWSConnected;
+}
+
+function onECGConnectClick() {
+  if (ecgWSConnected) {
+    disconnectECGWebSocket();
+  } else {
+    const ip = document.getElementById('ecgIpInput')?.value || '';
+    connectECGWebSocket(ip);
+  }
+}
+
 let caregiverId = 'default'; // Set from /api/profile-data — isolates localStorage per account
 const DB_KEY_BASE = 'meditwin_patients_v4';
 let DB_KEY = DB_KEY_BASE + '_default';
@@ -1388,24 +1488,43 @@ function renderDashboard(){
             <!-- ── ECG SECTION ── -->
             <div class="g-card-header">
               <div class="g-card-title">
-                <i class="fas fa-heartbeat" style="color:var(--danger);"></i>ECG
+                <i class="fas fa-heartbeat" style="color:var(--danger);"></i>ECG — AD8232
               </div>
-              <span class="badge badge-live">● Live ECG</span>
+              <span class="badge badge-live" id="ecgStatusDot">● Simulated</span>
             </div>
+
+            <!-- Connect Bar -->
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 18px 4px;border-bottom:1px solid var(--card-border);">
+              <i class="fas fa-wifi" style="color:var(--accent);font-size:11px;flex-shrink:0;"></i>
+              <input id="ecgIpInput" type="text" placeholder="ESP32 IP  e.g. 192.168.1.42"
+                style="flex:1;padding:5px 10px;border-radius:8px;border:1px solid var(--card-border);font-family:var(--mono);font-size:11px;color:var(--text-primary);background:#f8fafc;outline:none;"
+                onkeydown="if(event.key==='Enter') onECGConnectClick()">
+              <button id="ecgConnectBtn" onclick="onECGConnectClick()"
+                style="padding:5px 14px;border-radius:8px;border:1px solid rgba(20,184,166,.3);background:rgba(20,184,166,.1);color:#14b8a6;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Figtree',sans-serif;transition:all .2s;">
+                Connect
+              </button>
+            </div>
+
             <div class="g-card-body" style="padding-bottom:0;padding-top:10px;">
-              <div class="ecg-screen">
+              <div class="ecg-screen" style="position:relative;">
                 <canvas id="ecgCanvas" class="ecg-canvas"></canvas>
                 <div class="ecg-overlay">
                   <div class="ecg-lbl">HEART RATE</div>
                   <div class="ecg-bpm" id="ecgBpm">${(p.liveHeartRate || p.vitals.heart_rate) > 0 ? (p.liveHeartRate || p.vitals.heart_rate) : '--'}</div>
                   <div class="ecg-lbl">BPM</div>
                 </div>
+                <!-- Leads-off warning -->
+                <div id="ecgLeadsWarn" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(240,244,249,0.85);border-radius:inherit;">
+                  <span style="background:rgba(244,63,94,.15);border:1px solid #f43f5e;border-radius:8px;padding:8px 18px;font-family:var(--mono);font-size:12px;color:#f43f5e;">
+                    ⚠ Leads off — check electrodes
+                  </span>
+                </div>
               </div>
             </div>
             <div class="status-strip">
-              <div class="sdot-item"><span class="sdot green"></span>ECG Connected</div>
+              <div class="sdot-item" id="ecgConnStatus"><span class="sdot amber"></span>Simulated waveform</div>
               ${p.deviceId ? `<div class="sdot-item"><span class="sdot cyan"></span>${p.deviceId}</div>` : ''}
-              <div class="sdot-item"><span class="sdot amber"></span>Signal: 97%</div>
+              <div class="sdot-item"><span class="sdot green"></span>MAX30102 vitals active</div>
             </div>
 
             <!-- ── HRV SECTION ── -->
@@ -1822,6 +1941,12 @@ function renderDashboard(){
   renderPatientDetails();
   setTimeout(()=>{
     initECG();
+    // Restore saved IP into input if present
+    const savedIP = localStorage.getItem('nexora_ecg_ip');
+    const ipEl = document.getElementById('ecgIpInput');
+    if (savedIP && ipEl) ipEl.value = savedIP;
+    updateECGConnectBtn(false);
+    showECGStatus(ecgWSConnected ? '● AD8232 Live' : '● Simulated', ecgWSConnected ? 'live' : 'warn');
     initHistoryChart();
     const p2=getPatient();
     if(p2){
@@ -2289,36 +2414,89 @@ function switchChart2(key,btn){
 }
 
 // ===== ECG =====
-function initECG(){
-  const canvas=document.getElementById('ecgCanvas'); if(!canvas) return;
-  const ctx=canvas.getContext('2d');
-  canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
-  const w=canvas.width, h=canvas.height, pts=[];
-  if(ecgAnimId) cancelAnimationFrame(ecgAnimId);
-  function ecgWave(x){
-    const t=x%1;
-    if(t<.1) return t*2;
-    if(t<.15) return .2-(t-.1)*6;
-    if(t<.2) return -(t-.15)*4;
-    if(t<.25) return -.2+(t-.2)*16;
-    if(t<.3) return .8-(t-.25)*20;
-    if(t<.35) return -.2+(t-.3)*10;
-    if(t<.4) return .3-(t-.35)*2;
-    return Math.sin((t-.4)*Math.PI*3)*.05*(1-(t-.4)*4);
+function initECG() {
+  const canvas = document.getElementById('ecgCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  const w = canvas.width, h = canvas.height;
+
+  function ecgWave(x) {
+    const t = x % 1;
+    if (t < .10) return t * 2;
+    if (t < .15) return .2 - (t - .10) * 6;
+    if (t < .20) return -(t - .15) * 4;
+    if (t < .25) return -.2 + (t - .20) * 16;
+    if (t < .30) return .8 - (t - .25) * 20;
+    if (t < .35) return -.2 + (t - .30) * 10;
+    if (t < .40) return .3 - (t - .35) * 2;
+    return Math.sin((t - .40) * Math.PI * 3) * .05 * (1 - (t - .40) * 4);
   }
-  function draw(){
-    if(!document.getElementById('ecgCanvas')){cancelAnimationFrame(ecgAnimId);return;}
-    ctx.clearRect(0,0,w,h);
-    // Scale scroll speed to live heart rate (baseline 72 bpm → 0.012 per frame at 60fps)
-    const _p=getPatient(); const _bpm=(_p?.liveHeartRate || _p?.vitals?.heart_rate || 72);
-    ecgPhase+=0.012*(_bpm/72); if(ecgPhase>1) ecgPhase=0;
-    for(let i=0;i<w;i++) pts[i]=ecgWave((i/w+ecgPhase));
-    ctx.beginPath(); ctx.strokeStyle='#10b981'; ctx.lineWidth=1.5;
-    ctx.shadowColor='#10b981'; ctx.shadowBlur=10;
-    for(let i=0;i<w;i++){const y=h/2-pts[i]*(h/2.5);if(i===0)ctx.moveTo(i,y);else ctx.lineTo(i,y);}
-    ctx.stroke(); ecgAnimId=requestAnimationFrame(draw);
+
+  function drawGrid() {
+    ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < w; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 20) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+  }
+
+  if (ecgAnimId) cancelAnimationFrame(ecgAnimId);
+
+  function draw() {
+    if (!document.getElementById('ecgCanvas')) {
+      cancelAnimationFrame(ecgAnimId); return;
+    }
+    ctx.clearRect(0, 0, w, h);
+    drawGrid();
+
+    if (ecgUseReal && ecgWSConnected) {
+      // ── REAL ECG from AD8232 WebSocket ──
+      ctx.beginPath();
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.8;
+      ctx.shadowColor = 'rgba(16,185,129,0.5)';
+      ctx.shadowBlur = 6;
+      const step = w / ECG_BUF_LEN;
+      for (let i = 0; i < ECG_BUF_LEN; i++) {
+        const idx = (ecgBufPtr + i) % ECG_BUF_LEN;
+        const val = ecgRealBuf[idx];
+        const x = i * step;
+        const y = h - (val / 4095) * h;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Cursor line at right edge
+      ctx.strokeStyle = 'rgba(16,185,129,0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(w - 2, 0); ctx.lineTo(w - 2, h); ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      // ── FLAT LINE when disconnected ──
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(16,185,129,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 0;
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+    }
+    ecgAnimId = requestAnimationFrame(draw);
   }
   draw();
+
+  // Restore saved IP if available
+  const savedIP = localStorage.getItem('nexora_ecg_ip');
+  if (savedIP && !ecgWSConnected) {
+    const ipInput = document.getElementById('ecgIpInput');
+    if (ipInput) ipInput.value = savedIP;
+  }
 }
 
 // ===== MEDS =====
