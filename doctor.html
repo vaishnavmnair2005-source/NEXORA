@@ -552,12 +552,12 @@
               </div>
               <!-- Connect bar -->
               <div style="display:flex;align-items:center;gap:8px;padding:6px 4px 8px;">
-                <i class="fas fa-wifi" style="color:#00ff88;font-size:11px;flex-shrink:0;"></i>
+                <i class="fas fa-wifi" style="color:#10b981;font-size:11px;flex-shrink:0;"></i>
                 <input id="docEcgIpInput" type="text" placeholder="ESP32 IP  e.g. 192.168.1.42"
-                  style="flex:1;padding:5px 10px;border-radius:8px;border:1px solid rgba(0,255,136,.2);font-family:monospace;font-size:11px;color:#00ff88;background:rgba(0,255,136,.05);outline:none;"
+                  style="flex:1;padding:5px 10px;border-radius:8px;border:1px solid rgba(16,185,129,.2);font-family:monospace;font-size:11px;color:#10b981;background:rgba(16,185,129,.05);outline:none;"
                   onkeydown="if(event.key==='Enter') onDocECGConnectClick()">
                 <button id="docEcgConnectBtn" onclick="onDocECGConnectClick()"
-                  style="padding:5px 14px;border-radius:8px;border:1px solid rgba(0,255,136,.3);background:rgba(0,255,136,.1);color:#00ff88;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:monospace;transition:all .2s;">
+                  style="padding:5px 14px;border-radius:8px;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:#10b981;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:monospace;transition:all .2s;">
                   Connect
                 </button>
               </div>
@@ -845,10 +845,12 @@ function docConnectECGWebSocket(ip) {
   if (!ip || !ip.trim()) { docShowECGStatus('Enter ESP32 IP', 'warn'); return; }
   ip = ip.trim();
   if (docEcgWS) { docEcgWS.close(); }
-  const url = `ws://${ip}:81`;
+
+  const url = `ws://${ip}:80`;          // matches patient dashboard
   docShowECGStatus('Connecting…', 'info');
   docUpdateECGConnectBtn(true);
   docEcgWS = new WebSocket(url);
+
   docEcgWS.onopen = () => {
     docEcgWSConnected = true;
     docEcgUseReal = true;
@@ -857,18 +859,28 @@ function docConnectECGWebSocket(ip) {
     docShowECGStatus('● AD8232 Live', 'live');
     docUpdateECGConnectBtn(false);
   };
+
   docEcgWS.onmessage = (e) => {
     try {
-      const d = JSON.parse(e.data);
-      if (d.type === 'ecg') {
-        docEcgLeadsOff = (d.leads_ok === false);
-        docEcgRealBuf[docEcgBufPtr] = d.value ?? 2048;
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'ecg') {
+        // ADC sample (0–4095)
+        docEcgRealBuf[docEcgBufPtr] = msg.value;
         docEcgBufPtr = (docEcgBufPtr + 1) % DOC_ECG_BUF_LEN;
-        const lw = document.getElementById('docEcgLeadsWarn');
-        if (lw) lw.style.display = docEcgLeadsOff ? 'flex' : 'none';
       }
-    } catch(_) {}
+      // Update leads-off warning + BPM overlay
+      docEcgLeadsOff = !msg.leads_ok;
+      const lw = document.getElementById('docEcgLeadsWarn');
+      if (lw) lw.style.display = docEcgLeadsOff ? 'flex' : 'none';
+      if (msg.bpm) {
+        const hrEl = document.getElementById('modal-ecg-hr');
+        if (hrEl) hrEl.textContent = msg.bpm + ' bpm';
+      }
+    } catch(err) {
+      console.warn('[ECG WS] Parse error', err);
+    }
   };
+
   docEcgWS.onerror = () => { docShowECGStatus('Connection error', 'error'); };
   docEcgWS.onclose = () => {
     docEcgWSConnected = false;
@@ -905,9 +917,9 @@ function docUpdateECGConnectBtn(connecting) {
     btn.style.borderColor = 'rgba(244,63,94,.4)';
   } else {
     btn.textContent = connecting ? 'Connecting…' : 'Connect';
-    btn.style.background = 'rgba(0,255,136,.1)';
-    btn.style.color = '#00ff88';
-    btn.style.borderColor = 'rgba(0,255,136,.3)';
+    btn.style.background = 'rgba(16,185,129,.1)';
+    btn.style.color = '#10b981';
+    btn.style.borderColor = 'rgba(16,185,129,.3)';
   }
   if (inp) inp.disabled = docEcgWSConnected;
 }
@@ -925,9 +937,10 @@ function initDocLiveECG() {
   const canvas = document.getElementById('modal-ecg-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.offsetWidth || 600;
-  const H = canvas.height || 100;
-  canvas.width = W;
+  canvas.width  = canvas.offsetWidth  || 600;
+  canvas.height = canvas.offsetHeight || 100;
+  const W = canvas.width;
+  const H = canvas.height;
 
   // Restore saved IP
   const savedIP = localStorage.getItem('nexora_ecg_ip');
@@ -939,10 +952,14 @@ function initDocLiveECG() {
   if (docEcgAnimId) { cancelAnimationFrame(docEcgAnimId); docEcgAnimId = null; }
 
   function drawGrid() {
-    ctx.strokeStyle = 'rgba(0,255,136,0.08)';
+    ctx.strokeStyle = 'rgba(16,185,129,0.05)';
     ctx.lineWidth = 0.5;
-    for (let i = 0; i <= 5; i++) { ctx.beginPath(); ctx.moveTo(0, i*(H/5)); ctx.lineTo(W, i*(H/5)); ctx.stroke(); }
-    for (let i = 0; i <= 10; i++) { ctx.beginPath(); ctx.moveTo(i*(W/10), 0); ctx.lineTo(i*(W/10), H); ctx.stroke(); }
+    for (let x = 0; x < W; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 20) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
   }
 
   function draw() {
@@ -953,9 +970,9 @@ function initDocLiveECG() {
     if (docEcgUseReal && docEcgWSConnected) {
       // Real AD8232 waveform
       ctx.beginPath();
-      ctx.strokeStyle = '#00ff88';
-      ctx.lineWidth = 2;
-      ctx.shadowColor = 'rgba(0,255,136,0.5)';
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.8;
+      ctx.shadowColor = 'rgba(16,185,129,0.5)';
       ctx.shadowBlur = 6;
       const step = W / DOC_ECG_BUF_LEN;
       for (let i = 0; i < DOC_ECG_BUF_LEN; i++) {
@@ -967,18 +984,18 @@ function initDocLiveECG() {
       }
       ctx.stroke();
       ctx.shadowBlur = 0;
-      // Cursor line
-      ctx.strokeStyle = 'rgba(0,255,136,0.2)';
+      // Cursor line at right edge
+      ctx.strokeStyle = 'rgba(16,185,129,0.2)';
       ctx.lineWidth = 1;
       ctx.setLineDash([3, 4]);
       ctx.beginPath(); ctx.moveTo(W - 2, 0); ctx.lineTo(W - 2, H); ctx.stroke();
       ctx.setLineDash([]);
     } else {
       // Flat line — no signal
-      ctx.strokeStyle = 'rgba(0,255,136,0.4)';
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(16,185,129,0.5)';
       ctx.lineWidth = 1.5;
       ctx.shadowBlur = 0;
-      ctx.beginPath();
       ctx.moveTo(0, H / 2);
       ctx.lineTo(W, H / 2);
       ctx.stroke();

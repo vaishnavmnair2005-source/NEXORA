@@ -844,10 +844,13 @@ function connectECGWebSocket(ip) {
   if (!ip || !ip.trim()) { showECGStatus('Enter ESP32 IP', 'warn'); return; }
   ip = ip.trim();
   if (ecgWS) { ecgWS.close(); }
-  const url = `ws://${ip}:81`;
+
+  const url = `ws://${ip}:80`;          // ← FIX 1: correct port + path
   showECGStatus('Connecting…', 'info');
   updateECGConnectBtn(true);
+
   ecgWS = new WebSocket(url);
+
   ecgWS.onopen = () => {
     ecgWSConnected = true;
     ecgUseReal = true;
@@ -857,18 +860,26 @@ function connectECGWebSocket(ip) {
     updateECGConnectBtn(false);
     console.log('[ECG WS] Connected to', url);
   };
+
   ecgWS.onmessage = (e) => {
-    try {
-      const d = JSON.parse(e.data);
-      if (d.type === 'ecg') {
-        ecgLeadsOff = (d.leads_ok === false);
-        ecgRealBuf[ecgBufPtr] = d.value ?? 2048;
-        ecgBufPtr = (ecgBufPtr + 1) % ECG_BUF_LEN;
-        const lw = document.getElementById('ecgLeadsWarn');
-        if (lw) lw.style.display = ecgLeadsOff ? 'flex' : 'none';
-      }
-    } catch(_) {}
-  };
+  try {
+    const msg = JSON.parse(e.data);          // Arduino sends JSON text
+
+    if (msg.type === 'ecg') {
+      // Push the ADC sample into the ring buffer
+      ecgRealBuf[ecgBufPtr] = msg.value;
+      ecgBufPtr = (ecgBufPtr + 1) % ECG_BUF_LEN;
+
+      // Update leads-off warning
+      ecgLeadsOff = !msg.leads_ok;
+      const lw = document.getElementById('ecgLeadsWarn');
+      if (lw) lw.style.display = ecgLeadsOff ? 'flex' : 'none';
+    }
+  } catch (err) {
+    console.warn('[ECG WS] Parse error', err);
+  }
+};
+
   ecgWS.onerror = () => { showECGStatus('Connection error', 'error'); };
   ecgWS.onclose = () => {
     ecgWSConnected = false;
